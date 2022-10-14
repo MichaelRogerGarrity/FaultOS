@@ -8,8 +8,7 @@
 
 int generic_interrupt() {
     printf("Generic non-descript interrupt");
-    while(1){
-        
+    while(1){ 
     }
     return 0;
 }
@@ -17,7 +16,6 @@ int generic_interrupt() {
 int divide_error() {
     printf("Divide by zero error");
     while(1){
-        
     }
     return 0;
 }
@@ -227,7 +225,7 @@ for(i = 0; i < 21; i++){
     }
     else{
         printf("Bad function got into our array somehow");
-        while(1);
+        while(1){};
     }
 
 }
