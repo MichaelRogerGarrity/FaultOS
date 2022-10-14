@@ -1,11 +1,164 @@
 #include "x86_desc.h"
+#include "IDT.h"
+#include "lib.h"
 
 
 
-int (*funcs[21]) ();
 
+
+int generic_interrupt() {
+    printf("Generic non-descript interrupt");
+    while(1){
+        
+    }
+    return 0;
+}
+
+int divide_error() {
+    printf("Divide by zero error");
+    while(1){
+        
+    }
+    return 0;
+}
+
+int RESERVED() {
+    printf("Reserved for Intel");
+    while(1){
+    }
+    return 0;
+}
+
+int NMI() {
+    printf("Nonmaskable external interrupt");
+    while(1){
+    }
+    return 0;
+}
+
+int breakpoint() {
+    printf("Breakpoint reached");
+    while(1){
+    }
+    return 0;
+}
+
+int overflow() {
+    printf("Overflow");
+    while(1){
+    }
+    return 0;
+}
+
+int bound() {
+    printf("Bounds range exceeded (BOUND)");
+    while(1){
+    }
+    return 0;
+}
+
+int InvalidOpcode() {
+    printf("Invalid opcode");
+    while(1){
+    }
+    return 0;
+}
+
+int WAIT() {
+    printf("Device not available");
+    while(1){
+    }
+    return 0;
+}
+
+int DoubleFalt() {
+    printf("Double fault");
+    while(1){
+    }
+    return 0;
+}
+
+int overrun() {
+    printf("Coprocessor segment overrun");
+    while(1){
+    }
+    return 0;
+}
+
+int TSS() {
+    printf("Invalid TSS");
+    while(1){
+    }
+    return 0;
+}
+
+int segment() {
+    printf("Segment not present");
+    while(1){
+    }
+    return 0;
+}
+
+int stackSegment() {
+    printf("Stack-segment fault");
+    while(1){
+    }
+    return 0;
+}
+
+int protect() {
+    printf("General protection fault");
+    while(1){
+    }
+    return 0;
+}
+
+int pageFault() {
+    printf("Page fault");
+    while(1){
+    }
+    return 0;
+}
+
+int RESERVED2() {
+    printf("Reserved");
+    while(1){
+    }
+    return 0;
+}
+
+int FPU() {
+    printf("x87 FPU error");
+    while(1){
+    }
+    return 0;
+}
+
+int allign() {
+    printf("Allignment check");
+    while(1){
+    }
+    return 0;
+}
+
+int machine() {
+    printf("Machine check");
+    while(1){
+    }
+    return 0;
+}
+
+int SIMD() {
+    printf("SIMD Floating-Point Exception");
+    while(1){
+    }
+    return 0;
+}
+ 
 void init_IDT(){
 int i;
+
+// initializes our functions array
 for(i = 0; i < 21; i++){
     if(i==0)
     funcs[i] = divide_error;
@@ -31,7 +184,7 @@ for(i = 0; i < 21; i++){
     funcs[i] = TSS;
     else if(i==11)
     funcs[i] = segment;
-    else if(i==12)
+    else if(i==12) 
     funcs[i] = stackSegment;
     else if(i==13)
     funcs[i] = protect;
@@ -50,16 +203,17 @@ for(i = 0; i < 21; i++){
     else
     funcs[i] = generic_interrupt;
 }
-
-
+ 
+// populates our IDT
 for(i = 0; i < 21; i++){
     idt_desc_t curr;
 
-    long curr_func_addr = funcs[i];
+    int* curr_func_addr = funcs[i];
 
     // curr.offset_15_00 = 0x0000FFFF & curr_func_addr;
     // curr.offset_31_16 = 0xFFFF0000 & curr_func_addr;
-   
+
+    if(curr_func_addr != 0){   
     curr.reserved4 = 0;
     curr.reserved3 = 0;
     curr.reserved2 = 1;
@@ -70,138 +224,17 @@ for(i = 0; i < 21; i++){
     curr.present = 1;
      SET_IDT_ENTRY(curr, curr_func_addr);
     idt[i] = curr;
-
-}
-
-}
-
-int generic_interrupt() {
-    printf("Generic non-descript interrupt");
-    while(1){
-        
     }
+    else{
+        printf("Bad function got into our array somehow");
+        while(1);
+    }
+
 }
 
-int divide_error() {
-    printf("Divide by zero error");
-    while(1){
-        
-    }
 }
 
-int RESERVED() {
-    printf("Reserved for Intel");
-    while(1){
-    }
-}
 
-int NMI() {
-    printf("Nonmaskable external interrupt");
-    while(1){
-    }
-}
-
-int breakpoint() {
-    printf("Breakpoint reached");
-    while(1){
-    }
-}
-
-int overflow() {
-    printf("Overflow");
-    while(1){
-    }
-}
-
-int bound() {
-    printf("Bounds range exceeded (BOUND)");
-    while(1){
-    }
-}
-
-int InvalidOpcode() {
-    printf("Invalid opcode");
-    while(1){
-    }
-}
-
-int WAIT() {
-    printf("Device not available");
-    while(1){
-    }
-}
-
-int DoubleFalt() {
-    printf("Double fault");
-    while(1){
-    }
-}
-
-int overrun() {
-    printf("Coprocessor segment overrun");
-    while(1){
-    }
-}
-
-int TSS() {
-    printf("Invalid TSS");
-    while(1){
-    }
-}
-
-int segment() {
-    printf("Segment not present");
-    while(1){
-    }
-}
-
-int stackSegment() {
-    printf("Stack-segment fault");
-    while(1){
-    }
-}
-
-int protect() {
-    printf("General protection fault");
-    while(1){
-    }
-}
-
-int pageFault() {
-    printf("Page fault");
-    while(1){
-    }
-}
-
-int RESERVED2() {
-    printf("Reserved");
-    while(1){
-    }
-}
-
-int FPU() {
-    printf("x87 FPU error");
-    while(1){
-    }
-}
-
-int allign() {
-    printf("Allignment check");
-    while(1){
-    }
-}
-
-int machine() {
-    printf("Machine check");
-    while(1){
-    }
-}
-
-int SIMD() {
-    printf("SIMD Floating-Point Exception");
-    while(1){
-    }
-}
 
 
 

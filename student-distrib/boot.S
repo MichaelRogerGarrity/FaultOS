@@ -27,6 +27,10 @@ continue:
     # Load the GDT
     lgdt gdt_ptr
 
+    
+
+    lidt idt_desc_ptr
+
     # Added by Michael: Load the IDT
 
     # Load CS with the new descriptor value
