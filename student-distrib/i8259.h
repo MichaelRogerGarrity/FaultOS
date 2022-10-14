@@ -8,6 +8,9 @@
 
 #include "types.h"
 
+/* Defined variables as used in the PIC functions */
+#define MASK_ALL_INT        0xFF
+
 /* Ports that each PIC sits on */
 #define MASTER_8259_PORT    0x20
 #define SLAVE_8259_PORT     0xA0
