@@ -63,7 +63,8 @@ _gdt:
 
 gdt_ptr:
     # Set up an entry for kernel CS
-    .quad 0x00CF9A000000FFFF
+    .quad 0x00CF9A000000FFFF  # quad means 64 bit value 
+    
 
     # Set up an entry for kernel DS
     .quad 0x00CF92000000FFFF
