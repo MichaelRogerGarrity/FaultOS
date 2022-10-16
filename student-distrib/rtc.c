@@ -94,7 +94,7 @@ int rtc_set_freq(int newfreq) {
     outb(REG_A, RTC_PORT_IDX);                  // set index to register A, disable NMI
     unsigned char prev_a = inb(RTC_PORT_RW);    // get initial value of register A
     outb(REG_A, RTC_PORT_IDX);
-    outb(((prev & RATEBITS) | rate), RTC_PORT_RW);
+    outb(((prev_a & RATEBITS) | rate), RTC_PORT_RW);
 
     restore_flags(flags);
     return 0;
