@@ -48,7 +48,7 @@ void keyboard_handler(void) {
 
     uint8_t keycode = inb(KEYBOARD_PORT);
 
-    if (keycode < 0 || keycode >= KEYBOARD_INPUT_RANGE) {
+    if (keycode < 0 || keycode >= KEYBOARD_INPUT_RANGE || scancode_map_normal[keycode] == '\0') {
         send_eoi(KEYBOARD_IRQ);
         restore_flags(flags);
 
