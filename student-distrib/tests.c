@@ -44,9 +44,18 @@ int idt_test(){
 
 	return result;
 }
-
 // add more tests here
+int divzTest(){
+	int i;
+	i = 0;
+	int j; 
+	j = 3;
+	int k;
 
+	k = j/i;
+	
+	return 0;
+}
 /* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
@@ -56,5 +65,6 @@ int idt_test(){
 /* Test suite entry point */
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
+	TEST_OUTPUT("divz_test", divzTest());
 	// launch your tests here
 }

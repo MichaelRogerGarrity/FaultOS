@@ -140,6 +140,8 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Init the PIC */
     init_IDT();
     i8259_init();
+
+    
     
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the

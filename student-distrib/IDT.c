@@ -159,47 +159,47 @@ int i;
 // initializes our functions array
 for(i = 0; i < 256; i++){
     if(i==0)
-    funcs[i] = divide_error;
+    funcs[i] = &divide_error;
     else if(i==1)
-    funcs[i] = RESERVED;
+    funcs[i] = &RESERVED;
     else if(i==2)
-    funcs[i] = NMI;
+    funcs[i] = &NMI;
     else if(i==3)
-    funcs[i] = breakpoint;
+    funcs[i] = &breakpoint;
     else if(i==4)
-    funcs[i] = overflow;
+    funcs[i] = &overflow;
     else if(i==5)
-    funcs[i] = bound;
+    funcs[i] = &bound;
     else if(i==6)
-    funcs[i] = InvalidOpcode;
+    funcs[i] = &InvalidOpcode;
     else if(i==7)
-    funcs[i] = WAIT;
+    funcs[i] = &WAIT;
     else if(i==8)
-    funcs[i] = DoubleFalt;
+    funcs[i] = &DoubleFalt;
     else if(i==9)
-    funcs[i] = overrun;
+    funcs[i] = &overrun;
     else if(i==10)
-    funcs[i] = TSS;
+    funcs[i] = &TSS;
     else if(i==11)
-    funcs[i] = segment;
+    funcs[i] = &segment;
     else if(i==12) 
-    funcs[i] = stackSegment;
+    funcs[i] = &stackSegment;
     else if(i==13)
-    funcs[i] = protect;
+    funcs[i] = &protect;
     else if(i==14)
-    funcs[i] = pageFault;
+    funcs[i] = &pageFault;
     else if(i==15)
-    funcs[i] = RESERVED2;
+    funcs[i] = &RESERVED2;
     else if(i==16)
-    funcs[i] = FPU;
+    funcs[i] = &FPU;
     else if(i==17)
-    funcs[i] = allign;
+    funcs[i] = &allign;
     else if(i==18)
-    funcs[i] = machine;
+    funcs[i] = &machine;
     else if(i==19)
-    funcs[i] = SIMD;
+    funcs[i] = &SIMD;
     else
-    funcs[i] = generic_interrupt;
+    funcs[i] = &generic_interrupt;
 }
  
 // populates our IDT
@@ -220,7 +220,7 @@ for(i = 0; i < 256; i++){
     curr.reserved0 = 0;
     curr.dpl = 0;
     curr.present = 1;
-     SET_IDT_ENTRY(curr, curr_func_addr);
+     SET_IDT_ENTRY(curr, (uint32_t *)curr_func_addr);
     idt[i] = curr;
     }
     else{
@@ -229,6 +229,8 @@ for(i = 0; i < 256; i++){
     }
 
 }
+
+lidt(idt_desc_ptr);
 
 // puts system call
 
