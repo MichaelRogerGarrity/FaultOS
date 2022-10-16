@@ -41,8 +41,8 @@ void i8259_init(void) {
 
     // Slave:
     outb(ICW1, SLAVE_8259_PORT);                    // We are writing to the Command Port of Slave - 0xA0
-    outb(ICW2_MASTER, (SLAVE_8259_PORT + 1));       // We are writing to the Data Port of Slave - 0xA1
-    outb(ICW3_MASTER, (SLAVE_8259_PORT + 1));       // We are writing to the Data Port of Slave - 0xA1
+    outb(ICW2_SLAVE, (SLAVE_8259_PORT + 1));       // We are writing to the Data Port of Slave - 0xA1
+    outb(ICW3_SLAVE, (SLAVE_8259_PORT + 1));       // We are writing to the Data Port of Slave - 0xA1
     outb(ICW4, (SLAVE_8259_PORT + 1));              // We are writing to the Data Port of Slave - 0xA1
 
     // Restore the masks and flag
@@ -82,8 +82,8 @@ void enable_irq(uint32_t irq_num) {
         outb(master_mask, (MASTER_8259_PORT + 1));
     }
     else {
-        mask <<= irq_num;       // move 0 to correct position
-        mask = ~mask;           // needs to be active low
+        mask <<= (irq_num - 8);         // move 0 to correct position
+        mask = ~mask;                   // needs to be active low
         // enable irq on slave_mask, since val is more than 7
         slave_mask = slave_mask & mask;
         outb(slave_mask, (SLAVE_8259_PORT + 1));
@@ -106,8 +106,13 @@ void disable_irq(uint32_t irq_num) {
     if (irq_num > 15 || irq_num < 0)
         return;
     uint8_t mask = 0x01;        // 0000 0001 - 1 will be shifted to current irq's position
-    mask <<= irq_num;           // move 1 to correct position
 
+
+    if (irq_num > 7) {
+        mask <<= (irq_num - 8);
+    }
+    else
+        mask <<= irq_num;           // move 1 to correct position
     unsigned long flags;
     cli_and_save(flags);
 
@@ -121,7 +126,7 @@ void disable_irq(uint32_t irq_num) {
         slave_mask = slave_mask | mask;
         outb(slave_mask, (SLAVE_8259_PORT + 1));
         // we must also unmask port 2 on master
-        master_mask = master_mask | PORT_2_UNMASK;
+        master_mask = master_mask | ~PORT_2_UNMASK;
         outb(master_mask, (MASTER_8259_PORT + 1));
     }
     restore_flags(flags);
