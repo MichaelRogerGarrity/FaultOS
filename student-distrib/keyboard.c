@@ -53,4 +53,3 @@ extern void keyboard_handler(void) {
     putc(scancode_map_normal[keycode]);
     send_eoi(KEYBOARD_IRQ);
 }
-

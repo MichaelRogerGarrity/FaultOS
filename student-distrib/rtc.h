@@ -46,3 +46,4 @@ extern void rtc_handler(void);
 int rtc_set_freq(int newfreq);
 
 #endif /* _RTC_H */
+

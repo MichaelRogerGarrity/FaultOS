@@ -45,3 +45,4 @@ int machine();
 int SIMD();
 
 void init_IDT();
+
