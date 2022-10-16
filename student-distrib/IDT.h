@@ -1,6 +1,6 @@
 
 
-int (*funcs[21]) ();
+int (*funcs[256]) ();
 
 int generic_interrupt();
 

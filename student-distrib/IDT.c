@@ -157,7 +157,7 @@ void init_IDT(){
 int i;
 
 // initializes our functions array
-for(i = 0; i < 21; i++){
+for(i = 0; i < 256; i++){
     if(i==0)
     funcs[i] = divide_error;
     else if(i==1)
@@ -203,7 +203,7 @@ for(i = 0; i < 21; i++){
 }
  
 // populates our IDT
-for(i = 0; i < 21; i++){
+for(i = 0; i < 256; i++){
     idt_desc_t curr;
 
     int* curr_func_addr = funcs[i];
@@ -229,6 +229,8 @@ for(i = 0; i < 21; i++){
     }
 
 }
+
+// puts system call
 
 }
 
