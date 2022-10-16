@@ -53,7 +53,7 @@ int divzTest(){
 	int k;
 
 	k = j/i;
-	
+
 	return 0;
 }
 /* Checkpoint 2 tests */
@@ -65,6 +65,7 @@ int divzTest(){
 /* Test suite entry point */
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
-	TEST_OUTPUT("divz_test", divzTest());
+	//TEST_OUTPUT("divz_test", divzTest());
+	// test_interrupts();
 	// launch your tests here
 }

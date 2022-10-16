@@ -42,7 +42,7 @@ Inputs: none
 Outputs: none
 Side Effects: Prints what was typed on the keyboard.
 */
-void keyboard_handler(void) {
+extern void keyboard_handler(void) {
     unsigned long flags;
     cli_and_save(flags);
 

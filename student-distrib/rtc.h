@@ -41,7 +41,7 @@
 /* Initialize the RTC */
 void rtc_init(void);
 /* RTC's Interrupt Handler */
-void rtc_handler(void);
+extern void rtc_handler(void);
 /* Change frequency of RTC */
 int rtc_set_freq(int newfreq);
 

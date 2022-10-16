@@ -10,6 +10,10 @@
 #include "tests.h"
 #include "IDT.h"
 
+#include "rtc.h"
+#include "keyboard.h"
+
+
 #define RUN_TESTS
 
 /* Macros. */
@@ -140,6 +144,9 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Init the PIC */
     init_IDT();
     i8259_init();
+
+    rtc_init();
+    keyboard_init();
 
     
     

@@ -36,7 +36,7 @@ Inputs: none
 Outputs: none
 Side Effects: Does nothing
 */
-void rtc_handler(void) {
+extern void rtc_handler(void) {
     // Disable interrupts
     unsigned long flags;
     cli_and_save(flags);

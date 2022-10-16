@@ -29,7 +29,7 @@ continue:
 
     
     # Added by Michael: Load the IDT
-    #lidt idt_desc_ptr
+    lidt idt_desc_ptr
 
 
 

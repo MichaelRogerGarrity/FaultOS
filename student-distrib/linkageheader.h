@@ -1,11 +1,15 @@
 /* linkageheader.h
  */
 
-#ifndef _RTC_H
-#define _RTC_H
 
-void rtc_handler_function();
+#ifndef _LINKAGEHEADER_H
+#define _LINKAGEHEADER_H
 
-#endif /* _RTC_H */
+
+
+extern void rtc_handler_function();
+extern void keyboard_handler_function();
+
+#endif /* _LINKAGEHEADER_H */
 
 
