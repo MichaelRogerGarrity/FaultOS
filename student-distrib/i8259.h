@@ -8,6 +8,10 @@
 
 #include "types.h"
 
+ /* Defined variables as used in the PIC functions */
+#define MASK_ALL_INT        0xFF
+#define PORT_2_UNMASK       0xFB
+
 /* Ports that each PIC sits on */
 #define MASTER_8259_PORT    0x20
 #define SLAVE_8259_PORT     0xA0
@@ -22,14 +26,14 @@
 #define ICW3_SLAVE          0x02
 #define ICW4                0x01
 
-/* End-of-interrupt byte.  This gets OR'd with
- * the interrupt number and sent out to the PIC
- * to declare the interrupt finished */
+ /* End-of-interrupt byte.  This gets OR'd with
+  * the interrupt number and sent out to the PIC
+  * to declare the interrupt finished */
 #define EOI                 0x60
 
-/* Externally-visible functions */
+  /* Externally-visible functions */
 
-/* Initialize both PICs */
+  /* Initialize both PICs */
 void i8259_init(void);
 /* Enable (unmask) the specified IRQ */
 void enable_irq(uint32_t irq_num);
