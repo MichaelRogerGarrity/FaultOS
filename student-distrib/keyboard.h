@@ -9,7 +9,7 @@
 
  /* Defined variables as used in the PIC functions */
 #define KEYBOARD_IRQ            0x08
-#define KEYBOARD_INPUT_RANGE    53
+#define KEYBOARD_INPUT_RANGE    60
 
 
 /* Ports that each Keyboard sits on */
