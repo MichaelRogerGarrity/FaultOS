@@ -276,9 +276,8 @@ void init_IDT()
         }
     }
     
-     SET_IDT_ENTRY(idt[0x21], keyboard_handler_function);
-    // int *curr_rtc_addr = funcs[0x28];
-    // SET_IDT_ENTRY(curr_rtc_addr,(uint32_t *)rtc_handler_linkage);
+    SET_IDT_ENTRY(idt[0x21], keyboard_handler_function);            // Keyboard is in IDT entry table 0x21
+    SET_IDT_ENTRY(idt[0x28], rtc_handler_linkage);                  // RTC is in IDT entry table 0x28
 
     // lidt(idt_desc_ptr);
 

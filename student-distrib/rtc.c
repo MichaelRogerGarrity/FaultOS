@@ -42,7 +42,7 @@ extern void rtc_handler(void) {
     outb(REG_C, RTC_PORT_IDX);     // select register C
     unsigned char temp = inb(RTC_PORT_RW);
     temp &= 0xFFFF;
-    putc('a');
+    // putc('a');
     send_eoi(RTC_IRQ);
 }
 
