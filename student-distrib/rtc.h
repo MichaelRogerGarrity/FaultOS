@@ -6,15 +6,12 @@
 #ifndef _RTC_H
 #define _RTC_H
 
-
-
- /* Defined variables as used in the PIC functions */
+ /* Defined variables as used in the RTC functions */
 #define BIT_SIX_ON          0x40
 #define RTC_IRQ             0x08
 #define MINFREQ             0x02
 #define MAXFREQ             1024
-
-
+#define RATEBITS            0xF0
 
 
 /* Ports that RTC/CMOS sits on */
@@ -24,4 +21,17 @@
 #define REG_B           0x8B
 #define REG_C           0x8C
 #define REG_D           0x8D
+
+
+/* Externally-visible functions */
+
+/* Initialize the RTC */
+void rtc_init(void);
+/* RTC's Interrupt Handler */
+void rtc_handler(void);
+/* Change frequency of RTC */
+void rtc_set_freq(int newfreq);
+
+#endif /* _RTC_H */
+
 

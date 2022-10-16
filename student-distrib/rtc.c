@@ -27,10 +27,10 @@ void rtc_init(void) {
 
 /*
 void rtc_handler(void)
-Description: Initialize the RTC
+Description: RTC's Interrupt Handler
 Inputs: none
 Outputs: none
-Side Effects: Initialize the RTC
+Side Effects: Code to handle the RTC Interrupt
 */
 void rtc_handler(void) {
     // Disable interrupts
@@ -54,11 +54,28 @@ Side Effects: Changes the RTC Frequency
 */
 int rtc_set_freq(int newfreq) {
     // Disable interrupts
+
+    /* Check if rate is between 2 and 15 */
     if (newfreq < MINFREQ || newfreq > MAXFREQ)
         return -1;
     unsigned long flags;
     cli_and_save(flags);
 
+    int rate = 0x0F;			                // rate must be above 2 and not over 15
+
+    outb(REG_A, RTC_PORT_IDX);                  // set index to register A, disable NMI
+    unsigned char prev_a = inb(RTC_PORT_RW);    // get initial value of register A
+    outb(REG_A, RTC_PORT_IDX);
+    outb(((prev & RATEBITS) | rate), RTC_PORT_RW);
+
+
+    // outportb(0x70, 0x8A);
+    // char prev = inportb(0x71);
+    // outportb(0x70, 0x8A);		// reset index to A
+    // outportb(0x71, (prev & 0xF0) | rate); //write only our rate to A. Note, rate is the bottom 4 bits.
+    // enable_ints();
+
     restore_flags(flags);
+    return 0;
 
 }
