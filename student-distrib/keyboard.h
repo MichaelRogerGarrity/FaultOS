@@ -8,7 +8,7 @@
 
 
  /* Defined variables as used in the PIC functions */
-#define KEYBOARD_IRQ            0x08
+#define KEYBOARD_IRQ            0x01
 #define KEYBOARD_INPUT_RANGE    60
 
 

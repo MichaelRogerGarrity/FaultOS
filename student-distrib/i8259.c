@@ -37,7 +37,7 @@ void i8259_init(void) {
     outb(ICW1, MASTER_8259_PORT);                   // We are writing to the Command Port of Master - 0x20
     outb(ICW2_MASTER, (MASTER_8259_PORT + 1));      // We are writing to the Data Port of Master - 0x21
     outb(ICW3_MASTER, (MASTER_8259_PORT + 1));      // We are writing to the Data Port of Master - 0x21
-    outb(ICW4, (MASTER_8259_PORT + 1));             // We are writing to the Data Port of Master - 0x21
+    outb(ICW4, (SLAVE_8259_PORT + 1));             // We are writing to the Data Port of Master - 0x21
 
     // Slave:
     outb(ICW1, SLAVE_8259_PORT);                    // We are writing to the Command Port of Slave - 0xA0
@@ -65,8 +65,8 @@ void enable_irq(uint32_t irq_num) {
     if (irq_num > 15 || irq_num < 0)
         return;
 
-    unsigned long flags;
-    cli_and_save(flags);
+    // unsigned long flags;
+    // cli_and_save(flags);
 
 
     uint8_t mask = 0x01;         // 0000 0001 - 1 will be shifted to current irq's position
@@ -75,7 +75,7 @@ void enable_irq(uint32_t irq_num) {
     Then, till 15, we will put it in the slave port.
     */
     if (irq_num <= 7) {
-        mask <<= irq_num;       // move 0 to correct position
+        mask <<= irq_num;       // move 1 to correct position
         mask = ~mask;           // needs to be active low
         // enable irq on master_mask
         master_mask = master_mask & mask;
@@ -91,7 +91,7 @@ void enable_irq(uint32_t irq_num) {
         master_mask = master_mask & PORT_2_UNMASK;
         outb(master_mask, (MASTER_8259_PORT + 1));
     }
-    restore_flags(flags);
+    // restore_flags(flags);
 }
 
 /*

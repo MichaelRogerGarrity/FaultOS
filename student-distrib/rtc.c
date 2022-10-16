@@ -37,17 +37,13 @@ Outputs: none
 Side Effects: Does nothing
 */
 extern void rtc_handler(void) {
-    // Disable interrupts
-    unsigned long flags;
-    cli_and_save(flags);
+    
     // Read contents of Reg C - RTC will not generate another interrupt if this is not done
     outb(REG_C, RTC_PORT_IDX);     // select register C
     unsigned char temp = inb(RTC_PORT_RW);
     temp &= 0xFFFF;
     putc('a');
     send_eoi(RTC_IRQ);
-    restore_flags(flags);
-    //interrupt_rtc = 1;
 }
 
 

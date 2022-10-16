@@ -43,17 +43,15 @@ Outputs: none
 Side Effects: Prints what was typed on the keyboard.
 */
 extern void keyboard_handler(void) {
-    unsigned long flags;
-    cli_and_save(flags);
+ 
+    
 
     uint8_t keycode = inb(KEYBOARD_PORT);
 
     if (keycode < 0 || keycode >= KEYBOARD_INPUT_RANGE) {
         send_eoi(KEYBOARD_IRQ);
-        restore_flags(flags);
 
     }
     putc(scancode_map_normal[keycode]);
     send_eoi(KEYBOARD_IRQ);
-    restore_flags(flags);
 }
