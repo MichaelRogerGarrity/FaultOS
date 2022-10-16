@@ -11,5 +11,3 @@ extern void rtc_handler_function();
 extern void keyboard_handler_function();
 
 #endif /* _LINKAGEHEADER_H */
-
-

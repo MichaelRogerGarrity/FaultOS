@@ -98,3 +98,4 @@ int rtc_set_freq(int newfreq) {
     return 0;
 
 }
+

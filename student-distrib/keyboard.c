@@ -46,7 +46,7 @@ extern void keyboard_handler(void) {
  
     
 
-    uint8_t keycode = inb(KEYBOARD_PORT);
+    int keycode = inb(KEYBOARD_PORT);
 
     if (keycode < 0 || keycode >= KEYBOARD_INPUT_RANGE) {
         send_eoi(KEYBOARD_IRQ);
@@ -55,3 +55,4 @@ extern void keyboard_handler(void) {
     putc(scancode_map_normal[keycode]);
     send_eoi(KEYBOARD_IRQ);
 }
+

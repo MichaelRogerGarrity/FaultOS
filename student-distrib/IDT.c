@@ -275,8 +275,8 @@ void init_IDT()
             };
         }
     }
-    // int *curr_keyboard_addr = funcs[0x21];
-    // SET_IDT_ENTRY(curr_keyboard_addr, (uint32_t *)keyboard_handler_linkage);
+    
+     SET_IDT_ENTRY(idt[0x21], keyboard_handler_function);
     // int *curr_rtc_addr = funcs[0x28];
     // SET_IDT_ENTRY(curr_rtc_addr,(uint32_t *)rtc_handler_linkage);
 
@@ -312,3 +312,4 @@ void init_IDT()
 // uint64_t TS;
 // uint64_t TS;
 // uint64_t TS;
+
