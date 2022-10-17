@@ -1,12 +1,11 @@
 /** Keyboard Driver
  * rtc.c
- *
 */
-
 #include "keyboard.h"
 #include "lib.h"
 #include "i8259.h"
 
+/* A map that can directly print the character relative to the scan code. */
 uint8_t scancode_map_normal[KEYBOARD_INPUT_RANGE] = {
     '\0', '\0', '1', '2', '3', '4', '5', '6',
     '7', '8', '9', '0', '-', '=', '\0', '\0',
@@ -18,9 +17,15 @@ uint8_t scancode_map_normal[KEYBOARD_INPUT_RANGE] = {
     '\0', ' ', '\0'
 };
 
-
 // uint8_t scancode_map_shift[KEYBOARD_INPUT_RANGE] = {
-
+    // '\0', '\0', '1', '2', '3', '4', '5', '6',
+    // '7', '8', '9', '0', '-', '=', '\0', '\0',
+    // 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i',
+    // 'o', 'p', '[', ']', '\0', '\0', 'a', 's',
+    // 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';',
+    // '\'', '`', '\0', '\\', 'z', 'x', 'c', 'v',
+    // 'b', 'n', 'm', ',', '.', '/', '\0', '*',
+    // '\0', ' ', '\0'
 // };
 
 /*

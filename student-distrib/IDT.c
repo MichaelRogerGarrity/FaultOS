@@ -3,6 +3,10 @@
 #include "lib.h"
 #include "linkageheader.h"
 
+/* Note for all interrupt functions:
+* Each of these just define the exceptions and interrupts as defined in the Interrupt Descriptor Table.
+*/
+
 int generic_interrupt()
 {
     printf("Generic non-descript interrupt");
@@ -192,10 +196,18 @@ int SIMD()
     return 0;
 }
 
+
+/*
+void init_IDT()
+Description: Initialize the IDT
+Inputs: none
+Outputs: none
+Side Effects: Initializes and populates the IDT.
+*/
+
 void init_IDT()
 {
     int i;
-
     // initializes our functions array
     for (i = 0; i < 256; i++)
     {
@@ -275,12 +287,10 @@ void init_IDT()
             };
         }
     }
-    
-    SET_IDT_ENTRY(idt[0x21], keyboard_handler_function);            // Keyboard is in IDT entry table 0x21
-    SET_IDT_ENTRY(idt[0x28], rtc_handler_linkage);                  // RTC is in IDT entry table 0x28
 
+    SET_IDT_ENTRY(idt[KEYBOARD_IDT_ENTRY], keyboard_handler_function); // Keyboard is in IDT entry table 0x21
+    SET_IDT_ENTRY(idt[RTC_IDT_ENTRY], rtc_handler_linkage);            // RTC is in IDT entry table 0x28
     // lidt(idt_desc_ptr);
-
     // puts system call
     return;
 }

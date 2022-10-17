@@ -145,19 +145,13 @@ void entry(unsigned long magic, unsigned long addr) {
 
     
     init_IDT();
-
-
-
     
-    
-
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
     
     i8259_init();
     rtc_init();
     keyboard_init();
-    
     init_page();
 
 
