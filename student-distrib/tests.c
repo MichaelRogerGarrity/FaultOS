@@ -29,7 +29,7 @@ static inline void assertion_failure(){
  * Coverage: Load IDT, IDT definition
  * Files: x86_desc.h/S
  */
-int idt_test(){
+int idt_test() {
 	TEST_HEADER;
 
 	int i;
@@ -44,18 +44,64 @@ int idt_test(){
 
 	return result;
 }
+
+/* IDT Test 
+ * Inputs: None
+ * Outputs: FAIL if expection doesnt happen and passes if idt print message shown 
+ * Side Effects: causes exception from divide by 0 
+ * Coverage: Load IDT, IDT definition
+ */
 // add more tests here
-int divzTest(){
+int divzTest() {
+	int result = FAIL;
 	int i;
 	i = 0;
 	int j; 
-	j = 3;
+	j = 3; //just a test val 
 	int k;
 
 	k = j/i;
 
-	return 0;
+	return result;
 }
+
+/* sysCallTest
+ * 
+ * Asserts that first 10 IDT entries are not NULL
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: None
+ * Coverage: Load IDT, IDT definition
+ * Files: x86_desc.h/S
+ */
+//testing system call #INT(x80) 
+int sysCallTest(){
+	int result = FAIL;
+
+	asm volatile ("INT $0x80"); // x80 addr for system call port 
+	return result;
+}
+
+/* pageFaultTest
+ * Inputs: None
+ * Outputs: page fault or shows pass if valid 
+ * Side Effects: None
+ * Coverage: paging 
+ */
+int pageFaultTest() {
+	int result = PASS; 
+	int * testval;
+	//outside of vid mem( 0xb8000 ->0xb9000), kernel mem(0x400000 -> 0x800000)
+	testval = (int *)0xb7999; 			// Out of range - FAULT - prints message of page fault on console
+	//testval = (int *)0xb8001; 		// Inside Range - PASS - shows as pass in test output
+	// testval = (int *)0xb8FFF;		// Inside Range - PASS - shows as pass in test output
+	// testval = (int *)0x3FFFFF;		// Out of range - FAULT - prints message of page fault on console
+	// testval = (int *)0x400000;		// Inside Range - PASS - shows as pass in test output
+	// testval = (int *)0x800001;		// Out of range - FAULT - prints message of page fault on console
+	*testval = 3; //3 is random val to test 
+	return result;
+}
+
 /* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
@@ -63,11 +109,13 @@ int divzTest(){
 
 
 /* Test suite entry point */
-void launch_tests(){
-	TEST_OUTPUT("idt_test", idt_test());
-	//TEST_OUTPUT("divz_test", divzTest());
-
-	// launch your tests here
+void launch_tests() {
+	// launch your tests here Checkpoint 1
+	// TEST_OUTPUT("idt_test", idt_test());						// Given IDT Test
+	 //TEST_OUTPUT("divz_test", divzTest());					// Divide by 0 test
+	 //TEST_OUTPUT("Page Fault Test", pageFaultTest());			// Page Fault Test
+	 //TEST_OUTPUT("System Call Test", sysCallTest());				// System Call Test
+	// Our RTC Test is checked through rtc.c where we call test_interrupts() to check frequency.
 }
 
 

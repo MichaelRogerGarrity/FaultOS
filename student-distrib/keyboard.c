@@ -49,11 +49,13 @@ Side Effects: Prints what was typed on the keyboard.
 */
 extern void keyboard_handler(void) {
     uint32_t keycode = inb(KEYBOARD_PORT);
+    /* If it is out of range, we simply send an EOI and leave. */
     if ((keycode < 0) || (keycode >= KEYBOARD_INPUT_RANGE)) {
         send_eoi(KEYBOARD_IRQ);
         return;
     }
-    putc(scancode_map_normal[keycode]);
+    /* Otherwise we print out the character that is typed. */
+    putc(scancode_map_normal[keycode]);     
     send_eoi(KEYBOARD_IRQ);
     return;
 }

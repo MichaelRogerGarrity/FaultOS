@@ -24,17 +24,22 @@
 
 # set PS = 1 pde points directly to 4MB page for kernel 
 
-
+/*
+enPaging
+Description: enables paging  
+Inputs: none
+Outputs: none
+*/
 .text
 .globl enPaging
 enPaging:
 push %ebp
 mov %esp, %ebp
 mov %cr4, %eax
-or  0x00000010, %eax
+or  0x00000010, %eax #0x00000010 enables 4mb paging 
 mov %eax, %cr4
 mov %cr0, %eax
-or $0x80000000, %eax
+or $0x80000001, %eax # $0x80000000 sets the 32 bit for cr0 to turn on paging 
 mov %eax, %cr0
 mov %ebp, %esp
 pop %ebp
@@ -42,7 +47,12 @@ ret
 
 
 
-
+/*
+loadPageDir
+Description: takes the directory ptr and puts it to the cr3 
+Inputs: takes page struct ptr 
+Outputs: none
+*/
 .text
 .globl loadPageDir
 loadPageDir:

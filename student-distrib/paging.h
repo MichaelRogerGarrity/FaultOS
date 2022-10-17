@@ -1,20 +1,26 @@
+/* paging.h - Defines used in interactions with the Paging setup.
+ * vim:ts=4 noexpandtab
+ */
+
+// #ifndef _PAGING_H
+// #define _PAGING_H
+
 #include "x86_desc.h"
 #include "lib.h"
 
+#define SIZE_OF_PG          4096
+#define VIDEO               0xB8000
+#define KERNEL_ADDR         0x00400000
+#define NUM_ELEMS_PAGE      1024
+#define PAGE_SHIFT          12
 
-
-#define SIZE_OF_PG 4096
-#define VIDEO 0xB8000
-#define KERNEL_ADDR 0x00400000
-
-
-
+/* Struct for the Page Directory. Refer to Descriptors.pdf. */
 typedef struct p_d1{
     union {
         //uint32_t val[2];
         struct {
             uint8_t p   : 1;
-            uint8_t rw  : 1; // set to 1
+            uint8_t rw  : 1;                // set to 1
             uint8_t us  : 1;  
             uint8_t pwt : 1;
             uint8_t pcd : 1;
@@ -22,29 +28,32 @@ typedef struct p_d1{
             uint8_t DC1 : 1;
             uint8_t ps : 1;
             uint8_t g : 1;
-            uint8_t avail : 3;
-            uint32_t pt_baddr : 20;
+            uint8_t avail : 3;              // 3 is num of avaiable bits 
+            uint32_t pt_baddr : 20;         // 20 for page address bits 
         }__attribute__ ((packed));
     };
- } page_dir_entry; //1kb
+} page_dir_entry;  
 
-
-typedef struct p_t{ 
-    //uint32_t val[2];
-    union {
-        struct {  // makybe add the union part if needed 
-        uint8_t p   : 1;
-        uint8_t rw  : 1; // set to 1
-        uint8_t us  : 1;  
-        uint8_t pwt : 1;
-        uint8_t pcd : 1;
-        uint8_t a : 1;
-        uint8_t d : 1;
-        uint8_t pat : 1;
-        uint8_t g : 1;
-        uint8_t avail : 3;
-        uint32_t pt_baddr : 20;
-        } __attribute__ ((packed));
+ /* Struct for the Page Table. Refer to Descriptors.pdf. */
+typedef struct p_t
+{
+     // uint32_t val[2];
+    union
+    {
+        struct
+        {
+            uint8_t p : 1;
+            uint8_t rw : 1;
+            uint8_t us : 1;
+            uint8_t pwt : 1;
+            uint8_t pcd : 1;
+            uint8_t a : 1;
+            uint8_t d : 1;
+            uint8_t pat : 1;
+            uint8_t g : 1;
+             uint8_t avail : 3;             // 3 is num of avaiable bits
+             uint32_t pt_baddr : 20;        // 20 for page address bits
+        } __attribute__((packed));
     };
 } page_table_entry;
 
@@ -64,11 +73,10 @@ typedef struct p_t{
 //     uint32_t pt_baddr : 10;
 // }__attribute__ ((packed)) page_dir_entry_4mb;
 
+/* Function Declarations to use the page. */
 
-
-/* Function Declarations to use the page*/
 void init_page();
- 
 extern void loadPageDir(page_dir_entry* page_directory);
-
 extern void enPaging();
+
+//#endif 

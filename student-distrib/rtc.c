@@ -15,6 +15,10 @@ Inputs: none
 Outputs: none
 Side Effects: Initialize the RTC
 */
+
+// Declaration for the RTC Test interrupts.  
+void test_interrupts();
+
 void rtc_init(void) {
     // obtain older value of RTC RegA's old value
 
@@ -25,10 +29,10 @@ void rtc_init(void) {
     outb(REG_B, RTC_PORT_IDX);                  // set idx again (due to resetting of index to reg D due to a read)
     outb(prev_b | BIT_SIX_ON, RTC_PORT_RW);     // turn on bit 6 and reqrite prev value  
 
-        outb(REG_A, RTC_PORT_IDX);                  // select B, disable NMI
+    outb(REG_A, RTC_PORT_IDX);              // select B, disable NMI
     unsigned char prev_a = inb(RTC_PORT_RW);    // read curr B value
     outb(REG_A, RTC_PORT_IDX);                  // set idx again (due to resetting of index to reg D due to a read)
-    outb((prev_a & 0xF0) | 6, RTC_PORT_RW);     // turn on bit 6 and reqrite prev value  
+    outb((prev_a & 0xF0) | 6, RTC_PORT_RW);     // mask bottom 4 bits | 6 and get bits 1 and 2 turn on bit 6 and reqrite prev value  
 
     
     // turn on interrupts at IRQ number 8 because that is where RTC goes
@@ -45,12 +49,13 @@ Side Effects: Does nothing
 */
 extern void rtc_handler(void) {
     
-    // Read contents of Reg C - RTC will not generate another interrupt if this is not done
-    outb(REG_C, RTC_PORT_IDX);     // select register C
+   /* Read contents of Reg C - RTC will not generate another interrupt if this is not done */
+    outb(REG_C, RTC_PORT_IDX);                  // select register C
     unsigned char temp = inb(RTC_PORT_RW);
-    temp &= 0xFFFF;
-    	test_interrupts();
-    // putc('a');
+    temp &= 0xFFFF;                             // Avoid warning of unused temp.
+    /* Here we call test interrupts to make sure our RTC is working. */
+    // test_interrupts();
+    //putc('a');
     send_eoi(RTC_IRQ);
     return;
 }
@@ -69,12 +74,14 @@ int rtc_set_freq(int newfreq) {
     unsigned long flags;
     cli_and_save(flags);
 
-    int rate = 0x0F;			                // rate must be above 2 and not over 15
+    int rate = 0x0F;			               // rate must be above 2 and not over 15
 
     /* Check if rate is between 2 and 15 */
     switch (newfreq) {
-        /* Note: Numbers here are possible frequencies - they cannot be any other value. */
-    case 1024:
+
+    /* Note: Numbers here are possible frequencies - they cannot be any other value. */
+
+    case 1024: 
         rate = RATE_FOR_1024; break;
     case 512:
         rate = RATE_FOR_512; break;

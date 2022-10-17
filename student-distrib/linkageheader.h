@@ -1,11 +1,9 @@
-/* linkageheader.h
+/* linkageheader.h - Defines used in interactions with the Paging setup.
+ * vim:ts=4 noexpandtab
  */
-
 
 #ifndef _LINKAGEHEADER_H
 #define _LINKAGEHEADER_H
-
-
 
 extern void rtc_handler_linkage();
 extern void keyboard_handler_function();

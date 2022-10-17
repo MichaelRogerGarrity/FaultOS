@@ -4,7 +4,8 @@
 #define ASM     1
 #include "x86_desc.h"
 
-#define INTR_LINK(name, func)   \
+
+#define INTR_LINK(name, func)    \
 .GLOBL name                     ;\
 name:                           ;\
 PUSHAL	                        ;\

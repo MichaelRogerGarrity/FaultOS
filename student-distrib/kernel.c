@@ -20,6 +20,7 @@
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags, bit)   ((flags) & (1 << (bit)))
 
+/* Externally visible functions: Defining he functions here. */
 void init_page();
 
 /* Check if MAGIC is valid and print the Multiboot information structure
@@ -143,7 +144,7 @@ void entry(unsigned long magic, unsigned long addr) {
         ltr(KERNEL_TSS);
     }
 
-    
+    /* Initialize the IDT. */
     init_IDT();
     
     /* Initialize devices, memory, filesystem, enable device interrupts on the

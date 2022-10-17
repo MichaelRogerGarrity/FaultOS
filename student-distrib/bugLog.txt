@@ -1,0 +1,93 @@
+Bug Log:
+/*
+
+Types of Bugs as specified below:
+
+Syntactic errors are the trivial typos that generally result in compiler errors and that we don’t want to hear about. 
+Semantic errors are also often typos, but manage to pass the compiler and separate what the computer does from what you meant for it to do. 
+You may have used less-or-equal instead of less-than, for example. 
+Algorithmic errors occur when your thinking about a problem is just wrong in some way; for example, you forget about a certain case or a boundary condition. 
+Specification ambiguity errors occur when behavior in certain cases is unspecified or undocumented, and incompatible assumptions are made 
+(explicitly or implicitly) to resolve the ambiguity.
+*/ 
+
+1. Drivers:
+Type: Most errors were algorithmic, based on incorrect logic and understanding of the drivers.
+
+// PIC Bugs: 
+
+a. PIC - The IRQ Ports were not disaled at the beginning.
+- Symptom: Keyboard interrupt was registered even though I did not enable it in init. 
+- Difficulty: Took 10 mins to fix, masked them in the init function.
+- Fix: Saved the master and slave mask as all off, then send those to the data ports.
+
+b. PIC Enable / Disable IRQ
+- Symptom: The enabling and disabling did not work. 
+- Difficulty: 15 mins, changed 3 lines of code.
+- Fix: Forgot the ports were at active low. Changed the ANDing and ORing logic.
+
+// Keyboard Bugs: 
+
+c. Keyboard Scancode Map
+- Symptom: Scancode did not map correctly - had a 1 value offset.
+- Difficulty: 10 mins, changed one line of code.
+- Fix: On OSDEV, the scancode map started from 0x1 not 0x0. Changed my map.
+
+d. Keyboard scancode out of range printed.
+- Symptom: Keyboard kept printing random characters when I lifted the key.
+- Difficulty: 20 mins, changed one line of code.
+- Fix: Was taking input as an unsigned 8 bit value. Made it a 32 bit value and then checked if that was out of range.
+
+// RTC Bugs: 
+
+e. RTC did not obtain the A value registers and thus did not alter them.
+- Symptom: Interrupt tests did not work.
+- Difficulty: 20 mins, changed 4 lines of code.
+- Fix: Read through the OSDev Page and added the information so status reg A could be altered as well.
+
+f. RTC did not input the value from Reg C.
+- Symptom: RTC interrupts tests did not work.
+- Difficulty: 10 mins, added 2 lines of code.
+- Fix: Input the value from reg C and then ANDED it with itself. Does nothing in our case.
+
+2. IDT:
+
+a. seg_selector addr not set 
+- Type: Semantic
+- Symptom: the idt test worked but our div by 0 didnt work 
+- Difficulty: 1.5 hrs changed 1 line
+- Fix: set the seg_selector addr to KERNEL_CS which was in the files!
+
+b. syc call not used 
+- Type: Algorithmic
+- Symptom: didnt set x80 for the system call print for the idt and inline asm was wrong 
+- Difficulty: 15 min
+- Fix: did SET_IDT_ENTRY(x80 index into idt. sys call func) then used INT func to test x80 for sys call in tests.c
+
+c. did not set func vals correctly 
+- Type: Semantic
+- Symptom: kept bootlooping 
+- Difficulty: 1 hr
+- Fix: did address of (&) of each of the functions since func was array of function pointers 
+
+3. Paging
+
+a. Addressing 
+- Type: Algorithmic
+- Symptom: kept bootlooping 
+- Difficulty: 3 hrs, changed 2 lines
+- Fix: inside the stucts for the entries made it a union vith a val[2] but the val was uninitilized so commented it out
+
+b. Video Mem Table Addr
+- Type: Algorithmic
+- Symptom: kept bootlooping 
+- Difficulty: 2 hrs, 4 lines 
+- Fix: made the table addr xb8 and set p bit to 1 at that addr, also set the other addrs one to one (forloop 0->1024 table.p_addr = i)
+
+c. Page directory addr for vid mem  
+- Type: Algorithmic
+- Symptom: did not set pt_baddr correctly neeed to put addr of page_table array for vid mem NOT xb8
+- Difficulty: 1 hr, changed 1 line 
+- Fix: put page_table >> 12 for the upper 20 bit val
+
+
