@@ -98,6 +98,7 @@ int pageFaultTest() {
 	// testval = (int *)0x3FFFFF;		// Out of range - FAULT - prints message of page fault on console
 	// testval = (int *)0x400000;		// Inside Range - PASS - shows as pass in test output
 	// testval = (int *)0x800001;		// Out of range - FAULT - prints message of page fault on console
+	// testval = (int *)0x0;		// null check Out of range - FAULT - prints message of page fault on console
 	*testval = 3; //3 is random val to test 
 	return result;
 }
