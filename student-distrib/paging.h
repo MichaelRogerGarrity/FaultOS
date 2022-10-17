@@ -1,6 +1,74 @@
-// #include "paging.h"
+#include "x86_desc.h"
+#include "lib.h"
 
 
 
-// extern page_dir_entry page_directory[1024] __attribute__((aligned(SIZE_OF_PG)));
-// extern page_table_entry page_table[1024] __attribute__((aligned(SIZE_OF_PG)));
+#define SIZE_OF_PG 4096
+#define VIDEO 0xB8000
+#define KERNEL_ADDR 0x00400000
+
+
+
+typedef struct p_d1{
+    union {
+        //uint32_t val[2];
+        struct {
+            uint8_t p   : 1;
+            uint8_t rw  : 1; // set to 1
+            uint8_t us  : 1;  
+            uint8_t pwt : 1;
+            uint8_t pcd : 1;
+            uint8_t a : 1;
+            uint8_t DC1 : 1;
+            uint8_t ps : 1;
+            uint8_t g : 1;
+            uint8_t avail : 3;
+            uint32_t pt_baddr : 20;
+        }__attribute__ ((packed));
+    };
+ } page_dir_entry; //1kb
+
+
+typedef struct p_t{ 
+    //uint32_t val[2];
+    union {
+        struct {  // makybe add the union part if needed 
+        uint8_t p   : 1;
+        uint8_t rw  : 1; // set to 1
+        uint8_t us  : 1;  
+        uint8_t pwt : 1;
+        uint8_t pcd : 1;
+        uint8_t a : 1;
+        uint8_t d : 1;
+        uint8_t pat : 1;
+        uint8_t g : 1;
+        uint8_t avail : 3;
+        uint32_t pt_baddr : 20;
+        } __attribute__ ((packed));
+    };
+} page_table_entry;
+
+// typedef struct p_d2{
+//     uint32_t p   : 1;
+//     uint32_t rw  : 1;
+//     uint32_t us  : 1;  
+//     uint32_t pwt : 1;
+//     uint32_t pcd : 1
+//     uint32_t a : 1;
+//     uint32_t DC1 : 1;
+//     uint32_t ps : 1;
+//     uint32_t g : 1;
+//     uint32_t avail : 3;
+//     uint32_t pat : 1;
+//     uint32_t reserv1 : 9;
+//     uint32_t pt_baddr : 10;
+// }__attribute__ ((packed)) page_dir_entry_4mb;
+
+
+
+/* Function Declarations to use the page*/
+void init_page();
+ 
+extern void loadPageDir(page_dir_entry* page_directory);
+
+extern void enPaging();

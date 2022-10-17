@@ -49,6 +49,7 @@ void i8259_init(void) {
     outb(master_mask, (MASTER_8259_PORT + 1));
     outb(slave_mask, (SLAVE_8259_PORT + 1));
     restore_flags(flags);
+    return;
 
 }
 
@@ -130,6 +131,7 @@ void disable_irq(uint32_t irq_num) {
         outb(master_mask, (MASTER_8259_PORT + 1));
     }
     restore_flags(flags);
+    return;
 }
 
 /*
@@ -154,9 +156,11 @@ void send_eoi(uint32_t irq_num) {
     else {
         // obtain the correct port to mask:
         uint32_t slave_num = irq_num - 8;
-        outb(EOI | slave_num, SLAVE_8259_PORT);
-        outb(EOI | 2, MASTER_8259_PORT);
+         outb(EOI | 2, MASTER_8259_PORT);
+         outb(EOI | slave_num, SLAVE_8259_PORT);
+       
     }
     restore_flags(flags);
+    return;
 
 }

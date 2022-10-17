@@ -32,7 +32,7 @@ Side Effects: Enables interripts on IRQ 1.
 */
 void keyboard_init(void) {
     enable_irq(KEYBOARD_IRQ);
-
+    return;
 }
 
 /*
@@ -43,13 +43,12 @@ Outputs: none
 Side Effects: Prints what was typed on the keyboard.
 */
 extern void keyboard_handler(void) {
- 
-    unsigned int keycode = inb(KEYBOARD_PORT);
-
-    if (keycode < 0 || keycode >= KEYBOARD_INPUT_RANGE) {
+    uint32_t keycode = inb(KEYBOARD_PORT);
+    if ((keycode < 0) || (keycode >= KEYBOARD_INPUT_RANGE)) {
         send_eoi(KEYBOARD_IRQ);
-
+        return;
     }
     putc(scancode_map_normal[keycode]);
     send_eoi(KEYBOARD_IRQ);
+    return;
 }

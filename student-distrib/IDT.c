@@ -248,7 +248,7 @@ void init_IDT()
     {
         idt_desc_t curr;
 
-        int *curr_func_addr = funcs[i];
+        int *curr_func_addr = (void *)funcs[i];
 
         // curr.offset_15_00 = 0x0000FFFF & curr_func_addr;
         // curr.offset_31_16 = 0xFFFF0000 & curr_func_addr;
@@ -282,6 +282,7 @@ void init_IDT()
     // lidt(idt_desc_ptr);
 
     // puts system call
+    return;
 }
 
 // alternative way is to, instead of looping, declare each separately. All comes

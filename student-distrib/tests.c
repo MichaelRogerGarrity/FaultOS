@@ -66,7 +66,7 @@ int divzTest(){
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("divz_test", divzTest());
-	// test_interrupts();
+
 	// launch your tests here
 }
 

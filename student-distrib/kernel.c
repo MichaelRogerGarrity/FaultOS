@@ -14,11 +14,13 @@
 #include "keyboard.h"
 
 
-//#define RUN_TESTS
+#define RUN_TESTS
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags, bit)   ((flags) & (1 << (bit)))
+
+void init_page();
 
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
@@ -156,12 +158,15 @@ void entry(unsigned long magic, unsigned long addr) {
     rtc_init();
     keyboard_init();
     
+    init_page();
+
+
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
      * without showing you any output */
     printf("Enabling Interrupts\n");
-    sti();
+    sti(); 
 
 #ifdef RUN_TESTS
     /* Run tests */
