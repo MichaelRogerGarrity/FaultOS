@@ -43,8 +43,8 @@ extern void rtc_handler(void);
 /* Change frequency of RTC */
 int rtc_set_freq(int newfreq);
 
-/* Checkpoint 2: wizardry numbers */
-#define FREQ_FOR_OPEN   2
+/* Checkpoint 2: */
+//#define OPEN_AT_2HZ     2
 
 //int rtc_interrupt = 0; /* 1 == interrupt active. 0 == interrupt not active */
 

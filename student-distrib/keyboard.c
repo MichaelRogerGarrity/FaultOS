@@ -64,6 +64,7 @@ void keyboard_init(void) {
     ctrlflag = 0;
     altflag = 0;
     currkey = 0;
+    enterflag = 0;
     enable_irq(KEYBOARD_IRQ);
     return;
 }
@@ -126,15 +127,20 @@ extern void keyboard_handler(void) {
     }
 
     /* We next add that character to our buffer and print it to the screen if there is still room in the buffer */
-    if(currkey < 127){  // keyboard buffer size
+    if(currkey < (KEYBOARD_BUFFER_MAX_SIZE - 1)){  // keyboard buffer size -1, since last char can only be newline
         keyboardbuffer[currkey] = output;
         currkey = currkey + 1;
-        putc(output);
+        if(keycode == KEYBOARD_ENTER){
+            enterflag = 1;
+        }
+        else
+        putc2(output);
     }
-    else if((keycode == KEYBOARD_ENTER) && (currkey == 127)){
+    else if((keycode == KEYBOARD_ENTER) && (currkey == (KEYBOARD_BUFFER_MAX_SIZE - 1))){
         keyboardbuffer[currkey] = output;
         currkey = currkey + 1;
-        putc(output);
+        enterflag = 1;
+        //putc2(output); 
     }
     send_eoi(KEYBOARD_IRQ);
     return;

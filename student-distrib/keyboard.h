@@ -30,13 +30,18 @@
 /* Ports that each Keyboard sits on */
 #define KEYBOARD_PORT               0x60
 
+/* Miscellanious self-explanatory constants */
+#define KEYBOARD_BUFFER_MAX_SIZE    128
+
 /* Buffer for characters written to terminal */
 uint8_t keyboardbuffer[128];
+int keyboardbuffersize;
 int capslock;
 int shiftflag;
 int ctrlflag;
 int altflag;
 int currkey;
+int enterflag;
 
 /* Externally-visible functions */
 

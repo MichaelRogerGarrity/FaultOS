@@ -115,25 +115,65 @@ int rtc_set_freq(int newfreq) {
 
 }
 // /* MP3 Checkpoint 2 Stuff: */
-// /* initializes RTC frequency to 2HZ, return 0 */
-// int rtc_open(void){
-//     rtc_set_freq(FREQ_FOR_OPEN);
-//     return 0;
-// }
-// /* probably does nothing, unless you virtualize RTC, return 0 */
-// int rtc_close(void){
-//     return 0;
-// }
-// /* should block until the next interrupt, return 0 */
-// int rtc_read(){
-//     /* block until the next interrupt */
-//     return 0;
-// }
-// /* must be able to change frequency, return 0 or -1 */
-// int rtc_write(int newfreq){
-//     /* sanity check */
-//     if(newfreq < MINFREQ | newfreq > MAXFREQ) return -1;
 
-//     /* change freq */
-//     return 0;
+/* 
+rtc read must only return once the RTC interrupt occurs. 
+You might want to use some sort of flag here (you will 
+not need spinlocks. Why?)
+
+RTC read() should block until the next interrupt, return 0
+► NOT for reading the RTC frequency
+
+// */
+// int rtc_read(){
+//   interrupt_rtc = 0;
+//   while(interrupt_rtc == 0){
+//     /* do nothing... */
+//   }
+//   return 0;
+// }
+// /*
+// rtc write must get its input parameter through a buffer 
+// and not read the value directly.
+
+// RTC write() must be able to change frequency, return 0 or -1
+// ► New frequency passed through buf ptr or through count?
+// ► Frequencies must be power of 2
+
+// */
+// int rtc_write(const void* buf, uint32_t num_bytes){
+
+//   /* sanity check */
+//   if(buf == NULL) return -1;
+//   if(num_bytes != sizeof(uint32_t)) return -1;
+
+//   /* load freq <- input buffer */
+//   int32_t frequency;
+//   frequency = *((int*) buf);
+
+//   /* sanity check on frequency */
+//   if(frequency < MINFREQ | frequency > MAXFREQ) return -1;
+//   /* HOW TO CHECK IFF A POWER OF TWO???????????? 
+//   i think if it just has a single one, then its good, but how do you just check that
+//   */
+
+//   /* critical section */
+//   cli();
+//   rtc_set_freq(frequency);
+//   sti();
+//   return 0;
+// }
+// /* 
+// rtc_open should reset the frequency to 2Hz. 
+// RTC open() initializes RTC frequency to 2HZ, return 0
+// */
+// int rtc_open(void){
+//   rtc_set_freq(OPEN_AT_2HZ);
+//   return 0;
+// }
+// /*
+// RTC close() probably does nothing, unless you virtualize RTC, return 0
+// */
+// int rtc_close(void){
+//   return 0;
 // }

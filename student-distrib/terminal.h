@@ -2,9 +2,10 @@
 #include "lib.h"
 #include "i8259.h"
 
-uint8_t buf[2000];
 
-int terminal_open(void);
-extern int terminal_close(void);
-extern int terminal_read();
-extern int terminal_write(int numb_bytes);
+int32_t terminal_open(const uint8_t* filename);
+int32_t terminal_close(int32_t fd);
+int32_t terminal_read(int32_t fd, uint8_t* buf, int32_t nbytes);
+int32_t terminal_write(int32_t fd, const uint8_t* buf, int32_t nbytes);
+
+
