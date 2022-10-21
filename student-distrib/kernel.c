@@ -144,6 +144,8 @@ void entry(unsigned long magic, unsigned long addr) {
         ltr(KERNEL_TSS);
     }
 
+    set_start_faddr(multiboot_info.mods_addr); //init the global var for boot start addr 
+
     /* Initialize the IDT. */
     init_IDT();
     

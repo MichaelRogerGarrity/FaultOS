@@ -30,7 +30,7 @@ void rtc_init(void) {
     outb(prev_b | BIT_SIX_ON, RTC_PORT_RW);     // turn on bit 6 and reqrite prev value  
 
     outb(REG_A, RTC_PORT_IDX);              // select B, disable NMI
-    unsigned char prev_a = inb(RTC_PORT_RW);    // read curr B value
+    unsigned char prev_a = inb(RTC_PORT_RW);    // read curr A value
     outb(REG_A, RTC_PORT_IDX);                  // set idx again (due to resetting of index to reg D due to a read)
     outb((prev_a & 0xF0) | 6, RTC_PORT_RW);     // mask bottom 4 bits | 6 and get bits 1 and 2 turn on bit 6 and reqrite prev value  
 
@@ -114,3 +114,26 @@ int rtc_set_freq(int newfreq) {
     return 0;
 
 }
+// /* MP3 Checkpoint 2 Stuff: */
+// /* initializes RTC frequency to 2HZ, return 0 */
+// int rtc_open(void){
+//     rtc_set_freq(FREQ_FOR_OPEN);
+//     return 0;
+// }
+// /* probably does nothing, unless you virtualize RTC, return 0 */
+// int rtc_close(void){
+//     return 0;
+// }
+// /* should block until the next interrupt, return 0 */
+// int rtc_read(){
+//     /* block until the next interrupt */
+//     return 0;
+// }
+// /* must be able to change frequency, return 0 or -1 */
+// int rtc_write(int newfreq){
+//     /* sanity check */
+//     if(newfreq < MINFREQ | newfreq > MAXFREQ) return -1;
+
+//     /* change freq */
+//     return 0;
+// }

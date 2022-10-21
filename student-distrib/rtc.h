@@ -43,5 +43,19 @@ extern void rtc_handler(void);
 /* Change frequency of RTC */
 int rtc_set_freq(int newfreq);
 
+/* Checkpoint 2: wizardry numbers */
+#define FREQ_FOR_OPEN   2
+
+//int rtc_interrupt = 0; /* 1 == interrupt active. 0 == interrupt not active */
+
+// /* initializes RTC frequency to 2HZ, return 0 */
+// int rtc_open(void);
+// /* probably does nothing, unless you virtualize RTC, return 0 */
+// int rtc_close(void);
+// /* should block until the next interrupt, return 0 */
+// int rtc_read(void);
+// /* must be able to change frequency, return 0 or -1 */
+// int rtc_write(void);
+
 #endif /* _RTC_H */
 

@@ -43,7 +43,7 @@ typedef struct multiboot_info {
     uint32_t boot_device;
     uint32_t cmdline;
     uint32_t mods_count;
-    uint32_t mods_addr;
+    uint32_t mods_addr; // starting addr 
     elf_section_header_table_t elf_sec;
     uint32_t mmap_length;
     uint32_t mmap_addr;
