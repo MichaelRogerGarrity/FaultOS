@@ -15,6 +15,7 @@
 #define RESERVED_BITS_BOOTBL        13
 #define DIR_ENTRIES                 63
 #define FOUR_KILO_BYTE              4096
+#define MAX_FILENAME_LEN            32
 
 /* Dentry Struct */
 typedef struct f1_dir
@@ -72,22 +73,23 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t *dentry);
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t *buf, uint32_t length);
 
 
-
-
-/* Functions defined in the c file */
+/* Functions wrt main reads/writes */
 int32_t file_init(uint32_t startAddr);
 int32_t read_dentry_by_name(const uint8_t *fname, dentry_t *dentry);
 int32_t read_dentry_by_index(uint32_t index, dentry_t *dentry);
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t *buf, uint32_t length);
-// int32_t open_file(const uint8_t *filename);
-// int32_t close_file(int32_t fd);
-// int32_t read_file(int32_t fd, void* buf, int32_t nbytes);
-// int32_t write_file(int32_t fd, const void* buf, int32_t nbytes);
 
-// int32_t open_dir(const uint8_t *filename);
-// int32_t close_dir(int32_t fd);
-// int32_t read_dir(int32_t fd, void* buf, int32_t nbytes);
-// int32_t write_dir(int32_t fd, const void* buf, int32_t nbytes);
+/* Functions for file driver - open / close / r / w */
+int32_t open_file(const uint8_t *filename);
+int32_t close_file(int32_t fd);
+int32_t read_file(int32_t fd, void* buf, int32_t nbytes);
+int32_t write_file(int32_t fd, const void* buf, int32_t nbytes);
+
+/* Functions for directory driver - open / close / r / w */
+int32_t open_dir(const uint8_t *filename);
+int32_t close_dir(int32_t fd);
+int32_t read_dir(int32_t fd, void* buf, int32_t nbytes);
+int32_t write_dir(int32_t fd, const void* buf, int32_t nbytes);
 
 
 
