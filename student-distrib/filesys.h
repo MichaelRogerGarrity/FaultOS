@@ -20,12 +20,9 @@
 /* Dentry Struct */
 typedef struct f1_dir
 {
-
-    // Possible array:
     int8_t filename[MAX_FILENAME_LENGTH];
     uint32_t ftype;
     uint32_t inode;
-
     uint32_t reserved[RESERVED_BITS_DENTRY];
 
 } __attribute__((packed)) dentry_t;
@@ -56,6 +53,7 @@ typedef struct f3_dir
 typedef struct f4_dir
 {
     uint8_t data[FOUR_KILO_BYTE];
+
 } __attribute__((packed)) dataBlock_t;
 
 // 4 structs
@@ -90,10 +88,6 @@ int32_t open_dir(const uint8_t *filename);
 int32_t close_dir(int32_t fd);
 int32_t read_dir(int32_t fd, void* buf, int32_t nbytes);
 int32_t write_dir(int32_t fd, const void* buf, int32_t nbytes);
-
-
-
-
 
 
 // #endif /* _FILESYS_H */

@@ -33,8 +33,13 @@
 #define RATE_FOR_8          0x0D    // 1101
 #define RATE_FOR_4          0x0E    // 1110
 #define RATE_FOR_2          0x0F    // 1111
+#define OPEN_AT_2HZ         2
 
-  /* Externally-visible functions */
+
+int interrupt_flag_rtc; /* 1 == interrupt active. 0 == interrupt not active */
+
+
+/* Externally-visible functions */
 
 /* Initialize the RTC */
 void rtc_init(void);
@@ -43,19 +48,16 @@ extern void rtc_handler(void);
 /* Change frequency of RTC */
 int rtc_set_freq(int newfreq);
 
-/* Checkpoint 2: */
-//#define OPEN_AT_2HZ     2
+/* Functions for RTC driver - open / close / r / w */
 
-//int rtc_interrupt = 0; /* 1 == interrupt active. 0 == interrupt not active */
-
-// /* initializes RTC frequency to 2HZ, return 0 */
-// int rtc_open(void);
+/* initializes RTC frequency to 2HZ, return 0 */
+// int32_t open_rtc(const uint8_t *filename);
 // /* probably does nothing, unless you virtualize RTC, return 0 */
-// int rtc_close(void);
+// int32_t close_rtc(int32_t fd);
 // /* should block until the next interrupt, return 0 */
-// int rtc_read(void);
+// int32_t read_rtc(int32_t fd, void* buf, int32_t nbytes);
 // /* must be able to change frequency, return 0 or -1 */
-// int rtc_write(void);
+// int32_t write_rtc(int32_t fd, const void* buf, int32_t nbytes);
 
 #endif /* _RTC_H */
 

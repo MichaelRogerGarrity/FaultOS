@@ -36,7 +36,6 @@ file type, and inode number for the file, then return 0.
             */
 int32_t read_dentry_by_name(const uint8_t *fname, dentry_t *dentry)
 {
-    // check file name !!!!!!!!!!!!!!!!
     const int8_t* s1 = (int8_t *)fname ;
     uint32_t n = 32;
     uint32_t namelen = strlen(s1);
@@ -134,7 +133,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t *buf, uint32_t length
         if  ( curNbytes >= inodeptr->length - offset){
             return curNbytes;
         }
-        curDataIdx = (uint32_t)(inode_t *)(inodeptr + inode)->data_block[(offset + curNbytes)%FOUR_KILO_BYTE]; // gets into the current data block
+        curDataIdx = (uint32_t)(inode_t *)(inodeptr + inode)->data_block[((offset + curNbytes)/FOUR_KILO_BYTE) % 1023]; // gets into the current data block
         // cur_data =  (uint8_t *)(inode_t *)(inodeptr + inode)->data_block; //want the ptr 
         dataBlock_t * curdblockptr = (dataBlock_t *)(datablockptr + curDataIdx);
         
@@ -158,7 +157,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t *buf, uint32_t length
 * Inputs:   fname - to call read file_name
 * Outputs: int - -1 if failed
 * Description: Uses read_dentry_by_name, initializes any temporary structures. 
-            */
+*/
 int32_t open_file(const uint8_t *filename) {
     /* Check if name is valid, and if read dentry call is valid. */
     const int8_t* s = (int8_t*)filename;
@@ -175,7 +174,7 @@ int32_t open_file(const uint8_t *filename) {
 * Inputs:   file directory fd
 * Outputs: int - 0
 * Description: () undo what you did in the open function, return 0
-            */
+*/
 int32_t close_file(int32_t fd) {
     return 0;
 }

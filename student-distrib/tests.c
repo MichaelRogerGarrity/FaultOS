@@ -1,6 +1,7 @@
 #include "tests.h"
 #include "x86_desc.h"
 #include "lib.h"
+#include "filesys.h"
 
 #define PASS 1
 #define FAIL 0
@@ -103,6 +104,18 @@ int pageFaultTest() {
 	return result;
 }
 
+int testFilesys(){
+	const uint8_t testfname[11] = "frame0.txt";
+	dentry_t  * testdir;
+
+	read_dentry_by_name(testfname, testdir);
+
+	
+	printf("%u",testdir->ftype);
+
+	return 0;
+}
+
 /* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
@@ -117,6 +130,8 @@ void launch_tests() {
 	 //TEST_OUTPUT("Page Fault Test", pageFaultTest());			// Page Fault Test
 	 //TEST_OUTPUT("System Call Test", sysCallTest());				// System Call Test
 	// Our RTC Test is checked through rtc.c where we call test_interrupts() to check frequency.
+	//checkpoint 2
+	TEST_OUTPUT("file sys test", testFilesys());				// 
 }
 
 

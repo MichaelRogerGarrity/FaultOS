@@ -7,7 +7,9 @@
 #include "lib.h"
 #include "i8259.h"
 
-//volatile int interrupt_rtc = 0;
+// Declaration for the RTC Test interrupts.  
+void test_interrupts();
+
 /*
 void rtc_init(void)
 Description: Initialize the RTC
@@ -15,15 +17,9 @@ Inputs: none
 Outputs: none
 Side Effects: Initialize the RTC
 */
-
-// Declaration for the RTC Test interrupts.  
-void test_interrupts();
-
 void rtc_init(void) {
+    
     // obtain older value of RTC RegA's old value
-
-
-
     outb(REG_B, RTC_PORT_IDX);                  // select B, disable NMI
     unsigned char prev_b = inb(RTC_PORT_RW);    // read curr B value
     outb(REG_B, RTC_PORT_IDX);                  // set idx again (due to resetting of index to reg D due to a read)
@@ -33,8 +29,7 @@ void rtc_init(void) {
     unsigned char prev_a = inb(RTC_PORT_RW);    // read curr A value
     outb(REG_A, RTC_PORT_IDX);                  // set idx again (due to resetting of index to reg D due to a read)
     outb((prev_a & 0xF0) | 6, RTC_PORT_RW);     // mask bottom 4 bits | 6 and get bits 1 and 2 turn on bit 6 and reqrite prev value  
-
-    
+    interrupt_flag_rtc = 0;
     // turn on interrupts at IRQ number 8 because that is where RTC goes
     enable_irq(RTC_IRQ);
     return;
@@ -56,6 +51,7 @@ extern void rtc_handler(void) {
     /* Here we call test interrupts to make sure our RTC is working. */
     // test_interrupts();
     //putc('a');
+    interrupt_flag_rtc = 1;
     send_eoi(RTC_IRQ);
     return;
 }
@@ -76,10 +72,15 @@ int rtc_set_freq(int newfreq) {
 
     int rate = 0x0F;			               // rate must be above 2 and not over 15
 
+    if (newfreq == 1)
+        return 0;
+    
+    if (newfreq % 2 == 1)                       // odd number - invalid
+        return -1;
+
     /* Check if rate is between 2 and 15 */
     switch (newfreq) {
-
-    /* Note: Numbers here are possible frequencies - they cannot be any other value. */
+    /* Note: Numbers here are possible frequencies - they cannot be any other value. Taken from Datasheet. */
 
     case 1024: 
         rate = RATE_FOR_1024; break;
@@ -114,66 +115,79 @@ int rtc_set_freq(int newfreq) {
     return 0;
 
 }
-// /* MP3 Checkpoint 2 Stuff: */
 
-/* 
-rtc read must only return once the RTC interrupt occurs. 
-You might want to use some sort of flag here (you will 
-not need spinlocks. Why?)
+/* MP3 Checkpoint 2 Stuff: */
 
-RTC read() should block until the next interrupt, return 0
-► NOT for reading the RTC frequency
+/* open_rtc
+* Inputs:   fname - to call read file_name
+* Outputs: int - 0
+* Description: rtc_open should reset the frequency to 2Hz. 
+RTC open() initializes RTC frequency to 2HZ, return 0
+*/
+int32_t open_rtc(const uint8_t *filename) {
+  rtc_set_freq(OPEN_AT_2HZ);
+  return 0;
+}
 
-// */
-// int rtc_read(){
-//   interrupt_rtc = 0;
-//   while(interrupt_rtc == 0){
-//     /* do nothing... */
-//   }
-//   return 0;
-// }
-// /*
-// rtc write must get its input parameter through a buffer 
-// and not read the value directly.
 
-// RTC write() must be able to change frequency, return 0 or -1
-// ► New frequency passed through buf ptr or through count?
-// ► Frequencies must be power of 2
+/* close_rtc
+* Inputs:   file directory fd
+* Outputs: int - 0
+* Description: RTC close() probably does nothing, unless you virtualize RTC, return 0
+*/
+int32_t close_rtc(int32_t fd) {
+  return 0;
+}
 
-// */
-// int rtc_write(const void* buf, uint32_t num_bytes){
+/* read_rtc
+ * Inputs:      file directory fd
+ *              buffer buf
+ *              num of bytes to be copied nbytes
+ * Outputs:     returning the number of bytes read and placed in the buffer.
+ * Description
+ * rtc read must only return once the RTC interrupt occurs. 
+ * You might want to use some sort of flag here (you will not need spinlocks)
+ * RTC read() should block until the next interrupt, return 0
+ * NOT for reading the RTC frequency.
+ */
+int32_t read_rtc(int32_t fd, void* buf, int32_t nbytes) {
+  
+  while(!interrupt_flag_rtc){
+    /* do nothing... */
+  }
+  interrupt_flag_rtc = 0;
+  return 0;
+}
 
-//   /* sanity check */
-//   if(buf == NULL) return -1;
-//   if(num_bytes != sizeof(uint32_t)) return -1;
+/* write_file
+ * Inputs:   none
+ * Outputs: -1
+ * Description: 
+ * rtc write must get its input parameter through a buffer 
+ * and not read the value directly.
+ * RTC write() must be able to change frequency, return 0 or -1
+ * New frequency passed through buf ptr or through count?
+ * Frequencies must be power of 2
+ */
+int32_t write_rtc(int32_t fd, const void* buf, int32_t nbytes) {
 
-//   /* load freq <- input buffer */
-//   int32_t frequency;
-//   frequency = *((int*) buf);
+  /* sanity check */
+  if(buf == NULL) return -1;
+  if(nbytes != sizeof(uint32_t)) return -1;
 
-//   /* sanity check on frequency */
-//   if(frequency < MINFREQ | frequency > MAXFREQ) return -1;
-//   /* HOW TO CHECK IFF A POWER OF TWO???????????? 
-//   i think if it just has a single one, then its good, but how do you just check that
-//   */
+  /* load freq <- input buffer */
+  int32_t frequency;
+  frequency = *((int*) buf);
 
-//   /* critical section */
-//   cli();
-//   rtc_set_freq(frequency);
-//   sti();
-//   return 0;
-// }
-// /* 
-// rtc_open should reset the frequency to 2Hz. 
-// RTC open() initializes RTC frequency to 2HZ, return 0
-// */
-// int rtc_open(void){
-//   rtc_set_freq(OPEN_AT_2HZ);
-//   return 0;
-// }
-// /*
-// RTC close() probably does nothing, unless you virtualize RTC, return 0
-// */
-// int rtc_close(void){
-//   return 0;
-// }
+  /* sanity check on frequency */
+  if((frequency < MINFREQ) || (frequency > MAXFREQ)) return -1;
+  /* HOW TO CHECK IFF A POWER OF TWO???????????? 
+  i think if it just has a single one, then its good, but how do you just check that
+  */
+
+  /* critical section */
+  cli();
+  rtc_set_freq(frequency);
+  sti();
+  return 0;
+}
