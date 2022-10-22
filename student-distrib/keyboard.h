@@ -26,8 +26,6 @@
 #define KEYBOARD_CTRL_DOWN          29
 #define KEYBOARD_CTRL_UP            158
 #define KEYBOARD_ENTER              28
-#define KEYBOARD_BACKSPACE          14
-#define KEYBOARD_L_KEY_DOWN         38
 
 /* Ports that each Keyboard sits on */
 #define KEYBOARD_PORT               0x60

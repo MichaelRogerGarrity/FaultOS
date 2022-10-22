@@ -85,8 +85,8 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t *dentry)
     // int8_t* strncpy(int8_t* dest, const int8_t* src, uint32_t n) {
     strncpy(dentry->filename, tempdent.filename, strlen(tempdent.filename));
     dentry->ftype = tempdent.ftype;
-    dentry->inode = tempdent.inode;     
-    // may want to add the reserved parts later
+    dentry->inode = tempdent.inode;
+
     return 0;
 }
 
@@ -271,7 +271,7 @@ int32_t read_dir(int32_t fd, void* buf, int32_t nbytes) {
     // INSERT NAMECHECK
 
         // strncpy(int8_t* dest, const int8_t*src, uint32_t n);
-    strncpy((int8_t*)buf, (int8_t*)(bootblockptr->dirEntries[i].filename), 32);
+        strncpy((int8_t*)buf, (int8_t*)(bootblockptr->dirEntries[i].filename), 32);
 
     
     return 0;
