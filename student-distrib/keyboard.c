@@ -105,19 +105,6 @@ extern void keyboard_handler(void) {
     else if(keycode == KEYBOARD_CTRL_UP){
         ctrlflag = 0;
     }
-
-    if((ctrlflag) && (keycode == KEYBOARD_L_KEY_DOWN)){
-        int i;
-        clear();
-        currkey = 0;
-        for(i=0; i<KEYBOARD_BUFFER_MAX_SIZE; i++){
-            keyboardbuffer[i] = '\0';
-        }
-        set_screen_x(0);
-        set_screen_y(0);
-        send_eoi(KEYBOARD_IRQ);
-        return;
-    }
     
     /* If it is out of range or is a function key processed above, we simply send an EOI and leave. */
     if ((keycode < 0) || (keycode >= KEYBOARD_INPUT_RANGE) || (keycode == KEYBOARD_CAPS_LOCK) || (keycode == KEYBOARD_CTRL_DOWN) || (keycode == KEYBOARD_ALT_DOWN) || (keycode == KEYBOARD_SHIFT_DOWN) || (keycode == KEYBOARD_SHIFT_DOWN2) || (currkey >=128)) {
@@ -139,28 +126,6 @@ extern void keyboard_handler(void) {
         output = scancode_map_normal[keycode];
     }
 
-    if(keycode == KEYBOARD_BACKSPACE){
-        if(get_screen_x() > 0){
-            set_screen_x(get_screen_x()-1);
-            putc2(output);
-            currkey = currkey - 1;
-            keyboardbuffer[currkey] = output;
-            set_screen_x(get_screen_x()-1);
-            send_eoi(KEYBOARD_IRQ);
-            return;
-        }
-        else if(currkey > 79){
-            set_screen_y(get_screen_y()-1);
-            set_screen_x(79);
-            putc(output);
-            currkey = currkey - 1;
-            keyboardbuffer[currkey] = output;
-            set_screen_x(79);
-            send_eoi(KEYBOARD_IRQ);
-            return;
-        }
-    }
-
     /* We next add that character to our buffer and print it to the screen if there is still room in the buffer */
     if(currkey < (KEYBOARD_BUFFER_MAX_SIZE - 1)){  // keyboard buffer size -1, since last char can only be newline
         keyboardbuffer[currkey] = output;
@@ -175,6 +140,7 @@ extern void keyboard_handler(void) {
         keyboardbuffer[currkey] = output;
         currkey = currkey + 1;
         enterflag = 1;
+        //putc2(output); 
     }
     send_eoi(KEYBOARD_IRQ);
     return;

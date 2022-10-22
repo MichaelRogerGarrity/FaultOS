@@ -33,7 +33,7 @@ int32_t terminal_read(int32_t fd, uint8_t* buf, int32_t nbytes){
         }
         keyboardbuffersize++;
         for(j=0; j<KEYBOARD_BUFFER_MAX_SIZE; j++){
-                    keyboardbuffer[j] = '\0';   // clear our buffer to prevent an infinite loop of read/write on the same line 
+                    keyboardbuffer[j] = '\0';   // clear our buffer to prevent an infinite loop of read/write on the same line
                 }
                 currkey = 0;
                 enterflag = 0;
@@ -47,9 +47,6 @@ int32_t terminal_read(int32_t fd, uint8_t* buf, int32_t nbytes){
 int32_t terminal_write(int32_t fd, const uint8_t* buf, int32_t nbytes){
     int i;
     set_screen_x(0);
-    if(keyboardbuffersize >= 80){
-        set_screen_y(get_screen_y()-1);
-    }
     for(i=0; i<keyboardbuffersize; i++){
         putc2(buf[i]);
     }

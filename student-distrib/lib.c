@@ -254,30 +254,10 @@ void putc2(uint8_t c) {
             screen_x = 0;
             screen_y = 24;
         }
-    } 
-    // else if(screen_x == 79) {
-    //     scroll();
-    //     screen_x = 0;
-    //     if(screen_y == 24){
-    //         screen_y = 24;
-    //     }
-    //     else {
-    //         screen_y++;
-    //     }
-    //     putc2(c);
-    // }
-      else{
+    } else {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
-        if(screen_x >= 80){
-            if(screen_y == 24){
-                scroll();
-            }
-            else{
-                screen_y++;
-            }
-        }
         screen_x %= NUM_COLS;
         screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
     }
