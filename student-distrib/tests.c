@@ -105,22 +105,37 @@ int pageFaultTest() {
 }
 
 int testFilesys(){
+	// const uint8_t testfname[34] = "verylargetextwithverylongname.txt";
 	const uint8_t testfname[11] = "frame0.txt";
-	dentry_t  * testdir;
+	dentry_t  testdir;
 
-	read_dentry_by_name(testfname, testdir);
-
-	
-	printf("%u",testdir->ftype);
+	int numb = -2;
+	numb = read_dentry_by_name(testfname, (dentry_t *)(&testdir));
+	// Z:\mp3\fsdir\verylargetextwithverylongname.txt
+	// printf("reach 113");
+	// printf("%u",testdir.ftype);
+	// printf("%s", testdir.filename);
+	uint8_t buf[187];
+	read_data(testdir.inode, 0, buf, 187);
+	// read_data(testdir.inode, 50, buf, 187);
+	// read_data(testdir.inode, 184, buf, 187);
+	// read_data(testdir.inode, 189, buf, 187);
+	int i = 0;
+	// for (i = 139; i<163; i++) {
+	// 	printf("%c", buf[i]);
+	// // }
+	clear();
+	// printf("num bytes = %u", numb);
+	printf("%s", buf);
 
 	return 0;
+	
 }
 
 /* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
-
 
 /* Test suite entry point */
 void launch_tests() {

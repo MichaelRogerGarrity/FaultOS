@@ -2,27 +2,19 @@
 #include "lib.h"
 static dentry_t currdentry;
 static uint32_t offset; // change name 
-// int32_t strncmp(const int8_t* s1, const int8_t* s2, uint32_t n);
-// dir r,w,open,close
-// file r,w,open,clode
 
-/*
-multiboot_info_t *mbi;
-mbi = (multiboot_info_t *) addr;
-module_t* mod = (module_t*)mbi->mods_addr;
-*/
 
 /* file_init
 * Inputs:   none
 * Outputs: int - 0 means done
-* Description: Initializes all our pointers / variables
+* Description: Initializes all our pointers / variables and sets pointers for structs to be used.
 */
 int32_t file_init(uint32_t startAddr) {
     fstart_adddr = startAddr;
     bootblockptr = (boot_block_t *)(fstart_adddr);
     currdentryptr = bootblockptr->dirEntries;
     inodeptr = (inode_t *)(bootblockptr + 1); // arpan change
-    datablockptr = (dataBlock_t *)(bootblockptr + bootblockptr->num_of_inodes); // arpan change
+    datablockptr = (dataBlock_t *)(bootblockptr + bootblockptr->num_of_inodes +1);
     return 0;
 }
 
@@ -33,42 +25,41 @@ int32_t file_init(uint32_t startAddr) {
 * Description: When successful, the first two calls fill in the
 dentry t block passed as their second argu  \th the file name,
 file type, and inode number for the file, then return 0.
-            */
+*/
 int32_t read_dentry_by_name(const uint8_t *fname, dentry_t *dentry)
 {
+    // Name check
     const int8_t* s1 = (int8_t *)fname ;
-    uint32_t n = 32;
     uint32_t namelen = strlen(s1);
     if (namelen > MAX_FILENAME_LEN)
         return -1;
-
     int namepres = 0;
     int i;
-    // uint32_t startaddr = fstart_adddr + 64;
     uint32_t index = 0;
+
+    // This traverses through directory and tries to find the file with matching name.
     for (i = 0; i < bootblockptr->num_of_dirs; i++)
     {
-        const int8_t* s2 = (int8_t *)currdentryptr[i].filename;
+        dentry_t tempd = currdentryptr[i];
+        const int8_t* s2 = (int8_t *)(tempd.filename);
 
         // CHECKED IF DIR ENTRY IS VALID - either check filename null
         // OR check number of directory entries (assuming )
         
-        int32_t temp = strncmp(s1, s2, n);
-        
-        if (temp == 0) //change to? bootblockptr->dirEntries[i].filename
-        {
-            // We found the file name!
+        int32_t temp = strncmp(s1, s2, MAX_FILENAME_LEN);
+        // File was found, and we want the index of the file, and leave the loop
+        if (temp == 0) {
             index = i;
             namepres = 1;
             break;
         }
     }
-    if (!namepres)
-    {
-        return -1;
+
+    if (!namepres) {
+        return -1;                                                      // The file was not found. Leave.
     }
 
-    read_dentry_by_index(index, dentry);
+    read_dentry_by_index(index, dentry);                    // Put into our dentry the 
 
     return 0;
 }
@@ -88,11 +79,14 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t *dentry)
         return -1;
         // find the addr to start copying memcpy(void* dest, const void* src, uint32_t n)
     }
+    //void* memcpy(void* dest, const void* src, uint32_t n) {
+    dentry_t tempdent = (currdentryptr[index]);
 
-    memcpy(&dentry, &(currdentryptr[index]), 64);
-    //*(fstart_addr + FOUR_KILO_BYTE*i)
-    // memcpy(fstart_adddr + 64 + 64 * index, dentry, 64);
-    // dentry = currdentryptr[index]; // arpan change - but i think it sets pointers (not good)
+    // int8_t* strncpy(int8_t* dest, const int8_t* src, uint32_t n) {
+    strncpy(dentry->filename, tempdent.filename, strlen(tempdent.filename));
+    dentry->ftype = tempdent.ftype;
+    dentry->inode = tempdent.inode;
+
     return 0;
 }
 
@@ -118,32 +112,54 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t *buf, uint32_t length
     int curDataIdx;
     uint32_t curNbytes = 0;
     uint8_t * cur_data;
+    inode_t *curInodePtr = (inode_t *)(inodeptr + inode);
     
     /* check that the given inode is within the valid range. */
     if ( inode < 0 || (inode > (bootblockptr->num_of_inodes) - 1) )
         return -1;
 
-    if ((inode_t *)(inodeptr + inode)->length == 0){
+    if (curInodePtr->length == 0){
         return -1;
     }
     // i goes through length bytes starting from offset
-    while(curNbytes < (uint32_t) ((inode_t *)(inodeptr + inode))->length /*i++*/)  // traversing through 
+
+    /* Variable meanings: 
+    curNbytes - running total of bytes done / read
+    curDataIdx - data block index inside the current inode
+    curdblockptr - pointer to current data block being read
+    cur_data - uint8 array of data block (has 4096 values)
+    curInodePtr - pointer to the relevant Inode
+    j = index inside block - adjust for starting & ending & offset
+    */
+    
+    while(curNbytes < (uint32_t)(curInodePtr->length) /*i++*/)  // traversing through 
     {
         // Offset checker; 
-        if  ( curNbytes >= inodeptr->length - offset){
+        if  (curNbytes >= curInodePtr->length - offset){
             return curNbytes;
         }
-        curDataIdx = (uint32_t)(inode_t *)(inodeptr + inode)->data_block[((offset + curNbytes)/FOUR_KILO_BYTE) % 1023]; // gets into the current data block
-        // cur_data =  (uint8_t *)(inode_t *)(inodeptr + inode)->data_block; //want the ptr 
+
+        // curDataIdx = (uint32_t)(inode_t *)(inodeptr + inode)->data_block[((offset + curNbytes)/FOUR_KILO_BYTE) % 1023]; // gets into the current data block
+
+        int dblockidx =((offset + curNbytes)/FOUR_KILO_BYTE);
+        if (dblockidx >= 1023)
+            return curNbytes;
+        
+        curDataIdx = curInodePtr->data_block[dblockidx];
         dataBlock_t * curdblockptr = (dataBlock_t *)(datablockptr + curDataIdx);
         
-        cur_data = curdblockptr->data; //want the ptr 
-        //curDataIdx += correctedDataIdx;
-        // Start condition CHECK
-        for (j = (curNbytes%FOUR_KILO_BYTE) + offset; (j < FOUR_KILO_BYTE) && (curNbytes < (uint32_t)((inode_t *)(inodeptr + inode)->length)); j++)
-        { // go through data block and copy 1 byte at a time 
+        cur_data = curdblockptr->data;
+        uint8_t temp, temp1;
+        // Goes through each data block.
+        for (j = ((curNbytes+offset)%FOUR_KILO_BYTE); (j < FOUR_KILO_BYTE) && (curNbytes < (uint32_t)(curInodePtr->length)); j++)
+        { 
+
+            // go through data block and copy 1 byte at a time 
             // put data into buffer
             buf[curNbytes] = cur_data[j]; // or do memcpy if this doesnt work doing one byte at a time 
+            
+            temp =  cur_data[j];
+            temp1 =  buf[curNbytes];
             curNbytes++;
         }
     }

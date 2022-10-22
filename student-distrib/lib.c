@@ -203,7 +203,7 @@ void scroll(){
     int i;
 
     x_temp = screen_x;
-    y_temp - screen_y;
+    y_temp = screen_y;
 
     screen_x = 0;
     screen_y = 0;
