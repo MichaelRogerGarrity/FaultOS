@@ -4,6 +4,7 @@
 # alloc the space for the directory and table
 #enable the paging after we have inialized the page tables (bit 31 in CR0 reg)
 
+# refrenced this: https://wiki.osdev.org/Paging
 #    .align 4096
 #page_directory:  
 #    .rept 1024

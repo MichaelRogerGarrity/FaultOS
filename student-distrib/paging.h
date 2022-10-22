@@ -16,46 +16,38 @@
 
 /* Struct for the Page Directory. Refer to Descriptors.pdf. */
 typedef struct p_d1{
-    union {
         //uint32_t val[2];
-        struct {
-            uint8_t p   : 1;
-            uint8_t rw  : 1;                // set to 1
-            uint8_t us  : 1;  
-            uint8_t pwt : 1;
-            uint8_t pcd : 1;
-            uint8_t a : 1;
-            uint8_t DC1 : 1;
-            uint8_t ps : 1;
-            uint8_t g : 1;
-            uint8_t avail : 3;              // 3 is num of avaiable bits 
-            uint32_t pt_baddr : 20;         // 20 for page address bits 
-        }__attribute__ ((packed));
-    };
-} page_dir_entry;  
+    uint8_t p   : 1;
+    uint8_t rw  : 1;                // set to 1
+    uint8_t us  : 1;  
+    uint8_t pwt : 1;
+    uint8_t pcd : 1;
+    uint8_t a : 1;
+    uint8_t DC1 : 1;
+    uint8_t ps : 1;
+    uint8_t g : 1;
+    uint8_t avail : 3;              // 3 is num of avaiable bits 
+    uint32_t pt_baddr : 20;         // 20 for page address bits 
+}__attribute__ ((packed)) page_dir_entry;
+
 
  /* Struct for the Page Table. Refer to Descriptors.pdf. */
 typedef struct p_t
 {
      // uint32_t val[2];
-    union
-    {
-        struct
-        {
-            uint8_t p : 1;
-            uint8_t rw : 1;
-            uint8_t us : 1;
-            uint8_t pwt : 1;
-            uint8_t pcd : 1;
-            uint8_t a : 1;
-            uint8_t d : 1;
-            uint8_t pat : 1;
-            uint8_t g : 1;
-             uint8_t avail : 3;             // 3 is num of avaiable bits
-             uint32_t pt_baddr : 20;        // 20 for page address bits
-        } __attribute__((packed));
-    };
-} page_table_entry;
+    uint8_t p : 1;
+    uint8_t rw : 1;
+    uint8_t us : 1;
+    uint8_t pwt : 1;
+    uint8_t pcd : 1;
+    uint8_t a : 1;
+    uint8_t d : 1;
+    uint8_t pat : 1;
+    uint8_t g : 1;
+    uint8_t avail : 3;             // 3 is num of avaiable bits
+    uint32_t pt_baddr : 20;        // 20 for page address bits
+} __attribute__((packed)) page_table_entry;
+
 
 // typedef struct p_d2{
 //     uint32_t p   : 1;

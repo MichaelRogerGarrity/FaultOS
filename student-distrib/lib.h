@@ -14,6 +14,13 @@ int8_t *itoa(uint32_t value, int8_t* buf, int32_t radix);
 int8_t *strrev(int8_t* s);
 uint32_t strlen(const int8_t* s);
 void clear(void);
+int get_screen_x();
+int get_screen_y();
+void set_screen_x(int new_screen_x);
+void set_screen_y(int new_screen_y);
+void putc2(uint8_t c);
+int32_t puts2(int8_t* s, int nbytes);
+extern void scroll();
 
 void* memset(void* s, int32_t c, uint32_t n);
 void* memset_word(void* s, int32_t c, uint32_t n);

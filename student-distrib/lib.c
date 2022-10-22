@@ -24,6 +24,40 @@ void clear(void) {
     }
 }
 
+/* int get_screen_x();
+ * Inputs: none
+ * Return Value: screen_x
+ * Function: Getter function for the screen_x variable */
+int get_screen_x() {
+    return screen_x;
+}
+
+/* int set_screen_x(int new_screen_x);
+ * Inputs: new_screen_x - The new value for screen_x
+ * Return Value: none
+ * Function: Setter function for the screen_x variable */
+void set_screen_x(int new_screen_x) {
+    screen_x = new_screen_x;
+    return;
+}
+
+/* int get_screen_y();
+ * Inputs: none
+ * Return Value: screen_y
+ * Function: Getter function for the screen_y variable */
+int get_screen_y() {
+    return screen_y;
+}
+
+/* int set_screen_y(int new_screen_y);
+ * Inputs: new_screen_y - The new value for screen_y
+ * Return Value: none
+ * Function: Setter function for the screen_y variable */
+void set_screen_y(int new_screen_y) {
+    screen_y = new_screen_y;
+    return;
+}
+
 /* Standard printf().
  * Only supports the following format strings:
  * %%  - print a literal '%' character
@@ -161,6 +195,72 @@ int32_t puts(int8_t* s) {
         index++;
     }
     return index;
+}
+
+void scroll(){
+    int x_temp;
+    int y_temp;
+    int i;
+
+    x_temp = screen_x;
+    y_temp = screen_y;
+
+    screen_x = 0;
+    screen_y = 0;
+
+    for(i=0; i<1920; i++){
+        screen_x = (i%80);
+        screen_y = (i/80);
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y+1) + screen_x) << 1));
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y+1) + screen_x) << 1) + 1);
+    }
+    for(i=1920; i<2000; i++){
+        screen_x = (i%80);
+        screen_y = (i/80);
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = '\0';
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+    }
+
+    screen_x = x_temp;
+    screen_y = y_temp;
+}
+
+/* int32_t puts2(int8_t* s);
+ *   Inputs: int_8* s = pointer to a string of characters
+ *           int nbytes = number of bytes to write
+ *   Return Value: Number of bytes written
+ *    Function: Output a string to the console but utilizing putc2 instead of putc and with a limited number of bytes */
+int32_t puts2(int8_t* s, int nbytes) {
+    register int32_t index = 0;
+    while (index < nbytes) {
+        putc2(s[index]);
+        index++;
+    }
+    return index;
+}
+
+/* void putc2(uint8_t c);
+ * Inputs: uint_8* c = character to print
+ * Return Value: void
+ *  Function: Output a character to the console, but unlike putc will scroll screen when at bottom row */
+void putc2(uint8_t c) {
+    if(c == '\n' || c == '\r') {
+        if(screen_y != 24){
+            screen_y++;
+            screen_x = 0;
+        }
+        else{
+            scroll();
+            screen_x = 0;
+            screen_y = 24;
+        }
+    } else {
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+        screen_x++;
+        screen_x %= NUM_COLS;
+        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+    }
 }
 
 /* void putc(uint8_t c);
