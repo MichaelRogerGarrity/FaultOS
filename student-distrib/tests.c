@@ -120,7 +120,7 @@ int testFilesys(){
 	// read_data(testdir.inode, 50, buf, 187);
 	// read_data(testdir.inode, 184, buf, 187);
 	// read_data(testdir.inode, 189, buf, 187);
-	int i = 0;
+	// int i = 0;
 	// for (i = 139; i<163; i++) {
 	// 	printf("%c", buf[i]);
 	// // }
