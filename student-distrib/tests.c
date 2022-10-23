@@ -3,6 +3,8 @@
 #include "lib.h"
 #include "filesys.h"
 
+#include "terminal.h"
+
 #define PASS 1
 #define FAIL 0
 
@@ -104,49 +106,108 @@ int pageFaultTest() {
 	return result;
 }
 
+
+/* Checkpoint 2 tests */
 int testFilesys(){
 	// const uint8_t testfname[34] = "verylargetextwithverylongname.txt";
 	const uint8_t testfname[11] = "frame0.txt";
-	dentry_t  testdir;
+	dentry_t testdir;
+	int32_t fd;
 
 	int numb = -2;
 	numb = read_dentry_by_name(testfname, (dentry_t *)(&testdir));
+	// read_dir(int32_t fd, void* buf, int32_t nbytes) {
 	// Z:\mp3\fsdir\verylargetextwithverylongname.txt
 	// printf("reach 113");
 	// printf("%u",testdir.ftype);
 	// printf("%s", testdir.filename);
 	uint8_t buf[187];
 	read_data(testdir.inode, 0, buf, 187);
+	clear();
+	set_screen_x(0);
+	set_screen_y(0);
+	terminal_write(fd, buf, 187);
 	// read_data(testdir.inode, 50, buf, 187);
 	// read_data(testdir.inode, 184, buf, 187);
 	// read_data(testdir.inode, 189, buf, 187);
 	int i = 0;
 	// for (i = 139; i<163; i++) {
 	// 	printf("%c", buf[i]);
-	// // }
-	clear();
+	//  }
 	// printf("num bytes = %u", numb);
-	printf("%s", buf);
+	//printf("%s", buf);
 
 	return 0;
 	
 }
 
-/* Checkpoint 2 tests */
+int testFileDrivers(){
+	clear();
+	set_screen_x(0);
+	set_screen_y(0);
+	int i = 0, j = 0;
+
+	uint32_t fd_temp;
+
+	open_dir((uint8_t *)(".")); // open the directory
+
+	for(i = 0; i<17;i++){
+		int8_t curfname[32];
+		read_dir(fd_temp,curfname,32);
+		printf("FILE NAME: ");
+
+		for(j = 0; j <32; j++){
+			printf("%c",curfname[j]);
+		}
+
+		printf("\n");
+	}
+
+	return 0;
+}
+
+
+int testRTC(){
+	clear();
+	set_screen_x(0);
+	set_screen_y(0);
+	uint32_t fd_temp;
+	
+	
+	int i = 0, j = 0;
+	// int32_t frequency = 1024;
+	int32_t frequency = 128;
+	// int32_t frequency = 16;
+	// int32_t frequency = 2;
+	// int32_t frequency = 1000;
+	// int32_t frequency = 1;
+	// int32_t frequency = 5;
+	// read_rtc(fd_temp, &(frequency), 32);
+	write_rtc(fd_temp, &(frequency), 32);
+	
+	
+	return 0;
+	
+}
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
 /* Test suite entry point */
 void launch_tests() {
-	// launch your tests here Checkpoint 1
-	// TEST_OUTPUT("idt_test", idt_test());						// Given IDT Test
-	 //TEST_OUTPUT("divz_test", divzTest());					// Divide by 0 test
-	 //TEST_OUTPUT("Page Fault Test", pageFaultTest());			// Page Fault Test
-	 //TEST_OUTPUT("System Call Test", sysCallTest());				// System Call Test
+	// launch your tests here 
+	/* Checkpoint 1 */
+	// 	TEST_OUTPUT("idt_test", idt_test());						// Given IDT Test
+	//	TEST_OUTPUT("divz_test", divzTest());					// Divide by 0 test
+	//	TEST_OUTPUT("Page Fault Test", pageFaultTest());			// Page Fault Test
+	//	TEST_OUTPUT("System Call Test", sysCallTest());				// System Call Test
 	// Our RTC Test is checked through rtc.c where we call test_interrupts() to check frequency.
-	//checkpoint 2
-	TEST_OUTPUT("file sys test", testFilesys());				// 
+	/* Checkpoint 2 */
+	//TEST_OUTPUT("file sys test", testFilesys());				//
+	//testFilesys();
+	//testFileDrivers();
+	testRTC();
 }
 
 

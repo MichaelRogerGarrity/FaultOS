@@ -8,5 +8,7 @@ int sysCallTest();
 int pageFaultTest();
 int testFilesys();
 
+int testFileDrivers();
+
 #endif /* TESTS_H */
 

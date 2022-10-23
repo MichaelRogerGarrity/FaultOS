@@ -91,3 +91,19 @@ c. Page directory addr for vid mem
 - Fix: put page_table >> 12 for the upper 20 bit val
 
 
+Checkpoint 2:
+
+1. Drivers:
+Type: Most errors were algorithmic, based on incorrect logic and understanding of the drivers.
+
+// Terminal Bugs: 
+
+a. Terminal Newlines Not Aligned to Left Side of Screen
+- Symptom: Newlines will be printed with a random number of spaces between the left side of the screen and their start location
+- Difficulty: Took about 3 hours to fix, lots of time spent running through GDB searching for where the screen_x value got messed up
+- Fix: Implemented a variable to track the size of the keyboardbuffer. The problem was that the function was printing garbage characters past the end of our keyboardbuffer char array
+
+b. Scroll Issues
+- Symptom: Scroll would print lines twice when typing on second line of input.
+- Difficulty: 20 minutes, required some reworking of scroll function logic.
+- Fix: Our scroll function was resetting the screen_x to begin at the beginning of the current line, regardless of whether there were multiple lines of input. This caused the first line of text to be printed on the second line despite our keyboard driver having already written it above. I updated the logic to decrement scroll_y if the number of characters exceeded 80 (indicating two lines of text).

@@ -36,7 +36,7 @@
 #define OPEN_AT_2HZ         2
 
 
-int interrupt_flag_rtc; /* 1 == interrupt active. 0 == interrupt not active */
+volatile int interrupt_flag_rtc; /* 1 == interrupt active. 0 == interrupt not active */
 
 
 /* Externally-visible functions */

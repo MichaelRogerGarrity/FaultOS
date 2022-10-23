@@ -32,6 +32,7 @@ void rtc_init(void) {
     interrupt_flag_rtc = 0;
     // turn on interrupts at IRQ number 8 because that is where RTC goes
     enable_irq(RTC_IRQ);
+    rtc_set_freq(OPEN_AT_2HZ);
     return;
 }
 
@@ -50,7 +51,7 @@ extern void rtc_handler(void) {
     temp &= 0xFFFF;                             // Avoid warning of unused temp.
     /* Here we call test interrupts to make sure our RTC is working. */
     // test_interrupts();
-    //putc('a');
+    putc2('a');
     interrupt_flag_rtc = 1;
     send_eoi(RTC_IRQ);
     return;
@@ -72,11 +73,11 @@ int rtc_set_freq(int newfreq) {
 
     int rate = 0x0F;			               // rate must be above 2 and not over 15
 
-    if (newfreq == 1)
-        return 0;
+    // if (newfreq == 1)
+    //     return 0;
     
-    if (newfreq % 2 == 1)                       // odd number - invalid
-        return -1;
+    // if (newfreq % 2 == 1)                       // odd number - invalid
+    //     return -1;
 
     /* Check if rate is between 2 and 15 */
     switch (newfreq) {
@@ -103,7 +104,8 @@ int rtc_set_freq(int newfreq) {
     case 2:
         rate = RATE_FOR_2; break;
     default:
-        return -1; break;
+        // return -1; break;
+        rate = RATE_FOR_2; break;
     }
 
     outb(REG_A, RTC_PORT_IDX);                  // set index to register A, disable NMI
@@ -125,7 +127,7 @@ int rtc_set_freq(int newfreq) {
 RTC open() initializes RTC frequency to 2HZ, return 0
 */
 int32_t open_rtc(const uint8_t *filename) {
-  rtc_set_freq(OPEN_AT_2HZ);
+//   rtc_set_freq(OPEN_AT_2HZ);
   return 0;
 }
 
@@ -170,24 +172,27 @@ int32_t read_rtc(int32_t fd, void* buf, int32_t nbytes) {
  * Frequencies must be power of 2
  */
 int32_t write_rtc(int32_t fd, const void* buf, int32_t nbytes) {
+    rtc_set_freq(OPEN_AT_2HZ);
+    /* sanity check */
+    if(buf == NULL) return -1;
+    // if(nbytes != sizeof(uint32_t)) return -1; // need to add back by passing in correct nbytes 
 
-  /* sanity check */
-  if(buf == NULL) return -1;
-  if(nbytes != sizeof(uint32_t)) return -1;
+    /* load freq <- input buffer */
+    int32_t frequency;
+    frequency = *((int*) buf);
 
-  /* load freq <- input buffer */
-  int32_t frequency;
-  frequency = *((int*) buf);
+    /* sanity check on frequency */
+    if((frequency < MINFREQ) || (frequency > MAXFREQ)) return -1;
+    /* HOW TO CHECK IFF A POWER OF TWO???????????? 
+    i think if it just has a single one, then its good, but how do you just check that
+    */
 
-  /* sanity check on frequency */
-  if((frequency < MINFREQ) || (frequency > MAXFREQ)) return -1;
-  /* HOW TO CHECK IFF A POWER OF TWO???????????? 
-  i think if it just has a single one, then its good, but how do you just check that
-  */
-
-  /* critical section */
-  cli();
-  rtc_set_freq(frequency);
-  sti();
-  return 0;
+    /* critical section */
+      cli();
+    // if( (frequency!=1024) && (frequency!=512) && (frequency!=256) && (frequency!=128) && (frequency!=64) && (frequency!=32) && (frequency!=16) && (frequency!=8) && (frequency!=4) && (frequency!=2) ) 
+    //     return -1;
+    
+    rtc_set_freq(frequency);
+      sti();
+    return 0;
 }

@@ -2,8 +2,7 @@
 #include "lib.h"
 static dentry_t currdentry;
 static uint32_t offset; // change name 
-
-
+static uint32_t diridx;
 /* file_init
 * Inputs:   none
 * Outputs: int - 0 means done
@@ -35,7 +34,7 @@ int32_t read_dentry_by_name(const uint8_t *fname, dentry_t *dentry)
         return -1;
     int namepres = 0;
     int i;
-    uint32_t index = 0;
+    diridx = 0;
 
     // This traverses through directory and tries to find the file with matching name.
     for (i = 0; i < bootblockptr->num_of_dirs; i++)
@@ -49,7 +48,7 @@ int32_t read_dentry_by_name(const uint8_t *fname, dentry_t *dentry)
         int32_t temp = strncmp(s1, s2, MAX_FILENAME_LEN);
         // File was found, and we want the index of the file, and leave the loop
         if (temp == 0) {
-            index = i;
+            diridx = i;
             namepres = 1;
             break;
         }
@@ -59,7 +58,7 @@ int32_t read_dentry_by_name(const uint8_t *fname, dentry_t *dentry)
         return -1;                                                      // The file was not found. Leave.
     }
 
-    read_dentry_by_index(index, dentry);                    // Put into our dentry the 
+    read_dentry_by_index(diridx, dentry);                    // Put into our dentry the 
 
     return 0;
 }
@@ -82,8 +81,8 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t *dentry)
     //void* memcpy(void* dest, const void* src, uint32_t n) {
     dentry_t tempdent = (currdentryptr[index]);
 
-    // int8_t* strncpy(int8_t* dest, const int8_t* src, uint32_t n) {
-    strncpy(dentry->filename, tempdent.filename, strlen(tempdent.filename));
+    // int8_t* strncpy(int8_t* dest, const int8_t* src, uint32_t n) { strlen(tempdent.filename)
+    strncpy(dentry->filename, tempdent.filename, 32);
     dentry->ftype = tempdent.ftype;
     dentry->inode = tempdent.inode;
 
@@ -134,7 +133,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t *buf, uint32_t length
     
     while(curNbytes < (uint32_t)(curInodePtr->length) /*i++*/)  // traversing through 
     {
-        // Offset checker; 
+        // // Offset checker; 
         if  (curNbytes >= curInodePtr->length - offset){
             return curNbytes;
         }
@@ -178,8 +177,10 @@ int32_t open_file(const uint8_t *filename) {
     /* Check if name is valid, and if read dentry call is valid. */
     const int8_t* s = (int8_t*)filename;
     uint32_t namelen = strlen(s);
-    if (namelen > MAX_FILENAME_LEN)
+    if (namelen > MAX_FILENAME_LEN) {
         return -1;
+    }
+    diridx = 0;
     offset = 0;
     if ((filename == NULL) || (read_dentry_by_name(filename, &currdentry) == -1))
         return -1;
@@ -208,7 +209,7 @@ int32_t read_file(int32_t fd, void* buf, int32_t nbytes) {
     if (!nbytes)
         return 0;
     
-        // get inode pointer (inode_t *)(inodeptr + inode)->length - this inode comes from curr dentry
+    // get inode pointer (inode_t *)(inodeptr + inode)->length - this inode comes from curr dentry
     read_data(currdentry.inode, offset, buf, nbytes);
     offset += nbytes;
     return 0;
@@ -232,13 +233,15 @@ int32_t write_file(int32_t fd, const void* buf, int32_t nbytes) {
 * Outputs: int - -1 if failed
 * Description: () opens a directory file (note file types), return 0
 read_dentry_by_name: name means filename
-
-            */
+*/
 int32_t open_dir(const uint8_t *filename) {
     const int8_t* s = (int8_t*)filename;
     uint32_t namelen = strlen(s);
-    if ((filename == NULL) || namelen > MAX_FILENAME_LEN)
+    if ((filename == NULL) || namelen > MAX_FILENAME_LEN) {
         return -1;
+    }
+    //  read_dentry_by_name(const uint8_t *fname, dentry_t *dentry)
+    read_dentry_by_name(filename, &currdentry);
     return 0;
 }
 
@@ -266,14 +269,31 @@ int32_t read_dir(int32_t fd, void* buf, int32_t nbytes) {
     if (!nbytes)
         return 0;
     int i = 0;
+
     // loop through num of chars
     //uint32_t namelen = strlen(bootblockptr->dirEntries[i].filename);
     // INSERT NAMECHECK
-
-        // strncpy(int8_t* dest, const int8_t*src, uint32_t n);
-        strncpy((int8_t*)buf, (int8_t*)(bootblockptr->dirEntries[i].filename), 32);
+    read_dentry_by_index(diridx, &currdentry);
+    // strncpy(int8_t* dest, const int8_t*src, uint32_t n);
+    int namelen =  strlen((int8_t *)(currdentry.filename));
+    if ( namelen >=32)
+        namelen = 32;
+    
+    int8_t wholestr[32];
+    int travval = 0;
+    for ( i = 0 ; i < 32; i++) {
+        if ((i < namelen)) {
+            wholestr[i] = currdentry.filename[i];
+        }
+        else {
+            wholestr[i] = '\0';
+        }
 
     
+    }
+    strncpy((int8_t*)buf, (int8_t*)(wholestr), 32);
+    // int32_t read_dentry_by_index(uint32_t index, dentry_t *dentry)
+    diridx++;
     return 0;
 }
 

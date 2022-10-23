@@ -5,6 +5,12 @@
 #ifndef _LIB_H
 #define _LIB_H
 
+/* Some helpful constants */
+#define VIDEO       0xB8000
+#define NUM_COLS    80
+#define NUM_ROWS    25
+#define ATTRIB      0x7
+
 #include "types.h"
 
 int32_t printf(int8_t *format, ...);
@@ -21,6 +27,9 @@ void set_screen_y(int new_screen_y);
 void putc2(uint8_t c);
 int32_t puts2(int8_t* s, int nbytes);
 extern void scroll();
+void enable_cursor(uint8_t cursor_start, uint8_t cursor_end);
+void disable_cursor();
+void update_cursor(int x, int y);
 
 void* memset(void* s, int32_t c, uint32_t n);
 void* memset_word(void* s, int32_t c, uint32_t n);
