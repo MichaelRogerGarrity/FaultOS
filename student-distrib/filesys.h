@@ -20,7 +20,7 @@
 /* Dentry Struct */
 typedef struct f1_dir
 {
-    int8_t filename[MAX_FILENAME_LENGTH];
+    int8_t filename[MAX_FILENAME_LEN];
     uint32_t ftype;
     uint32_t inode;
     uint32_t reserved[RESERVED_BITS_DENTRY];
