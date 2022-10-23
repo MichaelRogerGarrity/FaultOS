@@ -249,6 +249,8 @@ int32_t puts2(int8_t* s, int nbytes) {
  * Return Value: void
  *  Function: Output a character to the console, but unlike putc will scroll screen when at bottom row */
 void putc2(uint8_t c) {
+    if (c == '\0')
+        return;
     if(c == '\n' || c == '\r') {
         if(screen_y != NUM_ROWS-1){
             screen_y++;

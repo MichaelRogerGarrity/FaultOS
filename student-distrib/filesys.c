@@ -1,7 +1,7 @@
 #include "filesys.h"
 #include "lib.h"
 static dentry_t currdentry;
-static uint32_t offset; // change name 
+static uint32_t globoffset; // change name 
 static uint32_t diridx;
 /* file_init
 * Inputs:   none
@@ -25,8 +25,7 @@ int32_t file_init(uint32_t startAddr) {
 dentry t block passed as their second argu  \th the file name,
 file type, and inode number for the file, then return 0.
 */
-int32_t read_dentry_by_name(const uint8_t *fname, dentry_t *dentry)
-{
+int32_t read_dentry_by_name(const uint8_t *fname, dentry_t *dentry) {
     // Name check
     const int8_t* s1 = (int8_t *)fname ;
     uint32_t namelen = strlen(s1);
@@ -57,7 +56,10 @@ int32_t read_dentry_by_name(const uint8_t *fname, dentry_t *dentry)
     if (!namepres) {
         return -1;                                                      // The file was not found. Leave.
     }
-    read_dentry_by_index(diridx, dentry);                               // Put into our dentry the 
+    int val;
+    val = read_dentry_by_index(diridx, dentry);                               // Put into our dentry the 
+    if (val == -1)
+        return -1;
     return 0;
 }
 
@@ -69,8 +71,7 @@ int32_t read_dentry_by_name(const uint8_t *fname, dentry_t *dentry)
 dentry t block passed as their second argument with the file name,
 file type, and inode number for the file, then return 0.
 */
-int32_t read_dentry_by_index(uint32_t index, dentry_t *dentry)
-{
+int32_t read_dentry_by_index(uint32_t index, dentry_t *dentry) {
     if (index >= (DIR_ENTRIES - 1) || index < 0 || dentry == NULL) { 
         return -1;                                                      // -1 because we only have 63 indexes
     }
@@ -98,8 +99,7 @@ It does not check that the inode actually corresponds to a file (not all inodes 
 However, if a bad data block number is found within the file bounds of the given inode,
 the function should also return -1.
  */
-int32_t read_data(uint32_t inode, uint32_t offset, uint8_t *buf, uint32_t length)
-{
+int32_t read_data(uint32_t inode, uint32_t offset, uint8_t *buf, uint32_t length) {
     if (buf == NULL)
         return -1;
     int j;
@@ -152,6 +152,8 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t *buf, uint32_t length
             temp1 =  buf[curNbytes];
             curNbytes++;
         }
+
+
     }
     return curNbytes;
 }
@@ -172,7 +174,7 @@ int32_t open_file(const uint8_t *filename) {
         return -1;
     }
     diridx = 0;
-    offset = 0;
+    globoffset = 0;
     if ((filename == NULL) || (read_dentry_by_name(filename, &currdentry) == -1))
         return -1;
     return 0;
@@ -199,8 +201,8 @@ int32_t read_file(int32_t fd, void* buf, int32_t nbytes) {
         return -1;
     if (!nbytes)
         return 0;
-    read_data(currdentry.inode, offset, buf, nbytes);
-    offset += nbytes;
+    read_data(currdentry.inode, globoffset, buf, nbytes);
+    globoffset += nbytes;
     return 0;
 }
 
@@ -230,7 +232,10 @@ int32_t open_dir(const uint8_t *filename) {
         return -1;
     }
     //  read_dentry_by_name(const uint8_t *fname, dentry_t *dentry)
-    read_dentry_by_name(filename, &currdentry);
+    int numb = 0;
+    numb = read_dentry_by_name(filename, &currdentry);
+    if (numb < 0) 
+        return -1;
     return 0;
 }
 
@@ -238,7 +243,7 @@ int32_t open_dir(const uint8_t *filename) {
 * Inputs:   file directory fd
 * Outputs: int - 0
 * Description: undo what you did in the open function, return 0
-            */
+*/
 int32_t close_dir(int32_t fd) {
     return 0;
 }
@@ -262,14 +267,17 @@ int32_t read_dir(int32_t fd, void* buf, int32_t nbytes) {
     // loop through num of chars
     // uint32_t namelen = strlen(bootblockptr->dirEntries[i].filename);
     // INSERT NAMECHECK
-    read_dentry_by_index(diridx, &currdentry);
+    int val;
+    val = read_dentry_by_index(diridx, &currdentry);
+    if (val != 0 ) 
+        return -1;
     // strncpy(int8_t* dest, const int8_t*src, uint32_t n);
     int namelen =  strlen((int8_t *)(currdentry.filename));
     if ( namelen >= MAX_FILENAME_LEN)
         namelen =  MAX_FILENAME_LEN;
     
     int8_t wholestr[MAX_FILENAME_LEN];
-    int travval = 0;
+    
     for ( i = 0 ; i < MAX_FILENAME_LEN; i++) {
         if ((i < namelen)) {
             wholestr[i] = currdentry.filename[i];

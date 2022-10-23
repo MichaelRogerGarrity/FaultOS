@@ -4,7 +4,7 @@
 #include "filesys.h"
 
 #include "terminal.h"
-
+int32_t write_rtc(int32_t fd, const void* buf, int32_t nbytes);
 #define PASS 1
 #define FAIL 0
 
@@ -119,34 +119,54 @@ int pageFaultTest() {
  * Files: 
  */
 int testFilesys(){
-	// const uint8_t testfname[34] = "verylargetextwithverylongname.txt";
-	const uint8_t testfname[11] = "frame0.txt";
-	dentry_t testdir;
-	int32_t fd = 1;
-
-	int numb = -2;
-	numb = read_dentry_by_name(testfname, (dentry_t *)(&testdir));
-	// read_dir(int32_t fd, void* buf, int32_t nbytes) {
-	// Z:\mp3\fsdir\verylargetextwithverylongname.txt
-	// printf("reach 113");
-	// printf("%u",testdir.ftype);
-	// printf("%s", testdir.filename);
-	uint8_t buf[187];
-	read_data(testdir.inode, 0, buf, 187);
 	clear();
 	set_screen_x(0);
 	set_screen_y(0);
-	terminal_write(fd, buf, 187);
-	// read_data(testdir.inode, 50, buf, 187);
-	// read_data(testdir.inode, 184, buf, 187);
-	// read_data(testdir.inode, 189, buf, 187);
+	// Normal files:
+	// const uint8_t testfname[11] = "frame0.txt";
+	// const uint8_t testfname[11] = "frame1.txt";
+
+	// Executables:	
+	// const uint8_t testfname[3] = "ls";
+	// const uint8_t testfname[5] = "grep";
+
+	// Large files:
+	// const uint8_t testfname[34] = "verylargetextwithverylongname.txt";
+	const uint8_t testfname[5] = "fish";
+
+	// Others (don't use)
+	// const uint8_t testfname[6] = "hello";
+	// const uint8_t testfname[6] = "shell";
+	// const uint8_t testfname[8] = "sigtest";
+	// const uint8_t testfname[7] = "syserr";
+	// const uint8_t testfname[10] = "testprint";
+
+	// dentry_t testdir;
+	int32_t fd = 1;
 	int i = 0;
-	// for (i = 139; i<163; i++) {
-	// 	printf("%c", buf[i]);
+	uint8_t buf[180000];
+	for (i = 0; i<180000; i++) {
+		buf[i] = '\0';
+	}
+	int numb = -2;
+	// numb = read_dentry_by_name(testfname, (dentry_t *)(&testdir));
+	numb = open_file(testfname);
+	if (numb < 0 ) {
+		printf("Invalid File \n");
+		return -1;
+	}
+	numb = read_file(fd, buf, 32);
+	if (numb < 0 ) {
+		printf("Invalid File \n");
+		return -1;
+	}
+	terminal_write(fd, buf, 180000);
+
+	// for (i = 0; i<7000; i++) {
+	// 	putc2(buf[i]);
 	//  }
 	// printf("num bytes = %u", numb);
-	//printf("%s", buf);
-
+	// printf("%s", buf);
 	return 0;
 	
 }
@@ -199,8 +219,8 @@ int testRTC(){
 	set_screen_y(0);
 	uint32_t fd_temp;
 	
-	// int32_t frequency = 1024;
-	int32_t frequency = 128;
+	int32_t frequency = 1024;
+	// int32_t frequency = 128;
 	// int32_t frequency = 16;
 	// int32_t frequency = 2;
 	// int32_t frequency = 1000;
@@ -226,10 +246,12 @@ void launch_tests() {
 	//	TEST_OUTPUT("System Call Test", sysCallTest());				// System Call Test
 	// Our RTC Test is checked through rtc.c where we call test_interrupts() to check frequency.
 	/* Checkpoint 2 */
-	//TEST_OUTPUT("file sys test", testFilesys());				//
-	//testFilesys();
-	//testFileDrivers();
-	testRTC();
+	// Test 1: List all files:
+	// testFileDrivers();
+	// Test 2: List file by name:
+	testFilesys();
+	// Test 3: RTC Test (make sure you uncomment putc2 in rtc.c)
+	// testRTC();
 }
 
 

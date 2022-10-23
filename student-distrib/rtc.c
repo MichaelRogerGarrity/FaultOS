@@ -51,7 +51,7 @@ extern void rtc_handler(void) {
     temp &= 0xFFFF;                             // Avoid warning of unused temp.
     /* Here we call test interrupts / or putc2 (new terminal function) to make sure our RTC is working. */
     // test_interrupts();
-    putc2('a');      
+    // putc2('a');      
     interrupt_flag_rtc = 1;
     send_eoi(RTC_IRQ);
     return;
