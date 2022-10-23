@@ -49,9 +49,9 @@ extern void rtc_handler(void) {
     outb(REG_C, RTC_PORT_IDX);                  // select register C
     unsigned char temp = inb(RTC_PORT_RW);
     temp &= 0xFFFF;                             // Avoid warning of unused temp.
-    /* Here we call test interrupts to make sure our RTC is working. */
+    /* Here we call test interrupts / or putc2 (new terminal function) to make sure our RTC is working. */
     // test_interrupts();
-    putc2('a');
+    putc2('a');      
     interrupt_flag_rtc = 1;
     send_eoi(RTC_IRQ);
     return;
@@ -175,7 +175,8 @@ int32_t write_rtc(int32_t fd, const void* buf, int32_t nbytes) {
     rtc_set_freq(OPEN_AT_2HZ);
     /* sanity check */
     if(buf == NULL) return -1;
-    // if(nbytes != sizeof(uint32_t)) return -1; // need to add back by passing in correct nbytes 
+    
+    if(nbytes != sizeof(uint32_t)) return -1; // need to add back by passing in correct nbytes 
 
     /* load freq <- input buffer */
     int32_t frequency;
@@ -183,16 +184,9 @@ int32_t write_rtc(int32_t fd, const void* buf, int32_t nbytes) {
 
     /* sanity check on frequency */
     if((frequency < MINFREQ) || (frequency > MAXFREQ)) return -1;
-    /* HOW TO CHECK IFF A POWER OF TWO???????????? 
-    i think if it just has a single one, then its good, but how do you just check that
-    */
-
     /* critical section */
-      cli();
-    // if( (frequency!=1024) && (frequency!=512) && (frequency!=256) && (frequency!=128) && (frequency!=64) && (frequency!=32) && (frequency!=16) && (frequency!=8) && (frequency!=4) && (frequency!=2) ) 
-    //     return -1;
-    
+    cli();
     rtc_set_freq(frequency);
-      sti();
+    sti();
     return 0;
 }

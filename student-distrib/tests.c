@@ -108,11 +108,21 @@ int pageFaultTest() {
 
 
 /* Checkpoint 2 tests */
+
+/* testFilesys
+ * 
+ * tests reading file data 
+ * Inputs: None
+ * Outputs:
+ * Side Effects: None
+ * Coverage: 
+ * Files: 
+ */
 int testFilesys(){
 	// const uint8_t testfname[34] = "verylargetextwithverylongname.txt";
 	const uint8_t testfname[11] = "frame0.txt";
 	dentry_t testdir;
-	int32_t fd;
+	int32_t fd = 1;
 
 	int numb = -2;
 	numb = read_dentry_by_name(testfname, (dentry_t *)(&testdir));
@@ -141,13 +151,22 @@ int testFilesys(){
 	
 }
 
+/* testFileDrivers
+ * 
+ * does the ls 
+ * Inputs: None
+ * Outputs:
+ * Side Effects: None
+ * Coverage: 
+ * Files: 
+ */
 int testFileDrivers(){
 	clear();
 	set_screen_x(0);
 	set_screen_y(0);
 	int i = 0, j = 0;
 
-	uint32_t fd_temp;
+	uint32_t fd_temp = 1;
 
 	open_dir((uint8_t *)(".")); // open the directory
 
@@ -166,15 +185,20 @@ int testFileDrivers(){
 	return 0;
 }
 
-
+/* testRTC
+ * print a char at set freq below 
+ * Inputs: None
+ * Outputs:
+ * Side Effects: None
+ * Coverage: 
+ * Files: 
+ */
 int testRTC(){
 	clear();
 	set_screen_x(0);
 	set_screen_y(0);
 	uint32_t fd_temp;
 	
-	
-	int i = 0, j = 0;
 	// int32_t frequency = 1024;
 	int32_t frequency = 128;
 	// int32_t frequency = 16;
@@ -182,10 +206,8 @@ int testRTC(){
 	// int32_t frequency = 1000;
 	// int32_t frequency = 1;
 	// int32_t frequency = 5;
-	// read_rtc(fd_temp, &(frequency), 32);
-	write_rtc(fd_temp, &(frequency), 32);
-	
-	
+	// read_rtc(fd_temp, &(frequency), 4);
+	write_rtc(fd_temp, &(frequency), 4);
 	return 0;
 	
 }

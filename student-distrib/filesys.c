@@ -57,9 +57,7 @@ int32_t read_dentry_by_name(const uint8_t *fname, dentry_t *dentry)
     if (!namepres) {
         return -1;                                                      // The file was not found. Leave.
     }
-
-    read_dentry_by_index(diridx, dentry);                    // Put into our dentry the 
-
+    read_dentry_by_index(diridx, dentry);                               // Put into our dentry the 
     return 0;
 }
 
@@ -73,15 +71,12 @@ file type, and inode number for the file, then return 0.
 */
 int32_t read_dentry_by_index(uint32_t index, dentry_t *dentry)
 {
-    if (index >= (DIR_ENTRIES - 1))
-    { // -1 because we only have 63 indexes
-        return -1;
-        // find the addr to start copying memcpy(void* dest, const void* src, uint32_t n)
+    if (index >= (DIR_ENTRIES - 1) || index < 0 || dentry == NULL) { 
+        return -1;                                                      // -1 because we only have 63 indexes
     }
     //void* memcpy(void* dest, const void* src, uint32_t n) {
     dentry_t tempdent = (currdentryptr[index]);
 
-    // int8_t* strncpy(int8_t* dest, const int8_t* src, uint32_t n) { strlen(tempdent.filename)
     strncpy(dentry->filename, tempdent.filename, 32);
     dentry->ftype = tempdent.ftype;
     dentry->inode = tempdent.inode;
@@ -133,13 +128,11 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t *buf, uint32_t length
     
     while(curNbytes < (uint32_t)(curInodePtr->length) /*i++*/)  // traversing through 
     {
-        // // Offset checker; 
+        //Offset checker; 
         if  (curNbytes >= curInodePtr->length - offset){
             return curNbytes;
         }
-
         // curDataIdx = (uint32_t)(inode_t *)(inodeptr + inode)->data_block[((offset + curNbytes)/FOUR_KILO_BYTE) % 1023]; // gets into the current data block
-
         int dblockidx =((offset + curNbytes)/FOUR_KILO_BYTE);
         if (dblockidx >= 1023)
             return curNbytes;
@@ -151,12 +144,10 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t *buf, uint32_t length
         uint8_t temp, temp1;
         // Goes through each data block.
         for (j = ((curNbytes+offset)%FOUR_KILO_BYTE); (j < FOUR_KILO_BYTE) && (curNbytes < (uint32_t)(curInodePtr->length)); j++)
-        { 
-
+        {
             // go through data block and copy 1 byte at a time 
             // put data into buffer
-            buf[curNbytes] = cur_data[j]; // or do memcpy if this doesnt work doing one byte at a time 
-            
+            buf[curNbytes] = cur_data[j]; 
             temp =  cur_data[j];
             temp1 =  buf[curNbytes];
             curNbytes++;
@@ -208,8 +199,6 @@ int32_t read_file(int32_t fd, void* buf, int32_t nbytes) {
         return -1;
     if (!nbytes)
         return 0;
-    
-    // get inode pointer (inode_t *)(inodeptr + inode)->length - this inode comes from curr dentry
     read_data(currdentry.inode, offset, buf, nbytes);
     offset += nbytes;
     return 0;
@@ -271,17 +260,17 @@ int32_t read_dir(int32_t fd, void* buf, int32_t nbytes) {
     int i = 0;
 
     // loop through num of chars
-    //uint32_t namelen = strlen(bootblockptr->dirEntries[i].filename);
+    // uint32_t namelen = strlen(bootblockptr->dirEntries[i].filename);
     // INSERT NAMECHECK
     read_dentry_by_index(diridx, &currdentry);
     // strncpy(int8_t* dest, const int8_t*src, uint32_t n);
     int namelen =  strlen((int8_t *)(currdentry.filename));
-    if ( namelen >=32)
-        namelen = 32;
+    if ( namelen >= MAX_FILENAME_LEN)
+        namelen =  MAX_FILENAME_LEN;
     
-    int8_t wholestr[32];
+    int8_t wholestr[MAX_FILENAME_LEN];
     int travval = 0;
-    for ( i = 0 ; i < 32; i++) {
+    for ( i = 0 ; i < MAX_FILENAME_LEN; i++) {
         if ((i < namelen)) {
             wholestr[i] = currdentry.filename[i];
         }
@@ -289,7 +278,6 @@ int32_t read_dir(int32_t fd, void* buf, int32_t nbytes) {
             wholestr[i] = '\0';
         }
 
-    
     }
     strncpy((int8_t*)buf, (int8_t*)(wholestr), 32);
     // int32_t read_dentry_by_index(uint32_t index, dentry_t *dentry)
