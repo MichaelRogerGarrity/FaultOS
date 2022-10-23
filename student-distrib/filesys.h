@@ -9,13 +9,13 @@
 #include "lib.h"
 
 /* Variables used in the program: */
-#define MAX_DATA_BLOCKS
-#define MAX_FILENAME_LENGTH         32
 #define RESERVED_BITS_DENTRY        6
 #define RESERVED_BITS_BOOTBL        13
 #define DIR_ENTRIES                 63
 #define FOUR_KILO_BYTE              4096
 #define MAX_FILENAME_LEN            32
+#define MAX_FD_VAL                  7
+#define MIN_FD_VAL                  0
 
 /* Dentry Struct */
 typedef struct f1_dir

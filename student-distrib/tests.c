@@ -2,9 +2,13 @@
 #include "x86_desc.h"
 #include "lib.h"
 #include "filesys.h"
-
 #include "terminal.h"
+
+/* Implicit declaration fixes: */
 int32_t write_rtc(int32_t fd, const void* buf, int32_t nbytes);
+int32_t read_rtc(int32_t fd, void* buf, int32_t nbytes);
+int32_t open_rtc(const uint8_t *filename);
+
 #define PASS 1
 #define FAIL 0
 
@@ -123,23 +127,25 @@ int testFilesys(){
 	set_screen_x(0);
 	set_screen_y(0);
 	// Normal files:
-	// const uint8_t testfname[11] = "frame0.txt";
-	// const uint8_t testfname[11] = "frame1.txt";
-
+	//const uint8_t testfname[11] = "frame0.txt";
+	//const uint8_t testfname[11] = "frame1.txt";
+	
 	// Executables:	
-	// const uint8_t testfname[3] = "ls";
-	// const uint8_t testfname[5] = "grep";
+	//const uint8_t testfname[3] = "ls";
+	//const uint8_t testfname[5] = "grep";
 
 	// Large files:
-	// const uint8_t testfname[34] = "verylargetextwithverylongname.txt";
-	const uint8_t testfname[5] = "fish";
+	//const uint8_t testfname[34] = "verylargetextwithverylongname.txt";
+	//const uint8_t testfname[5] = "fish";
 
 	// Others (don't use)
 	// const uint8_t testfname[6] = "hello";
-	// const uint8_t testfname[6] = "shell";
-	// const uint8_t testfname[8] = "sigtest";
+	//const uint8_t testfname[6] = "shell";
+	//const uint8_t testfname[8] = "sigtest";
 	// const uint8_t testfname[7] = "syserr";
 	// const uint8_t testfname[10] = "testprint";
+	// bad files
+	const uint8_t testfname[12] = "mystery.txt";
 
 	// dentry_t testdir;
 	int32_t fd = 1;
@@ -152,18 +158,24 @@ int testFilesys(){
 	// numb = read_dentry_by_name(testfname, (dentry_t *)(&testdir));
 	numb = open_file(testfname);
 	if (numb < 0 ) {
-		printf("Invalid File \n");
+		printf("Invalid File!! \n");
+		printf("INVALID FILENAME: %s",testfname);
 		return -1;
 	}
 	numb = read_file(fd, buf, 32);
 	if (numb < 0 ) {
-		printf("Invalid File \n");
+		printf("Invalid File!! \n");
+		printf("INVALID FILENAME: %s",testfname);
 		return -1;
 	}
 	terminal_write(fd, buf, 180000);
 
-	// for (i = 0; i<7000; i++) {
-	// 	putc2(buf[i]);
+	close_file(fd);
+	//terminal_write(fd, testfname, 5);
+	//printf("\nFILE NAME: %s",testfname);
+
+	// for (i = 0; i<strlen(testfname); i++) {
+	// 	putc2(testfname[i]);
 	//  }
 	// printf("num bytes = %u", numb);
 	// printf("%s", buf);
@@ -202,6 +214,9 @@ int testFileDrivers(){
 		printf("\n");
 	}
 
+	close_dir(fd_temp);
+
+
 	return 0;
 }
 
@@ -217,19 +232,50 @@ int testRTC(){
 	clear();
 	set_screen_x(0);
 	set_screen_y(0);
-	uint32_t fd_temp;
-	
+	uint32_t fd_temp = 1;
+	uint8_t testName[6] = "testF";
+	//need to uncomment putc2 line in rtc.c
+	open_rtc(testName);
 	int32_t frequency = 1024;
-	// int32_t frequency = 128;
-	// int32_t frequency = 16;
-	// int32_t frequency = 2;
-	// int32_t frequency = 1000;
+	//int32_t frequency = 128;
+	//int32_t frequency = 16;
+	//int32_t frequency = 2;
+	//int32_t frequency = 1000;
 	// int32_t frequency = 1;
 	// int32_t frequency = 5;
-	// read_rtc(fd_temp, &(frequency), 4);
+	read_rtc(fd_temp, &(frequency), 4);
 	write_rtc(fd_temp, &(frequency), 4);
+	
+	
 	return 0;
 	
+}
+/* terminalTest()
+ * Enables user input to a terminal
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ * Coverage:
+ * Files: 
+ */
+void terminalTest(){
+	clear();
+	set_screen_x(0);
+	set_screen_y(0);
+
+	uint8_t buf[128];
+	uint32_t fd = 1;
+	int32_t nbytes;
+	nbytes = 128;
+	terminal_open(buf);
+	while(1){
+		terminal_read(fd, buf, nbytes);
+		terminal_write(fd, buf, nbytes);
+	}
+	terminal_close(fd);
+	// uint8_t* text;
+	// text = "Rope may be constructed of any long, stringy, fibrous material, but generally is constructed of certain natural or synthetic fibres.[1][2][3] Synthetic fibre ropes are significantly stronger than their natural fibre counterparts, they have a higher tensile strength, they are more resistant to rotting than ropes created from natural fibres, and they can be made to float on water.[4] But synthetic ropes also possess certain disadvantages, including slipperiness, and some can be damaged more easily by UV light.[5]Common natural fibres for rope are Manila hemp, hemp, linen, cotton, coir, jute, straw, and sisal. Synthetic fibres in use for rope-making include polypropylene, nylon, polyesters (e.g. PET, LCP, Vectran), polyethylene (e.g. Dyneema and Spectra), Aramids (e.g. Twaron, Technora and Kevlar) and acrylics (e.g. Dralon). Some ropes are constructed of mixtures of several fibres or use co-polymer fibres. Wire rope is made of steel or other metal alloys. Ropes have been constructed of other fibrous materials such as silk, wool, and hair, but such ropes are not generally available. Rayon is a regenerated fibre used to make decorative rope.The twist of the strands in a twisted or braided rope serves not only to keep a rope together, but enables the rope to more evenly distribute tension among the individual strands. Without any twist in the rope, the shortest strand(s) would always be supporting a much higher proportion of the total load.";
+	// terminal_write(fd, text, 1000);
 }
 
 /* Checkpoint 3 tests */
@@ -239,19 +285,21 @@ int testRTC(){
 /* Test suite entry point */
 void launch_tests() {
 	// launch your tests here 
-	/* Checkpoint 1 */
+/* Checkpoint 1 */
 	// 	TEST_OUTPUT("idt_test", idt_test());						// Given IDT Test
 	//	TEST_OUTPUT("divz_test", divzTest());					// Divide by 0 test
 	//	TEST_OUTPUT("Page Fault Test", pageFaultTest());			// Page Fault Test
 	//	TEST_OUTPUT("System Call Test", sysCallTest());				// System Call Test
 	// Our RTC Test is checked through rtc.c where we call test_interrupts() to check frequency.
-	/* Checkpoint 2 */
+/* Checkpoint 2 */
 	// Test 1: List all files:
-	// testFileDrivers();
+	//testFileDrivers();
 	// Test 2: List file by name:
-	testFilesys();
+	//testFilesys();
 	// Test 3: RTC Test (make sure you uncomment putc2 in rtc.c)
-	// testRTC();
+	//testRTC();
+	//Test 4: Terminal Tests
+	terminalTest();
 }
 
 

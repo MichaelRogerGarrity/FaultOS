@@ -218,7 +218,7 @@ void scroll(){
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y+1) + screen_x) << 1));
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = *(uint8_t *)(video_mem + ((NUM_COLS * (screen_y+1) + screen_x) << 1) + 1);
     }
-    for(i=1920; i<2000; i++){   // 1920 - 2000 would be the last 80 characters in the final row of video memory
+    for(i=1920; i<2000; i++){   // 2000 - 1920 would be the last 80 characters in the final row of video memory
         screen_x = (i%NUM_COLS);
         screen_y = (i/NUM_COLS);
         // bottom row is cleared
@@ -279,6 +279,8 @@ void putc2(uint8_t c) {
     }
     update_cursor(screen_x, screen_y);
 }
+
+/* Below three cursor functions were sourced from: https://wiki.osdev.org/Text_Mode_Cursor */
 
 /* void enable_cursor(uint8_t cursor_start, uint8_t cursor_end);
  * Inputs: uint8_t cursor_start = scanline for cursor to start

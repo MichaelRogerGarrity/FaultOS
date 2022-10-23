@@ -27,6 +27,7 @@
 #define KEYBOARD_CTRL_UP            158
 #define KEYBOARD_ENTER              28
 #define KEYBOARD_BACKSPACE          14
+#define KEYBOARD_TAB                15
 #define KEYBOARD_L_KEY_DOWN         38
 
 /* Ports that each Keyboard sits on */
@@ -34,10 +35,12 @@
 
 /* Miscellanious self-explanatory constants */
 #define KEYBOARD_BUFFER_MAX_SIZE    128
+#define TAB_SIZE                    4
 
 /* Buffer for characters written to terminal */
 uint8_t keyboardbuffer[128];
 int keyboardbuffersize;
+int charcount;
 int capslock;
 int shiftflag;
 int ctrlflag;
@@ -51,6 +54,11 @@ int enterflag;
 void keyboard_init(void);
 /* Keyboard's Interrupt Handler */
 extern void keyboard_handler(void);
+
+int32_t keyboard_open(const uint8_t* filename);
+int32_t keyboard_close(int32_t fd);
+int32_t keyboard_write(int32_t fd, const void* buf, int32_t nbytes);
+int32_t keyboard_read(int32_t fd, void* buf, int32_t nbytes);
 
 
 

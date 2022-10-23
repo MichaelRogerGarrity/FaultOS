@@ -7,6 +7,7 @@ int divzTest();
 int sysCallTest();
 int pageFaultTest();
 int testFilesys();
+void terminalTest();
 
 int testFileDrivers();
 

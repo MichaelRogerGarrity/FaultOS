@@ -51,7 +51,7 @@ extern void rtc_handler(void) {
     temp &= 0xFFFF;                             // Avoid warning of unused temp.
     /* Here we call test interrupts / or putc2 (new terminal function) to make sure our RTC is working. */
     // test_interrupts();
-    // putc2('a');      
+    //putc2('a');      
     interrupt_flag_rtc = 1;
     send_eoi(RTC_IRQ);
     return;
@@ -127,7 +127,7 @@ int rtc_set_freq(int newfreq) {
 RTC open() initializes RTC frequency to 2HZ, return 0
 */
 int32_t open_rtc(const uint8_t *filename) {
-//   rtc_set_freq(OPEN_AT_2HZ);
+   rtc_set_freq(OPEN_AT_2HZ);
   return 0;
 }
 
@@ -153,11 +153,12 @@ int32_t close_rtc(int32_t fd) {
  * NOT for reading the RTC frequency.
  */
 int32_t read_rtc(int32_t fd, void* buf, int32_t nbytes) {
-  
   while(!interrupt_flag_rtc){
     /* do nothing... */
   }
   interrupt_flag_rtc = 0;
+  int8_t *name = "Int in RTC occurs once (Read only called once)";
+  puts2(name, strlen(name)+1);
   return 0;
 }
 
@@ -174,7 +175,7 @@ int32_t read_rtc(int32_t fd, void* buf, int32_t nbytes) {
 int32_t write_rtc(int32_t fd, const void* buf, int32_t nbytes) {
     rtc_set_freq(OPEN_AT_2HZ);
     /* sanity check */
-    if(buf == NULL) return -1;
+    if(buf == NULL || fd > 7 || fd <1) return -1;
     
     if(nbytes != sizeof(uint32_t)) return -1; // need to add back by passing in correct nbytes 
 

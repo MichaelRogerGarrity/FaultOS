@@ -93,10 +93,8 @@ c. Page directory addr for vid mem
 
 Checkpoint 2:
 
-1. Drivers:
+1. Terminal
 Type: Most errors were algorithmic, based on incorrect logic and understanding of the drivers.
-
-// Terminal Bugs: 
 
 a. Terminal Newlines Not Aligned to Left Side of Screen
 - Symptom: Newlines will be printed with a random number of spaces between the left side of the screen and their start location
@@ -107,3 +105,43 @@ b. Scroll Issues
 - Symptom: Scroll would print lines twice when typing on second line of input.
 - Difficulty: 20 minutes, required some reworking of scroll function logic.
 - Fix: Our scroll function was resetting the screen_x to begin at the beginning of the current line, regardless of whether there were multiple lines of input. This caused the first line of text to be printed on the second line despite our keyboard driver having already written it above. I updated the logic to decrement scroll_y if the number of characters exceeded 80 (indicating two lines of text).
+
+2. File system
+
+a. starting addr wrong
+- Symptom: kept page faulting after testing a direntry read for frame0.txt
+- Difficulty: 30 min, gdb'ed through and found dir entries weren't valid 
+- Fix: set the file_int to the right value in kernel.c which was in the module_t struct which was the member mod_start.
+
+b. data block ptr was set incorrectly 
+- Symptom: kept page faulting when trying to call read_data since it went through the data blocks which we accessed using a incorrect addr 
+- Difficulty: 40 min we gdb'ed and it kept seg faulting when trying to print data block
+- Fix: we added 1 (which goes 4kb at a time since casted) the data block ptr inside the file_init function which went got the correct starting addr for data blocks which was end of inodes instead of 0th of data block
+
+c. read_data indicies pt1 
+- Symptom: did not output correct buffer when testing read_data 
+- Difficulty: 1 hr, we used real values to do the math for addressing again
+- Fix: instead of doing (curNbytes + offset) % 4096 realizied we needed to do (curNbytes + offset)/ 4096 to geth the index for the inode array of dblocks indicies
+
+d. read_data indicies pt2
+- Symptom: did not output correct buffer when testing read_data 
+- Difficulty: 1 hr, we used real values to do the math for addressing again
+- Fix: the start addr for the for loop that read each byte in current data block was wrong. We were correct to use modulus to get the start of the dblock but the offset should be added to
+... the curNbytes within the modulus ( curNytes + offset) % 4096 instead of (curNytes % 4096)  + offset
+
+e. our test for fake ls had messed up name
+- Symptom: printed file name with previous chars in 
+- Difficulty: 1hr
+- Fix: changed how read_dir sent data to buffer so that buf only had sting size of dentry string 
+
+3. RTC
+
+a. 
+- Symptom: puts2 vs putc  
+- Difficulty: 20 min,
+- Fix: we used the standard putc instead of using out scrolling putc2 so when doing the rtc test it did not scroll
+
+b. passed in wrong nbytes 
+- Symptom: write freq did not work for test cases 
+- Difficulty: 30 min
+- Fix: we had a check that nbytes was 4 bytes and we passsed a random nbytes param for the test cases so write freq never excuted so it was always at 2hz. 
