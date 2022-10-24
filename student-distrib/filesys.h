@@ -1,9 +1,8 @@
 /* filesys.h - Defines used in interactions with the file system.
  */
 
-// #ifndef _FILESYS_H
-// #define _FILESYS_H
-
+ // #ifndef _FILESYS_H
+ // #define _FILESYS_H
 
 #include "multiboot.h"
 #include "lib.h"
@@ -37,7 +36,7 @@ typedef struct f2_dir
     // 16 entries for d entries
     dentry_t dirEntries[DIR_ENTRIES]; // index 0,1 reserved
 
- } __attribute__((packed)) boot_block_t;
+} __attribute__((packed)) boot_block_t;
 
 /* Inode Struct */
 typedef struct f3_dir
@@ -60,34 +59,33 @@ typedef struct f4_dir
 
 /* Pointers needed to initialie our structs */
 uint32_t fstart_adddr;
-boot_block_t * bootblockptr;
-dentry_t * currdentryptr;
-inode_t * inodeptr;
-dataBlock_t *datablockptr;
+boot_block_t* bootblockptr;
+dentry_t* currdentryptr;
+inode_t* inodeptr;
+dataBlock_t* datablockptr;
 
 
-int32_t read_dentry_by_name(const uint8_t *fname, dentry_t *dentry);
-int32_t read_dentry_by_index(uint32_t index, dentry_t *dentry);
-int32_t read_data(uint32_t inode, uint32_t offset, uint8_t *buf, uint32_t length);
+int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry);
+int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry);
+int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
 
 
 /* Functions wrt main reads/writes */
 int32_t file_init(uint32_t startAddr);
-int32_t read_dentry_by_name(const uint8_t *fname, dentry_t *dentry);
-int32_t read_dentry_by_index(uint32_t index, dentry_t *dentry);
-int32_t read_data(uint32_t inode, uint32_t offset, uint8_t *buf, uint32_t length);
+int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry);
+int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry);
+int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
 
 /* Functions for file driver - open / close / r / w */
-int32_t open_file(const uint8_t *filename);
+int32_t open_file(const uint8_t* filename);
 int32_t close_file(int32_t fd);
 int32_t read_file(int32_t fd, void* buf, int32_t nbytes);
 int32_t write_file(int32_t fd, const void* buf, int32_t nbytes);
 
 /* Functions for directory driver - open / close / r / w */
-int32_t open_dir(const uint8_t *filename);
+int32_t open_dir(const uint8_t* filename);
 int32_t close_dir(int32_t fd);
 int32_t read_dir(int32_t fd, void* buf, int32_t nbytes);
 int32_t write_dir(int32_t fd, const void* buf, int32_t nbytes);
-
 
 // #endif /* _FILESYS_H */
