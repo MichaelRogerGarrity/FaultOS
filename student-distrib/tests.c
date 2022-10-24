@@ -126,12 +126,16 @@ int testFilesys(){
 	clear();
 	set_screen_x(0);
 	set_screen_y(0);
+	int printname = 0;
 	// Normal files:
-	//const uint8_t testfname[11] = "frame0.txt";
+	const uint8_t testfname[11] = "frame0.txt";
+	// printname = 1;
 	//const uint8_t testfname[11] = "frame1.txt";
+	// printname = 1;
 	
 	// Executables:	
-	//const uint8_t testfname[3] = "ls";
+	// const uint8_t testfname[4] = "cat";
+	// const uint8_t testfname[3] = "ls";
 	//const uint8_t testfname[5] = "grep";
 
 	// Large files:
@@ -144,10 +148,10 @@ int testFilesys(){
 	//const uint8_t testfname[8] = "sigtest";
 	// const uint8_t testfname[7] = "syserr";
 	// const uint8_t testfname[10] = "testprint";
-	// bad files
-	const uint8_t testfname[12] = "mystery.txt";
 
-	// dentry_t testdir;
+	// Bad files
+	// const uint8_t testfname[12] = "mystery.txt";
+
 	int32_t fd = 1;
 	int i = 0;
 	uint8_t buf[180000];
@@ -169,6 +173,10 @@ int testFilesys(){
 		return -1;
 	}
 	terminal_write(fd, buf, 180000);
+	if (printname) {
+		printf("\n");
+		printf("FILENAME: %s",testfname);
+	}
 
 	close_file(fd);
 	//terminal_write(fd, testfname, 5);
@@ -293,13 +301,13 @@ void launch_tests() {
 	// Our RTC Test is checked through rtc.c where we call test_interrupts() to check frequency.
 /* Checkpoint 2 */
 	// Test 1: List all files:
-	//testFileDrivers();
+	// testFileDrivers();
 	// Test 2: List file by name:
-	//testFilesys();
+	// testFilesys();
 	// Test 3: RTC Test (make sure you uncomment putc2 in rtc.c)
-	//testRTC();
+	// testRTC();
 	//Test 4: Terminal Tests
-	terminalTest();
+	// terminalTest();
 }
 
 
