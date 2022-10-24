@@ -174,7 +174,10 @@ int32_t write_rtc(int32_t fd, const void* buf, int32_t nbytes) {
     if (fd < MIN_FD_VAL || fd > MAX_FD_VAL || nbytes == NULL)
         return -1;
     /* Set the default frequency to 2. */
-    rtc_set_freq(OPEN_AT_2HZ);
+    int chkfreq = 0;
+    chkfreq = rtc_set_freq(OPEN_AT_2HZ);
+    if (chkfreq < 0) 
+        return -1;
     /* Extract the frequency from the buffer. */
     int32_t frequency;
     frequency = *((int*)buf);
@@ -182,7 +185,9 @@ int32_t write_rtc(int32_t fd, const void* buf, int32_t nbytes) {
     /* critical section */
     cli();
     /* Check if the power of 2 is done in set frequency. */
-    rtc_set_freq(frequency);
+    chkfreq = rtc_set_freq(frequency);
+    if (chkfreq < 0) 
+        return -1;
     sti();
     return 0;
 }

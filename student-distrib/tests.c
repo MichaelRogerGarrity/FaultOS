@@ -129,7 +129,7 @@ int testFileDrivers(){
 	int i = 0, j = 0;
 
 	uint32_t fd_temp = 1;
-
+	printf("Printing all files: \n \n");
 	open_dir((uint8_t *)(".")); // open the directory
 
 	for(i = 0; i<17;i++){
@@ -166,20 +166,21 @@ int testRTC(int frequency){
 	uint8_t testName[6] = "testF";
 	//need to uncomment putc2 line in rtc.c
 	open_rtc(testName);
-	int num = 0;
-	num = write_rtc(fd_temp, &(frequency), 4);
-	if (num < 0 ) {
+	int checkfreq = 0;
+	checkfreq = write_rtc(fd_temp, &(frequency), 4);
+	if (checkfreq < 0 ) {
 		printf("Invalid freq");
 		return -1;
 	}
 	while (1) {
-		read_rtc(fd_temp, &(frequency), 4);
+		checkfreq = read_rtc(fd_temp, &(frequency), 4);
+		if (checkfreq < 0 ) {
+			printf("Could not read");
+			return -1;
+		}
 		putc2('a');
 	}
-	
-	
 	return 0;
-	
 }
 
 /* terminalTest()
@@ -220,36 +221,11 @@ void terminalTest(){
  * Coverage: 
  * Files: 
  */
-int testFilesys(){
+int testFilesys(uint8_t *testfname){
 	clear();
 	set_screen_x(0);
 	set_screen_y(0);
-	int printname = 0;
-	// Normal files:
-	const uint8_t testfname[11] = "frame0.txt";
-	printname = 1;
-	//const uint8_t testfname[11] = "frame1.txt";
-	// printname = 1;
 	
-	// Executables:	
-	// const uint8_t testfname[4] = "cat";
-	// const uint8_t testfname[3] = "ls";
-	// const uint8_t testfname[5] = "grep";
-
-	// Large files:
-	//const uint8_t testfname[34] = "verylargetextwithverylongname.txt";
-	//const uint8_t testfname[5] = "fish";
-
-	// Others (don't use)
-	// const uint8_t testfname[6] = "hello";
-	//const uint8_t testfname[6] = "shell";
-	//const uint8_t testfname[8] = "sigtest";
-	// const uint8_t testfname[7] = "syserr";
-	// const uint8_t testfname[10] = "testprint";
-
-	// Bad files
-	// const uint8_t testfname[12] = "mystery.txt";
-
 	int32_t fd = 1;
 	int i = 0;
 	uint8_t buf[180000];
@@ -260,21 +236,21 @@ int testFilesys(){
 	// numb = read_dentry_by_name(testfname, (dentry_t *)(&testdir));
 	numb = open_file(testfname);
 	if (numb < 0 ) {
-		printf("Invalid File!! \n");
 		printf("INVALID FILENAME: %s",testfname);
 		return -1;
 	}
+	
+	printf("FILENAME: %s",testfname);
+	printf("\n");
+
 	numb = read_file(fd, buf, 32);
 	if (numb < 0 ) {
-		printf("Invalid File!! \n");
 		printf("INVALID FILENAME: %s",testfname);
 		return -1;
 	}
 	terminal_write(fd, buf, 180000);
-	if (printname) {
-		printf("\n");
-		printf("FILENAME: %s",testfname);
-	}
+	
+	
 
 	close_file(fd);
 	//terminal_write(fd, testfname, 5);
@@ -303,14 +279,44 @@ void launch_tests() {
 	//	TEST_OUTPUT("System Call Test", sysCallTest());				// System Call Test
 	// Our RTC Test is checked through rtc.c where we call test_interrupts() to check frequency.
 /* Checkpoint 2 */
-	// Test 1: List all files:
-	// testFileDrivers();
-	// Test 2: List file by name:
-	// testFilesys();
-	// Test 3: RTC Test (make sure you uncomment putc2 in rtc.c)
+
+	/* Test 1: List all files: */
+	testFileDrivers();
+
+	/* Test 2: List file by name: */
+	// 		Normal files:
+	// testFilesys((uint8_t *)"frame0.txt");
+	// testFilesys((uint8_t *)"frame1.txt");
+	
+	// 		Executables:	
+	// testFilesys((uint8_t *)"cat");
+	// testFilesys((uint8_t *)"ls");
+	// testFilesys((uint8_t *)"grep");
+
+	// 		Large files:
+	// testFilesys((uint8_t *)"verylargetextwithverylongname.txt");
+	// testFilesys((uint8_t *)"verylargetextwithverylongname.tx");
+	// testFilesys((uint8_t *)"fish");
+
+	// 		Others (don't use)
+	// testFilesys((uint8_t *)"hello");
+	// testFilesys((uint8_t *)"shell");
+	// testFilesys((uint8_t *)"sigtest");
+	// testFilesys((uint8_t *)"syserr");
+	// testFilesys((uint8_t *)"testprint");
+
+	// 		Bad files
+	// testFilesys((uint8_t *)"mystery.txt");
+
+
+	/* Test 3: RTC Test (make sure you uncomment putc2 in rtc.c) */
+	// testRTC(1024);
 	// testRTC(2);
-	//Test 4: Terminal Tests
-	terminalTest();
+	// testRTC(128);
+	// testRTC(123);
+
+	/* Test 4: Terminal Tests */
+	// terminalTest();
 }
 
 
