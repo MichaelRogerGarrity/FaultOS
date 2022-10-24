@@ -51,7 +51,7 @@ extern void rtc_handler(void) {
     temp &= 0xFFFF;                             // Avoid warning of unused temp.
     /* Here we call test interrupts / or putc2 (new terminal function) to make sure our RTC is working. */
     // test_interrupts();
-    //putc2('a');      
+    // putc2('a');      
     interrupt_flag_rtc = 1;
     send_eoi(RTC_IRQ);
     return;
@@ -95,8 +95,9 @@ int rtc_set_freq(int newfreq) {
     case 2:
         rate = RATE_FOR_2; break;
     default:
-        // return -1; break;
-        rate = RATE_FOR_2; break;
+        
+        return -1; break;
+        // rate = RATE_FOR_2; break;
     }
 
     outb(REG_A, RTC_PORT_IDX);                  // set index to register A, disable NMI
@@ -154,8 +155,8 @@ int32_t read_rtc(int32_t fd, void* buf, int32_t nbytes) {
         /* This stays here until the RTC generates another interrupt. */
     }
     interrupt_flag_rtc = 0;
-    int8_t* name = "Int in RTC occurs once (Read only called once)";
-    puts2(name, strlen(name) + 1);
+    // int8_t* name = "Int in RTC occurs once (Read only called once)";
+    
     return 0;
 }
 

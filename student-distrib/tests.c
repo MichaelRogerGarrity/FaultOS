@@ -113,6 +113,104 @@ int pageFaultTest() {
 
 /* Checkpoint 2 tests */
 
+/* testFileDrivers
+ * 
+ * does the ls 
+ * Inputs: None
+ * Outputs:
+ * Side Effects: None
+ * Coverage: 
+ * Files: 
+ */
+int testFileDrivers(){
+	clear();
+	set_screen_x(0);
+	set_screen_y(0);
+	int i = 0, j = 0;
+
+	uint32_t fd_temp = 1;
+
+	open_dir((uint8_t *)(".")); // open the directory
+
+	for(i = 0; i<17;i++){
+		int8_t curfname[32];
+		read_dir(fd_temp,curfname,32);
+		printf("FILE NAME: ");
+
+		for(j = 0; j <32; j++){
+			printf("%c",curfname[j]);
+		}
+
+		printf("\n");
+	}
+
+	close_dir(fd_temp);
+
+
+	return 0;
+}
+
+/* testRTC
+ * print a char at set freq below 
+ * Inputs: None
+ * Outputs:
+ * Side Effects: None
+ * Coverage: 
+ * Files: 
+ */
+int testRTC(int frequency){
+	clear();
+	set_screen_x(0);
+	set_screen_y(0);
+	uint32_t fd_temp = 1;
+	uint8_t testName[6] = "testF";
+	//need to uncomment putc2 line in rtc.c
+	open_rtc(testName);
+	int num = 0;
+	num = write_rtc(fd_temp, &(frequency), 4);
+	if (num < 0 ) {
+		printf("Invalid freq");
+		return -1;
+	}
+	while (1) {
+		read_rtc(fd_temp, &(frequency), 4);
+		putc2('a');
+	}
+	
+	
+	return 0;
+	
+}
+
+/* terminalTest()
+ * Enables user input to a terminal
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ * Coverage:
+ * Files: 
+ */
+void terminalTest(){
+	clear();
+	set_screen_x(0);
+	set_screen_y(0);
+
+	uint8_t buf[128];
+	uint32_t fd = 1;
+	int32_t nbytes;
+	nbytes = 128;
+	terminal_open(buf);
+	while(1){
+		terminal_read(fd, buf, nbytes);
+		terminal_write(fd, buf, nbytes);
+	}
+	terminal_close(fd);
+	// uint8_t* text;
+	// text = "Rope may be constructed of any long, stringy, fibrous material, but generally is constructed of certain natural or synthetic fibres.[1][2][3] Synthetic fibre ropes are significantly stronger than their natural fibre counterparts, they have a higher tensile strength, they are more resistant to rotting than ropes created from natural fibres, and they can be made to float on water.[4] But synthetic ropes also possess certain disadvantages, including slipperiness, and some can be damaged more easily by UV light.[5]Common natural fibres for rope are Manila hemp, hemp, linen, cotton, coir, jute, straw, and sisal. Synthetic fibres in use for rope-making include polypropylene, nylon, polyesters (e.g. PET, LCP, Vectran), polyethylene (e.g. Dyneema and Spectra), Aramids (e.g. Twaron, Technora and Kevlar) and acrylics (e.g. Dralon). Some ropes are constructed of mixtures of several fibres or use co-polymer fibres. Wire rope is made of steel or other metal alloys. Ropes have been constructed of other fibrous materials such as silk, wool, and hair, but such ropes are not generally available. Rayon is a regenerated fibre used to make decorative rope.The twist of the strands in a twisted or braided rope serves not only to keep a rope together, but enables the rope to more evenly distribute tension among the individual strands. Without any twist in the rope, the shortest strand(s) would always be supporting a much higher proportion of the total load.";
+	// terminal_write(fd, text, 1000);
+}
+
+
 /* testFilesys
  * 
  * tests reading file data 
@@ -129,14 +227,14 @@ int testFilesys(){
 	int printname = 0;
 	// Normal files:
 	const uint8_t testfname[11] = "frame0.txt";
-	// printname = 1;
+	printname = 1;
 	//const uint8_t testfname[11] = "frame1.txt";
 	// printname = 1;
 	
 	// Executables:	
 	// const uint8_t testfname[4] = "cat";
 	// const uint8_t testfname[3] = "ls";
-	//const uint8_t testfname[5] = "grep";
+	// const uint8_t testfname[5] = "grep";
 
 	// Large files:
 	//const uint8_t testfname[34] = "verylargetextwithverylongname.txt";
@@ -191,101 +289,6 @@ int testFilesys(){
 	
 }
 
-/* testFileDrivers
- * 
- * does the ls 
- * Inputs: None
- * Outputs:
- * Side Effects: None
- * Coverage: 
- * Files: 
- */
-int testFileDrivers(){
-	clear();
-	set_screen_x(0);
-	set_screen_y(0);
-	int i = 0, j = 0;
-
-	uint32_t fd_temp = 1;
-
-	open_dir((uint8_t *)(".")); // open the directory
-
-	for(i = 0; i<17;i++){
-		int8_t curfname[32];
-		read_dir(fd_temp,curfname,32);
-		printf("FILE NAME: ");
-
-		for(j = 0; j <32; j++){
-			printf("%c",curfname[j]);
-		}
-
-		printf("\n");
-	}
-
-	close_dir(fd_temp);
-
-
-	return 0;
-}
-
-/* testRTC
- * print a char at set freq below 
- * Inputs: None
- * Outputs:
- * Side Effects: None
- * Coverage: 
- * Files: 
- */
-int testRTC(){
-	clear();
-	set_screen_x(0);
-	set_screen_y(0);
-	uint32_t fd_temp = 1;
-	uint8_t testName[6] = "testF";
-	//need to uncomment putc2 line in rtc.c
-	open_rtc(testName);
-	int32_t frequency = 1024;
-	//int32_t frequency = 128;
-	//int32_t frequency = 16;
-	//int32_t frequency = 2;
-	//int32_t frequency = 1000;
-	// int32_t frequency = 1;
-	// int32_t frequency = 5;
-	read_rtc(fd_temp, &(frequency), 4);
-	write_rtc(fd_temp, &(frequency), 4);
-	
-	
-	return 0;
-	
-}
-/* terminalTest()
- * Enables user input to a terminal
- * Inputs: None
- * Outputs: None
- * Side Effects: None
- * Coverage:
- * Files: 
- */
-void terminalTest(){
-	clear();
-	set_screen_x(0);
-	set_screen_y(0);
-
-	uint8_t buf[128];
-	uint32_t fd = 1;
-	int32_t nbytes;
-	nbytes = 128;
-	terminal_open(buf);
-	while(1){
-		terminal_read(fd, buf, nbytes);
-		terminal_write(fd, buf, nbytes);
-	}
-	terminal_close(fd);
-	// uint8_t* text;
-	// text = "Rope may be constructed of any long, stringy, fibrous material, but generally is constructed of certain natural or synthetic fibres.[1][2][3] Synthetic fibre ropes are significantly stronger than their natural fibre counterparts, they have a higher tensile strength, they are more resistant to rotting than ropes created from natural fibres, and they can be made to float on water.[4] But synthetic ropes also possess certain disadvantages, including slipperiness, and some can be damaged more easily by UV light.[5]Common natural fibres for rope are Manila hemp, hemp, linen, cotton, coir, jute, straw, and sisal. Synthetic fibres in use for rope-making include polypropylene, nylon, polyesters (e.g. PET, LCP, Vectran), polyethylene (e.g. Dyneema and Spectra), Aramids (e.g. Twaron, Technora and Kevlar) and acrylics (e.g. Dralon). Some ropes are constructed of mixtures of several fibres or use co-polymer fibres. Wire rope is made of steel or other metal alloys. Ropes have been constructed of other fibrous materials such as silk, wool, and hair, but such ropes are not generally available. Rayon is a regenerated fibre used to make decorative rope.The twist of the strands in a twisted or braided rope serves not only to keep a rope together, but enables the rope to more evenly distribute tension among the individual strands. Without any twist in the rope, the shortest strand(s) would always be supporting a much higher proportion of the total load.";
-	// terminal_write(fd, text, 1000);
-}
-
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -305,9 +308,9 @@ void launch_tests() {
 	// Test 2: List file by name:
 	// testFilesys();
 	// Test 3: RTC Test (make sure you uncomment putc2 in rtc.c)
-	// testRTC();
+	// testRTC(2);
 	//Test 4: Terminal Tests
-	// terminalTest();
+	terminalTest();
 }
 
 
