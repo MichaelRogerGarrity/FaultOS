@@ -74,7 +74,7 @@ int32_t terminal_read(int32_t fd, uint8_t* buf, int32_t nbytes){
 int32_t terminal_write(int32_t fd, uint8_t* buf, int32_t nbytes)
 Description: Terminal's read function. Reads from keyboardbuffer into the buffer passed in as buf
 Inputs: int32_t fd     = unused for now
-        uint8_t* buf   = buffer to be read from
+        uint8_t* buf   = buffer to be read from 
         int32_t nbytes = number of bytes to write to screen from buf
 Outputs: returns int32_t = 0 on success
 */
@@ -84,13 +84,13 @@ int32_t terminal_write(int32_t fd, const uint8_t* buf, int32_t nbytes){
     int i;
     int linecount;
     
-        set_screen_x(0);
+    set_screen_x(0);
     
     linecount = charcount/NUM_COLS;
     charcount = 0;
     //set_screen_y(get_screen_y()-linecount); // handles unknown number of lines fed as input
-    if(keyboardbuffersize != 0)
-    set_screen_y(get_screen_y()+1);
+    //if(keyboardbuffersize != 0)
+    //set_screen_y(get_screen_y()+1);
     for(i=0; i<nbytes; i++){
         if(buf[i] != '\0'){
             if(buf[i] == '\t'){ // tab is equivalent to four spaces
