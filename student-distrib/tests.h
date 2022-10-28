@@ -11,5 +11,7 @@ void terminalTest();
 
 int testFileDrivers();
 
+int testReadData();
+
 #endif /* TESTS_H */
 

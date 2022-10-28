@@ -337,6 +337,140 @@ int system_call_placeholder(){
         return 0;
 }
 
+
+/* System Call Functions */
+
+// Halt: System Call Number 1
+/*
+int halt(uint8_t status)
+Description:
+Inputs:
+Outputs:
+*/
+int32_t halt(uint8_t status){
+    return 0;
+}
+
+// Execute: System Call Number 2
+/*
+int execute(const uint8_t* command)
+Description:
+Inputs:
+Outputs:
+*/
+int32_t execute(const uint8_t* command){
+    return 0;
+}
+
+// Read: System Call Number 3
+/*
+int read(int32_t fd, void* buf, int32_t nybytes)
+Description: reads data from keyboard , file, device(RTC), or directory
+Inputs:
+Outputs:
+*/
+int32_t read(int32_t fd, void* buf, int32_t nybytes){
+    /* sanity check: initial file position at eof or beyonf end of curr file */
+
+    /* use a jmptable referenced by the tasks files array... 
+    which calls a generic handler for the specific file type's specific read function */
+
+
+    return 0;
+}
+
+// Write: System Call Number 4
+/*
+int write(int32_t fd, void* buf, int32_t nbytes)
+Description: writes data to either the terminal or to a device (RTC), depending on the fd
+Inputs:
+Outputs:
+*/
+int32_t write(int32_t fd, void* buf, int32_t nbytes){
+    nbytes_written = 0;
+    /* sanity check: if device(RTC), else we write to terminal */
+
+    /* if RTC: syscall should always accept a 4-byte int specifyinng the interrupt rate in Hz (should set the rate of periodic interuppts accordingly) */
+    
+    return nbytes_written;
+}
+
+// Open: System Call Number 5
+/*
+int open(const uint8_t* filename)
+Description:
+Inputs:
+Outputs:
+*/
+int32_t open(const uint8_t* filename){
+    /* find the dir entry corresponding to the named file */
+
+    /* allocate an unused file descriptor iff filename is not already present */
+
+    /* set up any data necessary to handle the given type of file */
+
+    /* if named file does not exist OR if no descriptor are free, then return -1 */
+    return 0;
+}
+
+// Close: System Call Number 6
+/*
+int close(int32_t fd)
+Description:
+Inputs:
+Outputs:
+*/
+int32_t close(int32_t fd){
+    return 0;
+}
+
+// Getargs: System Call Number 7
+/*
+int getargs(uint8_t* buf, int32_t nbytes)
+Description:
+Inputs:
+Outputs:
+*/
+int32_t getargs(uint8_t* buf, int32_t nbytes){
+    return 0;
+}
+
+// Vidmap: System Call Number 8
+/*
+int vidmap(uint8_t** screen_start)
+Description:
+Inputs:
+Outputs:
+*/
+int32_t vidmap(uint8_t** screen_start){
+    return 0;
+}
+
+// Set_handler: System Call Number 9
+/*
+int set_handler(int32_t signum, void* handler_address)
+Description:
+Inputs:
+Outputs:
+*/
+int32_t set_handler(int32_t signum, void* handler_address){
+    return 0;
+}
+
+// Sigreturn: System Call Number 10
+/*
+int sigreturn(void)
+Description:
+Inputs:
+Outputs:
+*/
+int32_t sigreturn(void){
+    return 0;
+}
+
+
+
+
 /*
 void init_IDT()
 Description: Initialize the IDT.

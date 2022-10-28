@@ -13,7 +13,7 @@ int32_t file_init(uint32_t startAddr) {
     fstart_adddr = startAddr;
     bootblockptr = (boot_block_t*)(fstart_adddr);
     currdentryptr = bootblockptr->dirEntries;
-    inodeptr = (inode_t*)(bootblockptr + 1); // arpan change
+    inodeptr = (inode_t*)(bootblockptr + 1);
     datablockptr = (dataBlock_t*)(bootblockptr + bootblockptr->num_of_inodes + 1);
     return 0;
 }
@@ -120,7 +120,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     j = index inside block - adjust for starting & ending & offset
     */
 
-    while (curNbytes < (uint32_t)(curInodePtr->length) /*i++*/)  // traversing through 
+    while ((curNbytes < (uint32_t)(curInodePtr->length)) && (curNbytes < length)/*i++*/)  // traversing through 
     {
         /* Offset checker - if the offset and bytes exceed the length of the current node we are done. */
         if (curNbytes >= curInodePtr->length - offset) {
@@ -137,14 +137,14 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
         dataBlock_t* curdblockptr = (dataBlock_t*)(datablockptr + curDataIdx);
 
         cur_data = curdblockptr->data;
-        uint8_t temp, temp1;
+        //uint8_t temp, temp1;
         /* Traverse each data block, and make sure you keep offset within bounds*/
-        for (j = ((curNbytes + offset) % FOUR_KILO_BYTE); (j < FOUR_KILO_BYTE) && (curNbytes < (uint32_t)(curInodePtr->length)); j++)
+        for (j = ((curNbytes + offset) % FOUR_KILO_BYTE); (j < FOUR_KILO_BYTE) && (curNbytes < (uint32_t)(curInodePtr->length) && (curNbytes < length)); j++)
         {
             /* Copy one byte at a time, and put the data into the buffer. */
             buf[curNbytes] = cur_data[j];
-            temp = cur_data[j];
-            temp1 = buf[curNbytes];
+            //temp = cur_data[j];
+            //temp1 = buf[curNbytes];
             curNbytes++;
         }
     }
