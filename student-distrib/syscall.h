@@ -11,8 +11,17 @@
 #define PDE_PROCESS_START       2                   // 8 MB maps to second PDE
 #define FOUR_MB                 0x400000            
 #define PDE_VIRTUAL_MEM         32                  // 128 virt addr is 32th pd 
-#define VIRT_ADDR               0x08048000                  // 128 virt addr is 32th pd 
-#define MAX_FD_LEN              8                  // 128 virt addr is 32th pd 
+#define MAX_ARG_LEN             128               
+#define VIRT_ADDR               0x08048000          
+#define VIRT_ADDR_INSTRUC       24          
+#define MAX_FD_LEN              8                 
+#define BYTES_TO_COPY           4                 
+#define FOUR_BYTE_OFFSET        4                 
+#define MAGIC_0                 0x7f                  
+#define MAGIC_1                 0x45                  
+#define MAGIC_2                 0x4c                  
+#define MAGIC_3                 0x46                  
+#define PROG_START              0x8400000                  
 
 
 /* All calls return >= 0 on success or -1 on failure. */

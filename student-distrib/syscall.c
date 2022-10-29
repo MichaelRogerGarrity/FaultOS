@@ -50,11 +50,13 @@ int32_t execute(const uint8_t *command)
     7. IRET
     */
 
+
+
     /*  1. Extract name and args - check whether executable  */
 
     int cmd_len = strlen((const uint8_t *)command);
-    uint32_t filename[32];
-    uint32_t arg0[128];
+    uint32_t filename[MAX_FILENAME_LEN];
+    uint32_t arg0[MAX_ARG_LEN];
     // uint32_t arg1[32];
     // uint32_t arg2[32];
     uint32_t buffer[4];
@@ -63,16 +65,16 @@ int32_t execute(const uint8_t *command)
     int filenamechar = 0, arg0char = 0;
     // int arg1char = 0, arg2char = 0;
 
-    // Clear all arguments / name insert null:
-
-    for (i = 0; i < 128; i++) {      // change
-        if (i < 32)
+    /* Initialize the name, args as null */
+    for (i = 0; i < MAX_ARG_LEN; i++) {      // change
+        if (i < MAX_FILENAME_LEN)
             filename[i] = '\0';
         arg0[i] = '\0';
         // arg1[i] = '\0';
         // arg2[i] = '\0';
     }
 
+    /* Parse the args / command name */
     for (i = 0; i < cmd_len; i++) {
         if (command[i] == ' ') {
             argflag++;
@@ -81,14 +83,14 @@ int32_t execute(const uint8_t *command)
         switch (argflag) {
 
             case -1:
-            if (filenamechar < 32)
+            if (filenamechar < MAX_FILENAME_LEN)
                 filename[filenamechar++] = command[i];
             else
                 return -1;
             break;
 
             case 0:
-            if (arg0char < 128)// change
+            if (arg0char < MAX_ARG_LEN)// change
                 arg0[arg0char++] = command[i];
             else
                 return -1;
@@ -107,18 +109,20 @@ int32_t execute(const uint8_t *command)
             //  else
             //     return -1;
             // break;
-
         } 
-
     }   // end of arg parsing
+
+
 
     /* 2. Search file system for the name of the file given                // read dentry by name */
     dentry_t currdentry;
+    
     // Prototype: int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry)
-
     if (strlen(filename) == 0 || read_dentry_by_name(filename, &currdentry) < 0 )
         return -1;              // Invalid filename / could not find file
     
+
+
     /* 3. Extract all information about the file - if it is executable                          // read data 
 
     The layout of executable files in the file system is simple: the entire file stored in the file system is the image of the
@@ -129,21 +133,26 @@ int32_t execute(const uint8_t *command)
     */
 
     int exec = 0; // not an executable
-    // Prototype: int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length) {
-    // Check offset and buffer size, numbytes
-    if (read_data(currdentry.inode, 0, buffer, 4) < 0 ) //dont do &buffer 
+    
+    // Prototype: int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length) 
+    /* Store the 4 magic numbers into the buffer to be checked */
+    if (read_data(currdentry.inode, 0, buffer, BYTES_TO_COPY) < 0 )
         return -1;              // Invalid filename / could not find file
-    if (buffer[0] == 0x7f && buffer[1] == 0x45 && buffer[3] == 0x4c && buffer[4] == 0x46) // magic numbers for executables
+    
+    /* Check the 4 bytes 0,1,2,3 in the buffer about whether those are magic numbers */
+    if (buffer[0] == MAGIC_0 && buffer[1] == MAGIC_1 && buffer[2] == MAGIC_2 && buffer[3] == MAGIC_3) // magic numbers for executables
         exec = 1;
     if (!exec) 
         return -1;              // it is not executable
 
+
+
     /* 4. Paging: Use PID to decide 8 + (PID*4MB)
                 Then copy the whole file into that virtual address      // read data
     */
+    
     // Future checkpoints: make an array of structs. Right now, just use a single pid thing. 
     currpid++;                  // New process is active.
-
 
     uint32_t physaddr = (PDE_PROCESS_START + currpid) * FOUR_MB;
     page_directory[PDE_VIRTUAL_MEM].p = 1;         
@@ -153,8 +162,9 @@ int32_t execute(const uint8_t *command)
     page_directory[PDE_VIRTUAL_MEM].pcd = 1;            // in desc.pdf
     page_directory[PDE_VIRTUAL_MEM].us = 1;             // must be 1 for all user-level pages and mem ranges             
     
-    loadPageDir(page_directory); //flush TLB
-    // copy info into the 4mb page
+    loadPageDir(page_directory); // flush TLB
+
+    /* Now we start copying into 4MB User pages */
     uint8_t *addrptr = (uint8_t *)(VIRT_ADDR); // PASSED INTO READ DATA AS BUFFER
     uint32_t currdentryinodenum = currdentry.inode;
     uint32_t currdentryinodelen = ((inode_t *)(inodeptr + currdentryinodenum))->length;
@@ -164,23 +174,24 @@ int32_t execute(const uint8_t *command)
     if (read_data(currdentryinodenum, 0, addrptr, currdentryinodelen) < 0 )
         return -1;
 
+
+
     /* 5. Set up PCB stuff too - create new PCB */
     
     pcb_t * currpcb; //make global ?
     currpcb =  (uint32_t *)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1)));
     
     currpcb->pid = currpid;
-    if (currpid = 0){
+    if (currpid = 0)
         currpcb-> parent_pid = -1; // check what parent of shell should be 
-    }
-    else{
+    else
         currpcb-> parent_pid = currpid - 1;
-    }
+
     register uint32_t save_esp = asm("esp");   // CHECK  
     register uint32_t save_ebp = asm("ebp");     
     
-    currpcb->saved_esp = save_esp; //
-    currpcb->saved_ebp = save_ebp; //
+    currpcb->saved_esp = save_esp;
+    currpcb->saved_ebp = save_ebp;
     
     /*  Set up the FD (1, 2 for terminal, rest empty) */
 
@@ -214,13 +225,41 @@ int32_t execute(const uint8_t *command)
     currpcb->(fdarray[1].fileop)->close = &close_terminal;
     currpcb->fdarray[1].present = 1;
 
+
+
     /* 6. Set up context switch ( kernel stack base into esp of tss ) */
 
     uint32_t currksp = (uint32_t)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * currpid));
     tss.ss0 = KERNEL_DS;
     tss.esp0 = currksp;
 
-    
+    /* 
+     The other important bit of information that you need to execute programs is the entry point into the
+    program, i.e., the virtual address of the first instruction that should be executed. This information is stored as a 4-byte
+    unsigned integer in bytes 24-27 of the executable, and the value of it falls somewhere near 0x08048000 for all programs we have provided to you. When processing the execute system call, your code should make a note of the entry
+    point, and then copy the entire file to memory starting at virtual address 0x08048000. It then must jump to the entry
+    point of the program to begin execution.
+    */
+    if (read_data(currdentry.inode, VIRT_ADDR_INSTRUC, buffer, BYTES_TO_COPY) < 0 )
+        return -1;              // could not read those 4 bytes.
+
+    /* 
+    Stuff to push to stack (to convert to usermode) in order:
+    USER_DS
+    USER_ESP
+    USER_CS
+    PROG_EIP
+    The 4 bytes we just extracted was the EIP - we need to save that because it is what we push in IRET.
+    The ESP is basically the 132 MB location - 4 Bytes so we do not exceed the virtual stack location.
+    */
+    uint32_t stack_eip = buffer;
+    uint32_t stack_esp = PROG_START - FOUR_BYTE_OFFSET;
+
+
+
+    /* Start doing IRET */
+
+
     return 0;
 }
 
@@ -292,15 +331,15 @@ int32_t open(const uint8_t *filename)
     if(filename == NULL) return -1;
 
     int dentry_name_return;
-    pcb_t * currpcb; 
-    currpcb = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1));
-
     dentry_t *currdentry;
     dentry_name_return = read_dentry_by_name(filename, currdentry);
     if(dentry_name_return == -1) return -1; // check if file exists
-    int fd = -1;
 
-     for(i = 2; i<MAX_FD_LEN; i++){
+    pcb_t * currpcb; 
+    currpcb = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1));
+
+    int fd = -1;
+     for(i = START_FD_VAL; i<MAX_FD_LEN; i++){
         if(!currpcb->fdarray[i].present){
             fd = i;
             break;
