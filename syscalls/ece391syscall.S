@@ -30,7 +30,7 @@ DO_CALL(ece391_sigreturn,SYS_SIGRETURN)
 
 
 /* Call the main() function, then halt with its return value. */
-
+/*
 .GLOBAL _start
 _start:
 	CALL	main
@@ -38,4 +38,4 @@ _start:
     PUSHL   $0
 	PUSHL	%EAX
 	CALL	ece391_halt
-
+*/

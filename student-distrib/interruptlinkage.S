@@ -28,7 +28,7 @@ PUSHAL	                        ;\
 pushfl                          ;\
 pushl %edx                      ;\  # argument 3
 pushl %ecx                      ;\  # argument 2
-pushl %ebx                      ;\  # argument 
+pushl %ebx                      ;\  # argument 1
 call func                       ;\
 popl %ebx                       ;\
 popl %ecx                       ;\

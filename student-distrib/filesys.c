@@ -4,6 +4,9 @@ static dentry_t currdentry;
 static uint32_t globoffset; // change name 
 static uint32_t diridx;
 
+
+[8];
+
 /* file_init
 * Inputs:           none
 * Outputs:          0 means done

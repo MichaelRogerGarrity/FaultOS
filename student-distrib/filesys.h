@@ -6,12 +6,15 @@
 
 #include "multiboot.h"
 #include "lib.h"
+#include "syscall.h"
 
 /* Variables used in the program: */
 #define RESERVED_BITS_DENTRY        6
 #define RESERVED_BITS_BOOTBL        13
 #define DIR_ENTRIES                 63
-#define FOUR_KILO_BYTE              4096
+#define FOUR_KILO_BYTE              0x4000 //        4096
+#define EIGHT_MEGA_BYTE             0x8000000
+#define EIGHT_KILO_BYTE             0x8000
 #define MAX_FILENAME_LEN            32
 #define MAX_FD_VAL                  7
 #define MIN_FD_VAL                  0
@@ -54,6 +57,29 @@ typedef struct f4_dir
     uint8_t data[FOUR_KILO_BYTE];
 
 } __attribute__((packed)) dataBlock_t;
+
+
+typedef struct file_desc
+{
+    func_t *fileop;
+    uint32_t inode;
+    uint32_t filepos;
+    uint8_t present;
+    uint8_t type;
+    uint8_t f2;
+    uint8_t f3;
+
+
+} __attribute__((packed)) fd_t;
+
+typedef struct func
+{
+    int32_t (*open)(const uint8_t* filename);
+    int32_t (*read)(uint32_t fd, void *buf, int32_t nbytes);
+    int32_t (*write)(uint32_t fd, const void *buf, int32_t nbytes);
+    int32_t (*close)(uint32_t fd);
+
+} __attribute__((packed)) func_t;
 
 // 4 structs
 
