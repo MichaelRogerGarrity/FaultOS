@@ -22,6 +22,10 @@ Outputs:
 */
 int32_t halt(uint8_t status)
 {
+
+    //cli()
+
+    //sti()
     return 0;
 }
 
@@ -162,7 +166,7 @@ int32_t execute(const uint8_t *command)
     page_directory[PDE_VIRTUAL_MEM].pcd = 1;            // in desc.pdf
     page_directory[PDE_VIRTUAL_MEM].us = 1;             // must be 1 for all user-level pages and mem ranges             
     
-    loadPageDir(page_directory); // flush TLB
+    loadPageDir(page_directory); // flush TLB //? check with os dev maybe other stuff for flushing 
 
     /* Now we start copying into 4MB User pages */
     uint8_t *addrptr = (uint8_t *)(VIRT_ADDR); // PASSED INTO READ DATA AS BUFFER
@@ -196,10 +200,10 @@ int32_t execute(const uint8_t *command)
     /*  Set up the FD (1, 2 for terminal, rest empty) */
 
     for(i = 0; i<MAX_FD_LEN; i++){//maybe init the entry 0 and 1 for stdin and stdout
-        currpcb->(fdarray[i].fileop)->open = 0;
-        currpcb->(fdarray[i].fileop)->read = 0;
-        currpcb->(fdarray[i].fileop)->write = 0;
-        currpcb->(fdarray[i].fileop)->close = 0;
+        currpcb->(fdarray[i].fileop)->open = &open_fail; //should we set them to the fail funcs?
+        currpcb->(fdarray[i].fileop)->read = &read_fail;
+        currpcb->(fdarray[i].fileop)->write = &write_fail;
+        currpcb->(fdarray[i].fileop)->close = &close_fail;
 
         currpcb->fdarray[i].inode = -1;
         currpcb->fdarray[i].filepos = 0;
@@ -209,20 +213,20 @@ int32_t execute(const uint8_t *command)
         currpcb->fdarray[i].f2 = -1;
         currpcb->fdarray[i].f3 = -1;
     }
-    currpcb->active = 1;
+    currpcb->active = 1; // ? should we do this here 
 
     // std in
-    currpcb->(fdarray[0].fileop)->open = &open_terminal;
-    currpcb->(fdarray[0].fileop)->read = &read_terminal;
-    currpcb->(fdarray[0].fileop)->write = NULL;
-    currpcb->(fdarray[0].fileop)->close = &close_terminal;
+    currpcb->(fdarray[0].fileop)->open = &open_terminal; //? make fail
+    currpcb->(fdarray[0].fileop)->read = &read_terminal; 
+    currpcb->(fdarray[0].fileop)->write = &write_fail;
+    currpcb->(fdarray[0].fileop)->close = &close_terminal; //?make fail 
     currpcb->fdarray[0].present = 1;
 
     // std out
-    currpcb->(fdarray[1].fileop)->open = &open_terminal;
-    currpcb->(fdarray[1].fileop)->read = NULL;
+    currpcb->(fdarray[1].fileop)->open = &open_terminal; //? make fail 
+    currpcb->(fdarray[1].fileop)->read = &read_fail;
     currpcb->(fdarray[1].fileop)->write = &write_terminal;
-    currpcb->(fdarray[1].fileop)->close = &close_terminal;
+    currpcb->(fdarray[1].fileop)->close = &close_terminal;//? make fail 
     currpcb->fdarray[1].present = 1;
 
 
@@ -236,7 +240,7 @@ int32_t execute(const uint8_t *command)
     /* 
      The other important bit of information that you need to execute programs is the entry point into the
     program, i.e., the virtual address of the first instruction that should be executed. This information is stored as a 4-byte
-    unsigned integer in bytes 24-27 of the executable, and the value of it falls somewhere near 0x08048000 for all programs we have provided to you. When processing the execute system call, your code should make a note of the entry
+    unsigned integer in bytes 24-27 of the executable, and the value of it falls somewhere near 0x08048000 for all programs we have provided to you. When processing the execute system call, your code should make a note of the entry
     point, and then copy the entire file to memory starting at virtual address 0x08048000. It then must jump to the entry
     point of the program to begin execution.
     */
@@ -255,7 +259,7 @@ int32_t execute(const uint8_t *command)
     uint32_t stack_eip = buffer;
     uint32_t stack_esp = PROG_START - FOUR_BYTE_OFFSET;
 
-
+    //!!! NEED TO ADD CLI AND STU SOMEWHERE HERE 
 
     /* Start doing IRET */
 
@@ -348,9 +352,10 @@ int32_t open(const uint8_t *filename)
 
     if(fd == -1) return -1; // fd array is full
 
-    if((currdentry->ftype < 0) || (currdentry->ftype > 2)) return -1;
+   // if((currdentry->ftype < 0) || (currdentry->ftype > 2)) return -1;
+   //? made the init the fail funcs so if below conditons not set them returns -1 when they are called
     
-    else if(currdentry->ftype == 0){    // rtc
+    if(currdentry->ftype == 0){    // rtc
         currpcb->(fdarray[fd].fileop)->open = &open_rtc;
         currpcb->(fdarray[fd].fileop)->read = &read_rtc;
         currpcb->(fdarray[fd].fileop)->write = &write_rtc;
@@ -368,6 +373,7 @@ int32_t open(const uint8_t *filename)
         currpcb->(fdarray[fd].fileop)->write = &write_file;
         currpcb->(fdarray[fd].fileop)->close = &close_file;
     }
+
 
     currpcb->fdarray[fd].inode = currdentry->inode;
     currpcb->fdarray[fd].present = 1;
@@ -459,6 +465,50 @@ int32_t sigreturn(void)
 {
     return 0;
 }
+
+/*-------------fail helper funcs--------------*/
+// read_fail
+/*
+Description:
+Inputs:
+Outputs: returns -1
+*/
+int32_t read_fail(const uint8_t *filename){
+    return -1;
+}
+// Sigreturn: System Call Number 10
+/*
+int sigreturn(void)
+Description:
+Inputs:
+Outputs:
+*/
+int32_t write_fail(int32_t fd){
+    return -1;
+}
+// Sigreturn: System Call Number 10
+/*
+int sigreturn(void)
+Description:
+Inputs:
+Outputs:
+*/ 
+int32_t open_fail(int32_t fd, void* buf, int32_t nbytes){
+    return -1;
+}
+// Sigreturn: System Call Number 10
+/*
+int sigreturn(void)
+Description:
+Inputs:
+Outputs:
+*/
+int32_t close_fail(int32_t fd, const void* buf, int32_t nbytes){
+    return -1;
+}  
+
+
+
 
 
 
