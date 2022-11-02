@@ -1,11 +1,5 @@
 #include "filesys.h"
 #include "lib.h"
-static dentry_t currdentry;
-static uint32_t globoffset; // change name 
-static uint32_t diridx;
-
-
-//[8];
 
 /* file_init
 * Inputs:           none
@@ -37,7 +31,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
         return -1;
     int namepres = 0;
     int i;
-    diridx = 0;
+    fdarray[fd].filepos = 0;
 
     /* This traverses through directory and tries to find the file with matching name. */
     for (i = 0; i < bootblockptr->num_of_dirs; i++)
@@ -47,7 +41,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
         int32_t temp = strncmp(s1, s2, MAX_FILENAME_LEN);
         /* File was found, and we want the index of the file, and leave the loop */
         if (temp == 0) {
-            diridx = i;
+            fdarray[fd].filepos = i;
             namepres = 1;                                                           // We found the name
             break;
         }
@@ -56,7 +50,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
         return -1;                                                                  // The file was not found. Leave.
     }
     int rVal;
-    rVal = read_dentry_by_index(diridx, dentry);                                    // Put into our dentry the next directory we want to read.
+    rVal = read_dentry_by_index(fdarray[fd].filepos, dentry);                                    // Put into our dentry the next directory we want to read.
     if (rVal == -1)                                                                 // The index does not exist. This failed.
         return -1;
     return 0;
@@ -163,14 +157,15 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 * Description:      Uses read_dentry_by_name, initializes any temporary structures.
 */
 int32_t open_file(const uint8_t* filename) {
-    /* Check if name is valid, and if read dentry call is valid. */
+    /* Check if name is valid, and if read dentry call is valid. 
+    change: we need to fill in the fd aray with the new file*/
+
     const int8_t* s = (int8_t*)filename;
     uint32_t namelen = strlen(s);
     if (namelen > MAX_FILENAME_LEN) {
         return -1;
     }
-    diridx = 0;
-    globoffset = 0;
+    dentry_t currdentry;
     /* We call dentry by name so we can fill our current dentry with the information of the given file name. */
     if ((filename == NULL) || (read_dentry_by_name(filename, &currdentry) == -1)) {
         return -1;
@@ -205,11 +200,11 @@ int32_t read_file(int32_t fd, void* buf, int32_t nbytes) {
         return 0;
     /* We call read data so we can fill in our current global dentry with the information. */
     int rVal;
-    rVal = read_data(currdentry.inode, globoffset, buf, nbytes);
+    rVal = read_data(fdarray[fd].inode, fdarray[fd].filepos, buf, nbytes);
     if (rVal == -1) {
         return -1;
     }
-    globoffset += nbytes;
+    fdarray[fd].filepos += nbytes;
     return 0;
 }
 
@@ -243,12 +238,13 @@ int32_t open_dir(const uint8_t* filename) {
     if ((filename == NULL) || namelen > MAX_FILENAME_LEN) {
         return -1;
     }
-    /* We call read dentry by name so we can fill out global dentry in with thr information received through filename. */
-    int numb = 0;
-    numb = read_dentry_by_name(filename, &currdentry);
-    if (numb < 0) {
-        return -1;
-    }
+    // /* We call read dentry by name so we can fill out global dentry in with thr information received through filename. */
+    // int numb = 0;
+    // dentry_t currdentry;
+    // numb = read_dentry_by_name(filename, &currdentry);
+    // if (numb < 0) {
+    //     return -1;
+    // }
     return 0;
 }
 
@@ -284,7 +280,8 @@ int32_t read_dir(int32_t fd, void* buf, int32_t nbytes) {
     /* We call read dentry by index, where index is a global variable that updates each time read dir is called.
     We can fill out global dentry in with the information received through the current index. */
     int val;
-    val = read_dentry_by_index(diridx, &currdentry);
+    dentry_t currdentry;
+    val = read_dentry_by_index(fdarray[fd].filepos, &currdentry);
     if (val != 0) {
         return -1;
     }
@@ -304,9 +301,9 @@ int32_t read_dir(int32_t fd, void* buf, int32_t nbytes) {
 
     }
     /* Store into our buffer the entire string. This will be used to print the name. */
-    strncpy((int8_t*)buf, (int8_t*)(wholestr), 32);
+    strncpy((int8_t*)buf, (int8_t*)(wholestr), MAX_FILENAME_LEN);
     /* Increments the dir index for each file when it is opened. */
-    diridx++;
+    fdarray[fd].filepos++;
     return 0;
 }
 

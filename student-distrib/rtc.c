@@ -124,6 +124,8 @@ int32_t open_rtc(const uint8_t* filename) {
     /* Start RTC off with the rate of 2. */
     rtc_set_freq(OPEN_AT_2HZ);
     return 0;
+
+    
 }
 
 

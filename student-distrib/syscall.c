@@ -16,12 +16,68 @@ static int currpid = 0;
 // Halt: System Call Number 1
 /*
 int halt(uint8_t status)
-Description:
-Inputs:
+Description:        The halt system call terminates a process, returning the specified value to its parent process. The system call handler
+                    itself is responsible for expanding the 8-bit argument from BL into the 32-bit return value to the parent program’s
+                    execute system call. Be careful not to return all 32 bits from EBX. This call should never return to the caller.
+
+Inputs: status
 Outputs:
 */
 int32_t halt(uint8_t status)
 {
+   
+    /* Order of stuff to write:
+
+    1. Restore Parent data (stored in the PCB)
+    2. Restore Parent paging
+    3. Close the relevant FDs
+    4. Jump to the execute's return
+
+    // okan:
+    1. Setup return value (check if exception // check if program is finished)
+    2. close all processes
+    3. set currently active process to non active
+    4. check if it is the main shell (restart if yes)
+    5. not main shell handler
+    6. halt return (assembly)
+    
+    */
+
+    /* 1. Set up return value: */
+    
+
+    /* 2. Close all processes */
+    pcb_t * currpcb; 
+    currpcb =  (uint32_t *)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1)));
+    int shellflag = 0;
+    if (currpcb->parent_id == -1)
+        shellflag = 1;
+
+    pcb_t * parentpcb; 
+    if (shellflag)
+        parentpcb =  (uint32_t *)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (1)));
+    
+
+
+
+   /* 5. not main shell handler
+   - Get parent process
+   - Set the TSS for parent
+   - Unmap pags for current process
+   - Map pages for parent process
+   - Set parent's process as active
+   - Call halt return (assembly)
+   */
+
+
+
+    /* 6. halt return (assembly)
+    take in esp, ebp, retval
+    set esp, ebp as esp ebp args
+    set eax regs as ret val
+    */
+
+
 
     //cli()
 
@@ -182,7 +238,7 @@ int32_t execute(const uint8_t *command)
 
     /* 5. Set up PCB stuff too - create new PCB */
     
-    pcb_t * currpcb; //make global ?
+    pcb_t * currpcb; 
     currpcb =  (uint32_t *)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1)));
     
     currpcb->pid = currpid;
@@ -213,22 +269,21 @@ int32_t execute(const uint8_t *command)
         currpcb->fdarray[i].f2 = -1;
         currpcb->fdarray[i].f3 = -1;
     }
-    currpcb->active = 1; // ? should we do this here 
+    currpcb->active = 1;
 
     // std in
-    currpcb->(fdarray[0].fileop)->open = &open_terminal; //? make fail
+    currpcb->(fdarray[0].fileop)->open = &open_terminal;
     currpcb->(fdarray[0].fileop)->read = &read_terminal; 
-    currpcb->(fdarray[0].fileop)->write = &write_fail;
-    currpcb->(fdarray[0].fileop)->close = &close_terminal; //?make fail 
+    currpcb->(fdarray[0].fileop)->write = NULL;
+    currpcb->(fdarray[0].fileop)->close = &close_terminal; 
     currpcb->fdarray[0].present = 1;
 
     // std out
-    currpcb->(fdarray[1].fileop)->open = &open_terminal; //? make fail 
-    currpcb->(fdarray[1].fileop)->read = &read_fail;
+    currpcb->(fdarray[1].fileop)->open = &open_terminal;
+    currpcb->(fdarray[1].fileop)->read = NULL;
     currpcb->(fdarray[1].fileop)->write = &write_terminal;
-    currpcb->(fdarray[1].fileop)->close = &close_terminal;//? make fail 
+    currpcb->(fdarray[1].fileop)->close = &close_terminal;
     currpcb->fdarray[1].present = 1;
-
 
 
     /* 6. Set up context switch ( kernel stack base into esp of tss ) */
@@ -251,17 +306,34 @@ int32_t execute(const uint8_t *command)
     Stuff to push to stack (to convert to usermode) in order:
     USER_DS
     USER_ESP
+    // flag ???
     USER_CS
     PROG_EIP
     The 4 bytes we just extracted was the EIP - we need to save that because it is what we push in IRET.
     The ESP is basically the 132 MB location - 4 Bytes so we do not exceed the virtual stack location.
     */
-    uint32_t stack_eip = buffer;
-    uint32_t stack_esp = PROG_START - FOUR_BYTE_OFFSET;
+    uint32_t stack_eip_C asm("stack_eip") = buffer;
+    uint32_t stack_esp_C asm("stack_esp") = PROG_START - FOUR_BYTE_OFFSET;
 
     //!!! NEED TO ADD CLI AND STU SOMEWHERE HERE 
+    int usrDS_C asm("usrDS") = USER_DS;
+    int usrCS_C asm("usrCS") = USER_CS;
 
     /* Start doing IRET */
+    // pop flags into eax, and the val in eax 0x0200, push that
+    asm ("
+        pushl usrDS;
+        pushl stack_esp;
+        pushlfl;
+        popl %%eax;
+        orl $0x0200, %%eax;  #need to enable int again 
+        pushl %%eax;
+        pushl usrCS;
+        pushl stack_eip;
+        iret;
+
+        :%eax
+        ");
 
 
     return 0;
@@ -350,7 +422,7 @@ int32_t open(const uint8_t *filename)
         } 
     }
 
-    if(fd == -1) return -1; // fd array is full
+    if(fd == -1) return -1; // fd array is full, failed to open file
 
    // if((currdentry->ftype < 0) || (currdentry->ftype > 2)) return -1;
    //? made the init the fail funcs so if below conditons not set them returns -1 when they are called
@@ -360,25 +432,30 @@ int32_t open(const uint8_t *filename)
         currpcb->(fdarray[fd].fileop)->read = &read_rtc;
         currpcb->(fdarray[fd].fileop)->write = &write_rtc;
         currpcb->(fdarray[fd].fileop)->close = &close_rtc;
+        currpcb->fdarray[fd].filepos = -1;                  // why start at -1??? why not 0?
     }
     else if(currdentry->ftype == 1){    // dir
         currpcb->(fdarray[fd].fileop)->open = &open_dir;
         currpcb->(fdarray[fd].fileop)->read = &read_dir;
         currpcb->(fdarray[fd].fileop)->write = &write_dir;
         currpcb->(fdarray[fd].fileop)->close = &close_dir;
+        currpcb->fdarray[fd].filepos = 0;
     }
     else if(currdentry->ftype == 2){    // normal file
         currpcb->(fdarray[fd].fileop)->open = &open_file;
         currpcb->(fdarray[fd].fileop)->read = &read_file;
         currpcb->(fdarray[fd].fileop)->write = &write_file;
         currpcb->(fdarray[fd].fileop)->close = &close_file;
+        currpcb->fdarray[fd].filepos = 0;
     }
-
-
     currpcb->fdarray[fd].inode = currdentry->inode;
     currpcb->fdarray[fd].present = 1;
     currpcb->fdarray[fd].type = currdentry->ftype;
-
+    
+    int numb =  *(currpcb->(fdarray[fd].fileop)->open)(filename); // not sure how to call function
+    
+    if (numb < 0)
+        return -1;
 
     /* allocate an unused file descriptor iff filename is not already present */
 
@@ -402,6 +479,10 @@ int32_t close(int32_t fd)
     pcb_t * currpcb; 
     currpcb = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1));
 
+    if (currpcb->(fdarray[fd].present) == 0)
+        return -1;
+
+    // Otherwise you can safely close it.
     currpcb->(fdarray[fd].fileop)->open = 0;
     currpcb->(fdarray[fd].fileop)->read = 0;
     currpcb->(fdarray[fd].fileop)->write = 0;

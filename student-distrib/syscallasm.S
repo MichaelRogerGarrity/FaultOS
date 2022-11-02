@@ -1,5 +1,7 @@
 #include "sysnum.h"
 #include "syscall.h"
+#include "x86_desc.h"
+
 
 NUM_SYS_CALLS: 10
 
@@ -32,6 +34,3 @@ badcode:
 	mov %eax, $-1	# return error
 done:
 	IRET
-
-
-
