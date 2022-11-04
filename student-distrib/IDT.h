@@ -1,8 +1,8 @@
 /* IDT.h - Defines used in interactions with the IDT
  */
 
-#ifndef _IDT_H
-#define _IDT_H
+// #ifndef _IDT_H
+// #define _IDT_H
 
 #define KEYBOARD_IDT_ENTRY          0x21
 #define RTC_IDT_ENTRY               0x28
@@ -36,7 +36,8 @@ int machine();
 int SIMD();
 // int system_call_placeholder();
 void init_IDT();
+// extern void call_handler();
 
 
 
-#endif /* _IDT_H */
+// #endif /* _IDT_H */

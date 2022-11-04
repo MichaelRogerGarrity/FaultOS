@@ -1,12 +1,12 @@
 /* filesys.h - Defines used in interactions with the file system.
  */
 
- // #ifndef _FILESYS_H
- // #define _FILESYS_H
+ #ifndef _FILESYS_H
+ #define _FILESYS_H
 
 #include "multiboot.h"
 #include "lib.h"
-#include "syscall.h"
+// #include "syscall.h"
 
 /* Variables used in the program: */
 #define RESERVED_BITS_DENTRY        6
@@ -60,6 +60,16 @@ typedef struct f4_dir
 } __attribute__((packed)) dataBlock_t;
 
 
+typedef struct func
+{
+    int32_t (*open)(const uint8_t* filename);
+    int32_t (*read)(uint32_t fd, void *buf, int32_t nbytes);
+    int32_t (*write)(uint32_t fd, const void *buf, int32_t nbytes);
+    int32_t (*close)(uint32_t fd);
+
+} __attribute__((packed)) func_t;
+
+
 typedef struct file_desc
 {
     func_t *fileop;
@@ -72,15 +82,6 @@ typedef struct file_desc
 
 
 } __attribute__((packed)) fd_t;
-
-typedef struct func
-{
-    int32_t (*open)(const uint8_t* filename);
-    int32_t (*read)(uint32_t fd, void *buf, int32_t nbytes);
-    int32_t (*write)(uint32_t fd, const void *buf, int32_t nbytes);
-    int32_t (*close)(uint32_t fd);
-
-} __attribute__((packed)) func_t;
 
 // 4 structs
 
@@ -115,4 +116,4 @@ int32_t close_dir(int32_t fd);
 int32_t read_dir(int32_t fd, void* buf, int32_t nbytes);
 int32_t write_dir(int32_t fd, const void* buf, int32_t nbytes);
 
-// #endif /* _FILESYS_H */
+#endif /* _FILESYS_H */

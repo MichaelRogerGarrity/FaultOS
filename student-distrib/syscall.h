@@ -1,12 +1,11 @@
 
 #include "x86_desc.h"
 #include "IDT.h"
-#include "lib.h"
 #include "linkageheader.h"
 #include "filesys.h"
 
-#if !defined(SYSCALL_H)
-#define SYSCALL_H         // This is the jump table I believe
+ #ifndef _SYSCALL_H
+ #define _SYSCALL_H
 
 #define PDE_PROCESS_START       2                   // 8 MB maps to second PDE
 #define FOUR_MB                 0x400000            
@@ -43,6 +42,8 @@ extern int32_t getargs(uint8_t* buf, int32_t nbytes);              // 7
 extern int32_t vidmap(uint8_t** screen_start);                     // 8
 extern int32_t set_handler(int32_t signum, void* handler_address); // 9
 extern int32_t sigreturn(void);                                    // 10
+// extern void call_handler();
+
 
 //helper
 int32_t read_fail(const uint8_t *filename);
@@ -62,4 +63,6 @@ typedef struct pcb_struct
 
 } __attribute__((packed)) pcb_t;
 
-#endif /* SYSCALL_H */
+extern pcb_t *globalpcb;
+
+#endif /* _SYSCALL_H */

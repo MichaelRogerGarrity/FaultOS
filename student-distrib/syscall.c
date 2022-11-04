@@ -8,7 +8,8 @@
 
 /* Variables for the different system calls */
 
-static int currpid = 0;
+static int currpid = -1;
+pcb_t *globalpcb;
 
 
 /* System Call Functions */
@@ -47,15 +48,14 @@ int32_t halt(uint8_t status)
     
 
     /* 2. Close all processes */
-    pcb_t * currpcb; 
-    currpcb =  (uint32_t *)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1)));
-    int shellflag = 0;
-    if (currpcb->parent_id == -1)
-        shellflag = 1;
 
-    pcb_t * parentpcb; 
-    if (shellflag)
-        parentpcb =  (uint32_t *)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (1)));
+    // int shellflag = 0;
+    // if (globalpcb->parent_id == -1)
+    //     shellflag = 1;
+
+    // pcb_t * parentpcb; 
+    // if (shellflag)
+    //     parentpcb =  (uint32_t *)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (1)));
     
 
 
@@ -239,7 +239,8 @@ int32_t execute(const uint8_t *command)
     /* 5. Set up PCB stuff too - create new PCB */
     
     pcb_t * currpcb; 
-    currpcb =  (uint32_t *)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1)));
+    currpcb =  (pcb_t *)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1)));
+    
     
     currpcb->pid = currpid;
     if (currpid = 0)
@@ -285,6 +286,7 @@ int32_t execute(const uint8_t *command)
     currpcb->(fdarray[1].fileop)->close = &close_terminal;
     currpcb->fdarray[1].present = 1;
 
+    globalpcb = currpcb;
 
     /* 6. Set up context switch ( kernel stack base into esp of tss ) */
 
@@ -339,6 +341,10 @@ int32_t execute(const uint8_t *command)
     return 0;
 }
 
+/* Heloer mapping function*/
+
+// int32_t map()
+
 // Read: System Call Number 3
 /*
 int read(int32_t fd, void* buf, int32_t nybytes)
@@ -359,10 +365,7 @@ int32_t read(int32_t fd, void *buf, int32_t nbytes)
         return terminal_read(fd, buf, nbytes);
     }
 
-    pcb_t * currpcb; 
-    currpcb = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1));
-
-    return *(currpcb->(fdarray[fd].fileop)->read)(fd, buf, nbytes); // not sure how to call function
+    return *(globalpcb->(fdarray[fd].fileop)->read)(fd, buf, nbytes); // not sure how to call function
 
 }
 
@@ -386,10 +389,7 @@ int32_t write(int32_t fd, void *buf, int32_t nbytes)
         return terminal_write(fd, buf, nbytes);
     }
 
-    pcb_t * currpcb; 
-    currpcb = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1));
-
-    return *(currpcb->(fdarray[fd].fileop)->write)(fd, buf, nbytes); // not sure how to call function
+    return *(globalpcb->(fdarray[fd].fileop)->write)(fd, buf, nbytes); // not sure how to call function
 
     // return nbytes_written;
 }
@@ -411,12 +411,9 @@ int32_t open(const uint8_t *filename)
     dentry_name_return = read_dentry_by_name(filename, currdentry);
     if(dentry_name_return == -1) return -1; // check if file exists
 
-    pcb_t * currpcb; 
-    currpcb = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1));
-
     int fd = -1;
      for(i = START_FD_VAL; i<MAX_FD_LEN; i++){
-        if(!currpcb->fdarray[i].present){
+        if(!globalpcb->fdarray[i].present){
             fd = i;
             break;
         } 
@@ -428,31 +425,31 @@ int32_t open(const uint8_t *filename)
    //? made the init the fail funcs so if below conditons not set them returns -1 when they are called
     
     if(currdentry->ftype == 0){    // rtc
-        currpcb->(fdarray[fd].fileop)->open = &open_rtc;
-        currpcb->(fdarray[fd].fileop)->read = &read_rtc;
-        currpcb->(fdarray[fd].fileop)->write = &write_rtc;
-        currpcb->(fdarray[fd].fileop)->close = &close_rtc;
-        currpcb->fdarray[fd].filepos = -1;                  // why start at -1??? why not 0?
+        globalpcb->(fdarray[fd].fileop)->open = &open_rtc;
+        globalpcb->(fdarray[fd].fileop)->read = &read_rtc;
+        globalpcb->(fdarray[fd].fileop)->write = &write_rtc;
+        globalpcb->(fdarray[fd].fileop)->close = &close_rtc;
+        globalpcb->fdarray[fd].filepos = -1;                  // why start at -1??? why not 0?
     }
     else if(currdentry->ftype == 1){    // dir
-        currpcb->(fdarray[fd].fileop)->open = &open_dir;
-        currpcb->(fdarray[fd].fileop)->read = &read_dir;
-        currpcb->(fdarray[fd].fileop)->write = &write_dir;
-        currpcb->(fdarray[fd].fileop)->close = &close_dir;
-        currpcb->fdarray[fd].filepos = 0;
+        globalpcb->(fdarray[fd].fileop)->open = &open_dir;
+        globalpcb->(fdarray[fd].fileop)->read = &read_dir;
+        globalpcb->(fdarray[fd].fileop)->write = &write_dir;
+        globalpcb->(fdarray[fd].fileop)->close = &close_dir;
+        globalpcb->fdarray[fd].filepos = 0;
     }
     else if(currdentry->ftype == 2){    // normal file
-        currpcb->(fdarray[fd].fileop)->open = &open_file;
-        currpcb->(fdarray[fd].fileop)->read = &read_file;
-        currpcb->(fdarray[fd].fileop)->write = &write_file;
-        currpcb->(fdarray[fd].fileop)->close = &close_file;
-        currpcb->fdarray[fd].filepos = 0;
+        globalpcb->(fdarray[fd].fileop)->open = &open_file;
+        globalpcb->(fdarray[fd].fileop)->read = &read_file;
+        globalpcb->(fdarray[fd].fileop)->write = &write_file;
+        globalpcb->(fdarray[fd].fileop)->close = &close_file;
+        globalpcb->fdarray[fd].filepos = 0;
     }
-    currpcb->fdarray[fd].inode = currdentry->inode;
-    currpcb->fdarray[fd].present = 1;
-    currpcb->fdarray[fd].type = currdentry->ftype;
+    globalpcb->fdarray[fd].inode = currdentry->inode;
+    globalpcb->fdarray[fd].present = 1;
+    globalpcb->fdarray[fd].type = currdentry->ftype;
     
-    int numb =  *(currpcb->(fdarray[fd].fileop)->open)(filename); // not sure how to call function
+    int numb =  *(globalpcb->(fdarray[fd].fileop)->open)(filename); // not sure how to call function
     
     if (numb < 0)
         return -1;
@@ -476,25 +473,22 @@ int32_t close(int32_t fd)
 {
     if((fd < 2) || (fd > MAX_FD_VAL)) return -1;    // cannot be stdin or stdout
 
-    pcb_t * currpcb; 
-    currpcb = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1));
-
-    if (currpcb->(fdarray[fd].present) == 0)
+    if (globalpcb->(fdarray[fd].present) == 0)
         return -1;
 
     // Otherwise you can safely close it.
-    currpcb->(fdarray[fd].fileop)->open = 0;
-    currpcb->(fdarray[fd].fileop)->read = 0;
-    currpcb->(fdarray[fd].fileop)->write = 0;
-    currpcb->(fdarray[fd].fileop)->close = 0;
+    globalpcb->(fdarray[fd].fileop)->open = 0;
+    globalpcb->(fdarray[fd].fileop)->read = 0;
+    globalpcb->(fdarray[fd].fileop)->write = 0;
+    globalpcb->(fdarray[fd].fileop)->close = 0;
 
-    currpcb->fdarray[fd].inode = 0;
-    currpcb->fdarray[fd].filepos = 0;
-    currpcb->fdarray[fd].present = 0;
-    currpcb->fdarray[fd].type = -1;
+    globalpcb->fdarray[fd].inode = 0;
+    globalpcb->fdarray[fd].filepos = 0;
+    globalpcb->fdarray[fd].present = 0;
+    globalpcb->fdarray[fd].type = -1;
     //f2,f3 reserved (not used for now)
-    currpcb->fdarray[fd].f2 = -1;
-    currpcb->fdarray[fd].f3 = -1;
+    globalpcb->fdarray[fd].f2 = -1;
+    globalpcb->fdarray[fd].f3 = -1;
 
     return 0;
 }
