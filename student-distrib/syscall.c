@@ -122,7 +122,7 @@ int32_t execute(const uint8_t *command)
     uint32_t arg0[MAX_ARG_LEN];
     // uint32_t arg1[32];
     // uint32_t arg2[32];
-    uint32_t buffer[4];
+    uint8_t buffer[4];
     uint32_t offset = 0;
     int i = 0, argflag = -1;
     int filenamechar = 0, arg0char = 0;
@@ -218,12 +218,12 @@ int32_t execute(const uint8_t *command)
     currpid++;                  // New process is active.
 
     uint32_t physaddr = (PDE_PROCESS_START + currpid) * FOUR_MB;
-    page_directory[PDE_VIRTUAL_MEM].p = 1;         
+    page_directory[PDE_VIRTUAL_MEM].ps = 1; // make it a 4 mb page
     page_directory[PDE_VIRTUAL_MEM].pt_baddr = physaddr >> PAGE_SHIFT;
     page_directory[PDE_VIRTUAL_MEM].g = 0;              // Want page to be flushed when tlb is flushed
-    page_directory[PDE_VIRTUAL_MEM].ps = 1;             // make it a 4 mb page
     page_directory[PDE_VIRTUAL_MEM].pcd = 1;            // in desc.pdf
-    page_directory[PDE_VIRTUAL_MEM].us = 1;             // must be 1 for all user-level pages and mem ranges             
+    page_directory[PDE_VIRTUAL_MEM].us = 1;             // must be 1 for all user-level pages and mem ranges
+    page_directory[PDE_VIRTUAL_MEM].p = 1;             
     
     loadPageDir(page_directory); // flush TLB //? check with os dev maybe other stuff for flushing 
 
@@ -242,7 +242,13 @@ int32_t execute(const uint8_t *command)
     /* 5. Set up PCB stuff too - create new PCB */
     
     pcb_t * currpcb; 
-    currpcb =  (pcb_t *)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1)));
+
+
+    int curraddr = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1));
+
+
+
+    currpcb =  (pcb_t *)(curraddr);
     
     
     currpcb->pid = currpid;
@@ -259,8 +265,8 @@ int32_t execute(const uint8_t *command)
     uint32_t save_ebp = 0;
     asm volatile
     (
-        "movl %%ebp, %0"
-        "movl %%esp, %1"
+        "movl %%ebp, %0; \n"
+        "movl %%esp, %1; \n"
         :"=g"(save_ebp), "=g"(save_esp)
         :
     );
@@ -275,10 +281,10 @@ int32_t execute(const uint8_t *command)
     /*  Set up the FD (1, 2 for terminal, rest empty) */
 
     for(i = 0; i<MAX_FD_LEN; i++){//maybe init the entry 0 and 1 for stdin and stdout
-        (currpcb->fdarray[i]).fileop->open = 0; //should we set them to the fail funcs?
-        (currpcb->fdarray[i]).fileop->read = 0;
-        (currpcb->fdarray[i]).fileop->write = 0;
-        (currpcb->fdarray[i]).fileop->close = 0;
+        (currpcb->fdarray[i]).fileop.open = 0; //should we set them to the fail funcs?
+        (currpcb->fdarray[i]).fileop.read = 0;
+        (currpcb->fdarray[i]).fileop.write = 0;
+        (currpcb->fdarray[i]).fileop.close = 0;
 
         (currpcb->fdarray[i]).inode = -1;
         (currpcb->fdarray[i]).filepos = 0;
@@ -291,24 +297,27 @@ int32_t execute(const uint8_t *command)
     currpcb->active = 1;
 
     // std in
-    (currpcb->fdarray[0]).fileop->open = terminal_open;
-    (currpcb->fdarray[0]).fileop->read = terminal_read; 
-    (currpcb->fdarray[0]).fileop->write = NULL;
-    (currpcb->fdarray[0]).fileop->close = terminal_close; 
+    (currpcb->fdarray[0]).fileop.open = terminal_open;
+    (currpcb->fdarray[0]).fileop.read = terminal_read; 
+    (currpcb->fdarray[0]).fileop.write = NULL;
+    (currpcb->fdarray[0]).fileop.close = terminal_close; 
     (currpcb->fdarray[0]).present = 1;
 
     // std out
-    (currpcb->fdarray[1]).fileop->open = terminal_open;
-    (currpcb->fdarray[1]).fileop->read = NULL;
-    (currpcb->fdarray[1]).fileop->write = terminal_write;
-    (currpcb->fdarray[1]).fileop->close = terminal_close;
+    (currpcb->fdarray[1]).fileop.open = terminal_open;
+    (currpcb->fdarray[1]).fileop.read = NULL;
+    (currpcb->fdarray[1]).fileop.write = terminal_write;
+    (currpcb->fdarray[1]).fileop.close = terminal_close;
     (currpcb->fdarray[1]).present = 1;
 
     globalpcb = currpcb;
 
     /* 6. Set up context switch ( kernel stack base into esp of tss ) */
+ 
 
-    uint32_t currksp = (uint32_t)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * currpid));
+
+    uint32_t currksp = (uint32_t)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * currpid) - FOUR_BYTE_OFFSET);
+    //subtract 4 
     tss.ss0 = KERNEL_DS;
     tss.esp0 = currksp;
 
@@ -321,6 +330,22 @@ int32_t execute(const uint8_t *command)
     */
     if (read_data(currdentry.inode, VIRT_ADDR_INSTRUC, buffer, BYTES_TO_COPY) < 0 )
         return -1;              // could not read those 4 bytes.
+    uint32_t stack_eip = 0; // buffer[3],buffer[2],buffer[1],buffer[0]
+    stack_eip = (stack_eip | buffer[3]);
+    stack_eip = stack_eip << 8;
+    stack_eip = (stack_eip | buffer[2]);
+    stack_eip = stack_eip << 8;
+    stack_eip = (stack_eip | buffer[1]);
+    stack_eip = stack_eip << 8;
+    stack_eip = (stack_eip | buffer[0]);
+
+    // stack_eip = (stack_eip | buffer[0]);
+    // stack_eip = stack_eip << 8;
+    // stack_eip = (stack_eip | buffer[1]);
+    // stack_eip = stack_eip << 8;
+    // stack_eip = (stack_eip | buffer[2]);
+    // stack_eip = stack_eip << 8;
+    // stack_eip = (stack_eip | buffer[3]);
 
     /* 
     Stuff to push to stack (to convert to usermode) in order:
@@ -332,7 +357,8 @@ int32_t execute(const uint8_t *command)
     The 4 bytes we just extracted was the EIP - we need to save that because it is what we push in IRET.
     The ESP is basically the 132 MB location - 4 Bytes so we do not exceed the virtual stack location.
     */
-    uint32_t stack_eip = buffer;
+    //uint32_t stack_eip = buffer; 
+    //flip endianess 
     uint32_t stack_esp = PROG_START - FOUR_BYTE_OFFSET;
 
     //!!! NEED TO ADD CLI AND STU SOMEWHERE HERE 
@@ -341,18 +367,22 @@ int32_t execute(const uint8_t *command)
 
     /* Start doing IRET */
     // pop flags into eax, and the val in eax 0x0200, push that
-    asm volatile("pushl %0;
-        pushl %1;
-        pushlfl;
-        popl %%eax;
-        orl $0x0200, %%eax;
-        pushl %%eax;
-        pushl %2;
-        pushl %3;
-        iret;"
+    // order:
+    // user ds
+    // user esp
+    // 
+    asm volatile("pushl %0;"
+        "pushl %1; \n"
+        "pushfl; \n"
+        "popl %%eax; \n"
+        "orl $0x0200, %%eax; \n"
+        "pushl %%eax; \n"
+        "pushl %2; \n"
+        "pushl %3; \n"
+        "iret; \n"
 
         :                            
-        : "=g"(usrDS), "=g"(stack_esp), "=g"(usrCS), "=g"(stack_eip)
+        : "g"(usrDS), "g"(stack_esp), "g"(usrCS), "g"(stack_eip)
         :"%eax"
         );
 
@@ -384,7 +414,7 @@ int32_t read(int32_t fd, void *buf, int32_t nbytes)
         return terminal_read(fd, buf, nbytes);
     }
 
-    return ((globalpcb->fdarray[fd]).fileop->read)(fd, buf, nbytes); // not sure how to call function
+    return ((globalpcb->fdarray[fd]).fileop.read)(fd, buf, nbytes); // not sure how to call function
 
 }
 
@@ -408,8 +438,9 @@ int32_t write(int32_t fd, void *buf, int32_t nbytes)
         return terminal_write(fd, buf, nbytes);
     }
 
-    return ((globalpcb->fdarray[fd]).fileop->write)(fd, buf, nbytes); // not sure how to call function
-
+    int rval = ((globalpcb->fdarray[fd]).fileop.write)(fd, buf, nbytes); // not sure how to call function
+    if (rval < 0)
+        return -1;
     // return nbytes_written;
 }
 
@@ -445,33 +476,33 @@ int32_t open(const uint8_t *filename)
    //? made the init the fail funcs so if below conditons not set them returns -1 when they are called
     
     if(currdentry->ftype == 0){    // rtc
-        (globalpcb->fdarray[fd]).fileop->open = open_rtc;
-        (globalpcb->fdarray[fd]).fileop->read = read_rtc;
-        (globalpcb->fdarray[fd]).fileop->write = write_rtc;
-        (globalpcb->fdarray[fd]).fileop->close = close_rtc;
+        (globalpcb->fdarray[fd]).fileop.open = open_rtc;
+        (globalpcb->fdarray[fd]).fileop.read = read_rtc;
+        (globalpcb->fdarray[fd]).fileop.write = write_rtc;
+        (globalpcb->fdarray[fd]).fileop.close = close_rtc;
         (globalpcb->fdarray[fd]).filepos = -1;                  // why start at -1??? why not 0?
     }
     else if(currdentry->ftype == 1){    // dir
-        (globalpcb->fdarray[fd]).fileop->open = open_dir;
-        (globalpcb->fdarray[fd]).fileop->read = read_dir;
-        (globalpcb->fdarray[fd]).fileop->write = write_dir;
-        (globalpcb->fdarray[fd]).fileop->close = close_dir;
+        (globalpcb->fdarray[fd]).fileop.open = open_dir;
+        (globalpcb->fdarray[fd]).fileop.read = read_dir;
+        (globalpcb->fdarray[fd]).fileop.write = write_dir;
+        (globalpcb->fdarray[fd]).fileop.close = close_dir;
         (globalpcb->fdarray[fd]).filepos = 0;
     }
     else if(currdentry->ftype == 2){    // normal file
-        (globalpcb->fdarray[fd]).fileop->open = open_file;
-        (globalpcb->fdarray[fd]).fileop->read = read_file;
-        (globalpcb->fdarray[fd]).fileop->write = write_file;
-        (globalpcb->fdarray[fd]).fileop->close = close_file;
+        (globalpcb->fdarray[fd]).fileop.open = open_file;
+        (globalpcb->fdarray[fd]).fileop.read = read_file;
+        (globalpcb->fdarray[fd]).fileop.write = write_file;
+        (globalpcb->fdarray[fd]).fileop.close = close_file;
         (globalpcb->fdarray[fd]).filepos = 0;
     }
     (globalpcb->fdarray[fd]).inode = currdentry->inode;
     (globalpcb->fdarray[fd]).present = 1;
     (globalpcb->fdarray[fd]).type = currdentry->ftype;
     
-    int numb =  (globalpcb->fdarray[fd]).fileop->open(filename); // not sure how to call function
+    int rval =  (globalpcb->fdarray[fd]).fileop.open(filename); // not sure how to call function
     
-    if (numb < 0)
+    if (rval < 0)
         return -1;
 
     /* allocate an unused file descriptor iff filename is not already present */
@@ -497,10 +528,10 @@ int32_t close(int32_t fd)
         return -1;
 
     // Otherwise you can safely close it.
-    (globalpcb->fdarray[fd]).fileop->open = 0;
-    (globalpcb->fdarray[fd]).fileop->read = 0;
-    (globalpcb->fdarray[fd]).fileop->write = 0;
-    (globalpcb->fdarray[fd]).fileop->close = 0;
+    (globalpcb->fdarray[fd]).fileop.open = 0;
+    (globalpcb->fdarray[fd]).fileop.read = 0;
+    (globalpcb->fdarray[fd]).fileop.write = 0;
+    (globalpcb->fdarray[fd]).fileop.close = 0;
 
     (globalpcb->fdarray[fd]).inode = 0;
     (globalpcb->fdarray[fd]).filepos = 0;
@@ -510,6 +541,10 @@ int32_t close(int32_t fd)
     (globalpcb->fdarray[fd]).f2 = -1;
     (globalpcb->fdarray[fd]).f3 = -1;
 
+
+    int rval = ((globalpcb->fdarray[fd]).fileop.close)(fd);
+    if (rval < 0)
+        return -1;
     return 0;
 }
 

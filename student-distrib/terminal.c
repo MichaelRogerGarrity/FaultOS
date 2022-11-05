@@ -34,8 +34,9 @@ Inputs: int32_t fd     = unused for now
         int32_t nbytes = number of bytes to read from keyboardbuffer
 Outputs: returns int32_t = number of bytes read
 */
-int32_t terminal_read(int32_t fd, uint8_t* buf, int32_t nbytes){
-    if(buf == NULL || fd > MAX_FD_VAL || fd < MIN_FD_VAL) return -1;
+int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
+    uint8_t* buft = (uint8_t*)buf;
+    if(buft == NULL || fd > MAX_FD_VAL || fd < MIN_FD_VAL) return -1;
     if(nbytes < 0) return -1;
     int i;
     int count;
@@ -49,7 +50,7 @@ int32_t terminal_read(int32_t fd, uint8_t* buf, int32_t nbytes){
             /* Will copy keyboardbuffer to buf */
             for(i=0; i < nbytes; i++){
                 count = i;
-                buf[i] = keyboardbuffer[i];
+                buft[i] = keyboardbuffer[i];
             }
             /* Clears out keyboardbuffer */
             keyboardbuffersize = 0;
@@ -78,33 +79,33 @@ Inputs: int32_t fd     = unused for now
         int32_t nbytes = number of bytes to write to screen from buf
 Outputs: returns int32_t = 0 on success
 */
-int32_t terminal_write(int32_t fd, const uint8_t* buf, int32_t nbytes){
-    if(buf == NULL || fd > MAX_FD_VAL || fd < MIN_FD_VAL) return -1;
+int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
+    uint8_t* buft = (uint8_t*)buf;
+    if(buft == NULL || fd > MAX_FD_VAL || fd < MIN_FD_VAL) return -1;
     if(nbytes < 0) return -1;
     int i;
     int linecount;
-    
-        set_screen_x(0);
+
+    set_screen_x(0);
     
     linecount = charcount/NUM_COLS;
     charcount = 0;
     //set_screen_y(get_screen_y()-linecount); // handles unknown number of lines fed as input
     if(keyboardbuffersize != 0)
     set_screen_y(get_screen_y()+1);
-    for(i=0; i<nbytes; i++){
-        if(buf[i] != '\0'){
-            if(buf[i] == '\t'){ // tab is equivalent to four spaces
+    for(i=0; (i<nbytes); i++){
+        if(buft[i] != '\0'){
+            if(buft[i] == '\t'){ // tab is equivalent to four spaces
                 putc2(' ');
                 putc2(' ');
                 putc2(' ');
                 putc2(' ');
             }
             else{
-                putc2(buf[i]);
+                putc2(buft[i]);
             }
         }
     }
-    //i = puts2(buf, nbytes);
 
     return 0;
 }

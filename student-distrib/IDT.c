@@ -411,7 +411,21 @@ void init_IDT()
         // curr.offset_15_00 = 0x0000FFFF & curr_func_addr;
         // curr.offset_31_16 = 0xFFFF0000 & curr_func_addr;
 
-        if (curr_func_addr != 0)
+        if(curr_func_addr == call_handler)
+        {   
+            curr.seg_selector = KERNEL_CS;
+            curr.reserved4 = 0;
+            curr.reserved3 = 1;
+            curr.reserved2 = 1;
+            curr.reserved1 = 1;
+            curr.size = 1;
+            curr.reserved0 = 0;
+            curr.dpl = 3;
+            curr.present = 1;
+            SET_IDT_ENTRY(curr, (uint32_t *)curr_func_addr);
+            idt[i] = curr;
+        }
+        else if (curr_func_addr != 0)
         {
             curr.seg_selector = KERNEL_CS;
             curr.reserved4 = 0;

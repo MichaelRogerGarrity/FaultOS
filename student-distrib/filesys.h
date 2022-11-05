@@ -13,8 +13,8 @@
 #define RESERVED_BITS_BOOTBL        13
 #define DIR_ENTRIES                 63
 #define FOUR_KILO_BYTE              0x4000 //        4096
-#define EIGHT_MEGA_BYTE             0x8000000
-#define EIGHT_KILO_BYTE             0x8000
+#define EIGHT_MEGA_BYTE             0x800000
+#define EIGHT_KILO_BYTE             0x2000
 #define MAX_FILENAME_LEN            32
 #define MAX_FD_VAL                  7
 #define MIN_FD_VAL                  0

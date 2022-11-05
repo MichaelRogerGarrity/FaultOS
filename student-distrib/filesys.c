@@ -119,7 +119,10 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     curInodePtr - pointer to the relevant Inode
     j = index inside block - adjust for starting & ending & offset
     */
-
+    bootblockptr = (boot_block_t *)(fstart_adddr);
+    currdentryptr = bootblockptr->dirEntries;
+    inodeptr = (inode_t *)(bootblockptr + 1);
+    datablockptr = (dataBlock_t *)(bootblockptr + bootblockptr->num_of_inodes + 1);
     while ((curNbytes < (uint32_t)(curInodePtr->length)) && (curNbytes < length)/*i++*/)  // traversing through 
     {
         /* Offset checker - if the offset and bytes exceed the length of the current node we are done. */
@@ -134,7 +137,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
         }
 
         curDataIdx = curInodePtr->data_block[dblockidx];
-        dataBlock_t* curdblockptr = (dataBlock_t*)(datablockptr + curDataIdx);
+        dataBlock_t *curdblockptr = (dataBlock_t *)(bootblockptr + bootblockptr->num_of_inodes + 1 + curDataIdx);
 
         cur_data = curdblockptr->data;
         //uint8_t temp, temp1;

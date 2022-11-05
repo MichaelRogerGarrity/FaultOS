@@ -12,6 +12,7 @@ void terminalTest();
 int testFileDrivers();
 
 int testReadData();
+int printfilesys();
 
 #endif /* TESTS_H */
 

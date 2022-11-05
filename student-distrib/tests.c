@@ -265,23 +265,36 @@ int testFilesys(uint8_t *testfname){
 	
 }
 
+int testReadData()
+{
+	clear();
+	set_screen_x(0);
+	set_screen_y(0);
+	int i;
 
-int testReadData(){
-	int fd = 1;
-	dentry_t* tdentry;
-
-	read_dentry_by_name((const uint8_t*) "frame0.txt", tdentry);
-	uint8_t buf[20];
+	uint8_t buf[180000];
 	
-	//printf("%d", tdentry->inode);
+for (i = 0; i <180000; i++)
+	buf[i] = NULL;
 
-	read_data(tdentry->inode,0,buf,20);
+	int fd = 1;
+	dentry_t tdentry;
 
-	terminal_write(fd, buf, 20);
+	read_dentry_by_name((const uint8_t *)"shell", &tdentry);
+	
+
+	// printf("%d", tdentry->inode);
+
+	read_data(tdentry.inode, 0, buf, 180000);
+	//printf("%s", buf);
+	terminal_write(fd, buf, 180000);
+	 
+	
+	//printf(fd, buf, 180000);
 
 	return 0;
-
 }
+
 
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
@@ -299,7 +312,7 @@ void launch_tests() {
 /* Checkpoint 2 */
 	//testReadData();
 	/* Test 1: List all files: */
-	testFileDrivers();
+	//testFileDrivers();
 
 	/* Test 2: List file by name: */
 			// Normal files:

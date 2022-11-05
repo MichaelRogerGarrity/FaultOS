@@ -56,16 +56,16 @@ int32_t close_fail(int32_t fd, const void* buf, int32_t nbytes);
 typedef struct func
 {
     int32_t (*open)(const uint8_t* filename);
-    int32_t (*read)(uint32_t fd, void *buf, int32_t nbytes);
-    int32_t (*write)(uint32_t fd, const void *buf, int32_t nbytes);
-    int32_t (*close)(uint32_t fd);
+    int32_t (*read)(int32_t fd, void *buf, int32_t nbytes);
+    int32_t (*write)(int32_t fd, const void *buf, int32_t nbytes);
+    int32_t (*close)(int32_t fd);
 
 } __attribute__((packed)) func_t;
-
+// static func_t rtc_ops = {rtc_open, rtc_read, rtc_write, rtc_close}
 
 typedef struct file_desc
 {
-    func_t *fileop;
+    func_t fileop;
     uint32_t inode;
     uint32_t filepos;
     uint8_t present;
