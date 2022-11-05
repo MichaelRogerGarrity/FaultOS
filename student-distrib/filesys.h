@@ -60,28 +60,7 @@ typedef struct f4_dir
 } __attribute__((packed)) dataBlock_t;
 
 
-typedef struct func
-{
-    int32_t (*open)(const uint8_t* filename);
-    int32_t (*read)(uint32_t fd, void *buf, int32_t nbytes);
-    int32_t (*write)(uint32_t fd, const void *buf, int32_t nbytes);
-    int32_t (*close)(uint32_t fd);
 
-} __attribute__((packed)) func_t;
-
-
-typedef struct file_desc
-{
-    func_t *fileop;
-    uint32_t inode;
-    uint32_t filepos;
-    uint8_t present;
-    uint8_t type;
-    uint8_t f2;
-    uint8_t f3;
-
-
-} __attribute__((packed)) fd_t;
 
 // 4 structs
 

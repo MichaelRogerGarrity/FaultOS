@@ -35,8 +35,10 @@ int allign();
 int machine();
 int SIMD();
 // int system_call_placeholder();
+extern void call_handler();
 void init_IDT();
-// extern void call_handler();
+
+
 
 
 

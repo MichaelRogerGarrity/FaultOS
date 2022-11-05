@@ -2,6 +2,8 @@
 #include "lib.h"
 #include "syscall.h"
 
+
+extern pcb_t *globalpcb;
 /* file_init
 * Inputs:           none
 * Outputs:          0 means done

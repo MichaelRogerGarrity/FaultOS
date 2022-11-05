@@ -3,6 +3,8 @@
 #include "IDT.h"
 #include "linkageheader.h"
 #include "filesys.h"
+#include "rtc.h"
+
 
  #ifndef _SYSCALL_H
  #define _SYSCALL_H
@@ -51,6 +53,29 @@ int32_t write_fail(int32_t fd);
 int32_t open_fail(int32_t fd, void* buf, int32_t nbytes);
 int32_t close_fail(int32_t fd, const void* buf, int32_t nbytes);
 
+typedef struct func
+{
+    int32_t (*open)(const uint8_t* filename);
+    int32_t (*read)(uint32_t fd, void *buf, int32_t nbytes);
+    int32_t (*write)(uint32_t fd, const void *buf, int32_t nbytes);
+    int32_t (*close)(uint32_t fd);
+
+} __attribute__((packed)) func_t;
+
+
+typedef struct file_desc
+{
+    func_t *fileop;
+    uint32_t inode;
+    uint32_t filepos;
+    uint8_t present;
+    uint8_t type;
+    uint8_t f2;
+    uint8_t f3;
+
+
+} __attribute__((packed)) fd_t;
+
 /* PCB Struct */
 typedef struct pcb_struct
 {
@@ -63,6 +88,6 @@ typedef struct pcb_struct
 
 } __attribute__((packed)) pcb_t;
 
-extern pcb_t *globalpcb;
+pcb_t *globalpcb;
 
 #endif /* _SYSCALL_H */
