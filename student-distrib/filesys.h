@@ -19,6 +19,7 @@
 #define MAX_FD_VAL                  7
 #define MIN_FD_VAL                  0
 #define START_FD_VAL                2
+#define MAX_NUM_FILES               17
 
 /* Dentry Struct */
 typedef struct f1_dir

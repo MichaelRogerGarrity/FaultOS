@@ -29,176 +29,180 @@ Outputs:
 int32_t halt(uint8_t status)
 {
    
-    /* Order of stuff to write:
+//     /* Order of stuff to write:
 
-    1. Restore Parent data (stored in the PCB)
-    2. Restore Parent paging
-    3. Close the relevant FDs
-    4. Jump to the execute's return
+//     1. Restore Parent data (stored in the PCB)
+//     2. Restore Parent paging
+//     3. Close the relevant FDs
+//     4. Jump to the execute's return
 
-    // okan:
-    1. Setup return value (check if exception // check if program is finished)
-    2. close all processes
-    3. set currently active process to non active
-    4. check if it is the main shell (restart if yes)
-    5. not main shell handler
-    6. halt return (assembly)
+//     // okan:
+//     1. Setup return value (check if exception // check if program is finished)
+//     2. close all processes
+//     3. set currently active process to non active
+//     4. check if it is the main shell (restart if yes)
+//     5. not main shell handler
+//     6. halt return (assembly)
     
-    */
-/* 1. Set up return value:
-    - expand the 8-bit arg from BL into the 32-bit return value to the parent program
-    - 8-bit 'status' arguement = the (one of 256) interupt handler that called the 'halt' */
-    uint32_t status_ret_val = 0x0000;
-    status_ret_val |= status;
-    cli();
-    /* 2. Close all processes
-    - Close all processes except the parent execute system call 
-    - after 2.a, all currpcb == globalpcb AND all parentpcb == globalpcb - 1 */
+//     */
+// /* 1. Set up return value:
+//     - expand the 8-bit arg from BL into the 32-bit return value to the parent program
+//     - 8-bit 'status' arguement = the (one of 256) interupt handler that called the 'halt' */
+//     uint32_t status_ret_val = 0x0000;
+//     status_ret_val |= status;
+//     cli();
+//     /* 2. Close all processes
+//     - Close all processes except the parent execute system call 
+//     - after 2.a, all currpcb == globalpcb AND all parentpcb == globalpcb - 1 */
     
-    /* (a) check if the current process's parent is the shell program*/
-    int curr_pcbaddr; int parent_pcbaddr;
-    if(globalpcb->parent_id == -1){
-        // parent is shell
-        curr_pcbaddr   = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1));
-        parent_pcbaddr = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (0));
-    } else{
-        // parent is not shell
-        curr_pcbaddr   = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1));
-        parent_pcbaddr = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid - 1 + 1));
-    }
-    pcb_t* currpcb; pcb_t* parentpcb;
-    currpcb   = (pcb_t *)(curr_pcbaddr);   currpcb->pid   = currpid - 0;
-    parentpcb = (pcb_t *)(parent_pcbaddr); parentpcb->pid = currpid - 1;
+//     /* (a) check if the current process's parent is the shell program*/
+//     int curr_pcbaddr; int parent_pcbaddr;
+//     if(globalpcb->parent_id == -1){
+//         // parent is shell
+//         curr_pcbaddr   = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1));
+//         parent_pcbaddr = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (0));
+//     } else{
+//         // parent is not shell
+//         curr_pcbaddr   = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1));
+//         parent_pcbaddr = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid - 1 + 1));
+//     }
+//     pcb_t* currpcb; pcb_t* parentpcb;
+//     currpcb   = (pcb_t *)(curr_pcbaddr);   currpcb->pid   = currpid - 0;
+//     parentpcb = (pcb_t *)(parent_pcbaddr); parentpcb->pid = currpid - 1;
 
-    // int shellflag = 0;
-    // if (globalpcb->parent_id == -1)
-        // shellflag = 1;
-
-
-    /* TEMPORARY */
-    // if(shellflag) return -1;
-    /* TEMPORARY */
-
-    // pcb_t * parentpcb; 
-    // if (shellflag)
-    //     parentpcb =  (uint32_t *)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (1)));
-
-    // int curraddr = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1));
-    // pcb_t * currpcb; 
-    // currpcb =  (pcb_t *)(curraddr);
-    // currpcb->pid = currpid;
-
-    
-    // Clear out currpcb
-    // Decrement currpid
-    // Set globalpcb to parentpcb
-
-    // int8_t  parent_exec_syscall_id; // insert 
-
-    //while (currpcb->parent_id != parent_exec_syscall_id){
-
-    /* 3. set the current pcb->active bit to 0 (non active)*/
-    // globalpcb->active = 0;
-    currpcb->active = 0;
-
-    /* 4. check if it is the main shell (restart if yes) 
-    - if the currpcb is the shell, we can choose to do either of the following:
-        - DO NOTHING
-        - DO SOMETHING */
-    if (currpid == 0 || currpcb->parent_id == -1){
-        /* DO NOTHING */
-        return -1;
-    }
-
-    /* Close all things in fd table of the currpcb (or globalpcb)*/
-    int i = 0; int close_result;
-    for(i=0; i < MAX_FD_LEN; i++){
-        if(globalpcb->fdarray[i].present == 1){
-            close_result = close(i);
-        }
-    }
+//     // int shellflag = 0;
+//     // if (globalpcb->parent_id == -1)
+//         // shellflag = 1;
 
 
-   /* 5. not main shell handler
-   - Get parent process
-   - Set the TSS for parent
-   - Unmap pages for current process
-   - Map pages for parent process
-   - Set parent's process as active
-   - Call halt return (assembly)
-   */
+//     /* TEMPORARY */
+//     // if(shellflag) return -1;
+//     /* TEMPORARY */
 
+//     // pcb_t * parentpcb; 
+//     // if (shellflag)
+//     //     parentpcb =  (uint32_t *)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (1)));
 
-    /* (a) Get parent Process */
-    /* parentpcb was set at the begining: Step 2*/
-
-    /* (b) Set TSS for parent. ksp = kernel stack pointer */
-    // uint32_t currksp = (uint32_t)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * currpid) );
-    // //subtract 4 
-    // tss.ss0 = KERNEL_DS;
-    // tss.esp0 = currksp;
-
+//     // int curraddr = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1));
+//     // pcb_t * currpcb; 
+//     // currpcb =  (pcb_t *)(curraddr);
+//     // currpcb->pid = currpid;
 
     
-    /* (c) Unmap pages for current process */
-    /* currpid = static int global variable */
-    uint32_t physaddr = (PDE_PROCESS_START + currpid) * FOUR_MB;
-    // page_directory[PDE_VIRTUAL_MEM].ps       = 0; // make it a 4 mb page
-    // page_directory[PDE_VIRTUAL_MEM].pt_baddr = 0;
-    // page_directory[PDE_VIRTUAL_MEM].g        = 0; // Want page to be flushed when tlb is flushed
-    // page_directory[PDE_VIRTUAL_MEM].pcd      = 0; // in desc.pdf
-    // page_directory[PDE_VIRTUAL_MEM].us       = 0; // must be 1 for all user-level pages and mem ranges
-    page_directory[PDE_VIRTUAL_MEM].p        = 0;
-    currpid--;
+//     // Clear out currpcb
+//     // Decrement currpid
+//     // Set globalpcb to parentpcb
 
-    /* (d) Map pages for parent process */
-    /* currpid was decremented, now currpid is set to the parent (currpid - 1)*/
-    int parentpid = currpid;
-    uint32_t parent_physaddr = (PDE_PROCESS_START + parentpid) * FOUR_MB;
-    page_directory[PDE_VIRTUAL_MEM].ps = 1; // make it a 4 mb page
-    page_directory[PDE_VIRTUAL_MEM].pt_baddr = parent_physaddr >> PAGE_SHIFT;
-    page_directory[PDE_VIRTUAL_MEM].g = 0;              // Want page to be flushed when tlb is flushed
-    page_directory[PDE_VIRTUAL_MEM].pcd = 1;            // in desc.pdf
-    page_directory[PDE_VIRTUAL_MEM].us = 1;             // must be 1 for all user-level pages and mem ranges
-    page_directory[PDE_VIRTUAL_MEM].p = 1;         
+//     // int8_t  parent_exec_syscall_id; // insert 
 
-    /* (e) Set Parents Process as active */
-    parentpcb->active = 1;
+//     //while (currpcb->parent_id != parent_exec_syscall_id){
 
-    /* 6. halt return (assembly)
-    take in esp, ebp, retval
-    set esp, ebp as esp ebp args
-    set eax regs as ret val
-    */
-    int8_t saved_esp = 0;   // get from output of asm
-    int8_t saved_ebp = 0;   // get from output of asm
-    int8_t retval = 0;      // get from output of asm
-    int8_t args_esp = parentpcb->saved_esp;
-    int8_t args_ebp = parentpcb->saved_ebp;
-    // uint32_t parentksp = (uint32_t)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid) ));
-    tss.ss0 = KERNEL_DS;
-    tss.esp0 = args_esp;
-    // /* (f) Call halt return */
-    sti();
-    /* func. imp. of (halt_return) */
-    asm volatile
-    (
-        /* take in esp, ebp, retval*/
-        "   movl %%esp, %0 \n"
-        "   movl %%ebp, %1 \n"
-        "   movl %%ebx, %2 \n"
-        /* set esp, ebp as esp ebp args */
-        "   movl %3, %%esp \n"
-        "   movl %4, %%ebp \n"
-        /* set eax regs as ret val */
-        "   movl %5, %%eax; \n"
-        "   leave;          \n"
-        "   ret;            \n"
+//     /* 3. set the current pcb->active bit to 0 (non active)*/
+//     // globalpcb->active = 0;
+//     currpcb->active = 0;
 
-        : "=g"(saved_esp), "=g"(saved_ebp), "=g"(retval)                // output 
-        : "g"(args_esp), "g"(args_ebp), "g"(status_ret_val)             // input
-        : "eax"
-    );
+//     /* 4. check if it is the main shell (restart if yes) 
+//     - if the currpcb is the shell, we can choose to do either of the following:
+//         - DO NOTHING
+//         - DO SOMETHING */
+//     if (currpid == 0 || currpcb->parent_id == -1){
+//         /* DO NOTHING */
+//         return -1;
+//     }
+
+//     /* Close all things in fd table of the currpcb (or globalpcb)*/
+//     int i = 0; int close_result;
+//     for(i=0; i < MAX_FD_LEN; i++){
+//         if(globalpcb->fdarray[i].present == 1){
+//             close_result = close(i);
+//         }
+//     }
+
+
+//    /* 5. not main shell handler
+//    - Get parent process
+//    - Set the TSS for parent
+//    - Unmap pages for current process
+//    - Map pages for parent process
+//    - Set parent's process as active
+//    - Call halt return (assembly)
+//    */
+
+
+//     /* (a) Get parent Process */
+//     /* parentpcb was set at the begining: Step 2*/
+
+//     /* (b) Set TSS for parent. ksp = kernel stack pointer */
+//     // uint32_t currksp = (uint32_t)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * currpid) );
+//     // //subtract 4 
+//     // tss.ss0 = KERNEL_DS;
+//     // tss.esp0 = currksp;
+
+
+    
+//     /* (c) Unmap pages for current process */
+//     /* currpid = static int global variable */
+//     uint32_t physaddr = (PDE_PROCESS_START + currpid) * FOUR_MB;
+//     // page_directory[PDE_VIRTUAL_MEM].ps       = 0; // make it a 4 mb page
+//     // page_directory[PDE_VIRTUAL_MEM].pt_baddr = 0;
+//     // page_directory[PDE_VIRTUAL_MEM].g        = 0; // Want page to be flushed when tlb is flushed
+//     // page_directory[PDE_VIRTUAL_MEM].pcd      = 0; // in desc.pdf
+//     // page_directory[PDE_VIRTUAL_MEM].us       = 0; // must be 1 for all user-level pages and mem ranges
+//     page_directory[PDE_VIRTUAL_MEM].p        = 0;
+//     currpid--;
+
+//     /* (d) Map pages for parent process */
+//     /* currpid was decremented, now currpid is set to the parent (currpid - 1)*/
+//     int parentpid = currpid;
+//     uint32_t parent_physaddr = (PDE_PROCESS_START + parentpid) * FOUR_MB;
+//     page_directory[PDE_VIRTUAL_MEM].ps = 1; // make it a 4 mb page
+//     page_directory[PDE_VIRTUAL_MEM].pt_baddr = parent_physaddr >> PAGE_SHIFT;
+//     page_directory[PDE_VIRTUAL_MEM].g = 0;              // Want page to be flushed when tlb is flushed
+//     page_directory[PDE_VIRTUAL_MEM].pcd = 1;            // in desc.pdf
+//     page_directory[PDE_VIRTUAL_MEM].us = 1;             // must be 1 for all user-level pages and mem ranges
+//     page_directory[PDE_VIRTUAL_MEM].p = 1;         
+
+//     /* (e) Set Parents Process as active */
+//     parentpcb->active = 1;
+
+//     /* 6. halt return (assembly)
+//     take in esp, ebp, retval
+//     set esp, ebp as esp ebp args
+//     set eax regs as ret val
+//     */
+//     int8_t saved_esp = 0;   // get from output of asm
+//     int8_t saved_ebp = 0;   // get from output of asm
+//     int8_t retval = 0;      // get from output of asm
+//     int8_t args_esp = parentpcb->saved_esp;
+//     int8_t args_ebp = parentpcb->saved_ebp;
+//     // uint32_t parentksp = (uint32_t)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid) ));
+//     tss.ss0 = KERNEL_DS;
+//     tss.esp0 = args_esp;
+//     // /* (f) Call halt return */
+//     sti();
+//     /* func. imp. of (halt_return) */
+//     asm volatile
+//     (
+//         /* take in esp, ebp, retval*/
+//         "   movl %%esp, %0 \n"
+//         "   movl %%ebp, %1 \n"
+//         "   movl %%ebx, %2 \n"
+//         /* set esp, ebp as esp ebp args */
+//         "   movl %3, %%esp \n"
+//         "   movl %4, %%ebp \n"
+//         /* set eax regs as ret val */
+//         "   movl %5, %%eax; \n"
+//         "   leave;          \n"
+//         "   ret;            \n"
+
+//         : "=g"(saved_esp), "=g"(saved_ebp), "=g"(retval)                // output 
+//         : "g"(args_esp), "g"(args_ebp), "g"(status_ret_val)             // input
+//         : "eax"
+//     );
+
+// while(1){
+
+// }
     
     return 0;
 }
@@ -629,7 +633,7 @@ int32_t open(const uint8_t *filename)
     /* set up any data necessary to handle the given type of file */
 
     /* if named file does not exist OR if no descriptor are free, then return -1 */
-    return 0;
+    return fd;
 }
 
 // Close: System Call Number 6

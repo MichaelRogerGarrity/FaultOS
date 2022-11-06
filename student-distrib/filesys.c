@@ -312,6 +312,8 @@ int32_t read_dir(int32_t fd, void* buf, int32_t nbytes) {
     strncpy((int8_t*)buf, (int8_t*)(wholestr), MAX_FILENAME_LEN);
     /* Increments the dir index for each file when it is opened. */
     globalpcb->fdarray[fd].filepos++;
+    if (globalpcb->fdarray[fd].filepos <= MAX_NUM_FILES)
+        return nbytes;
     return 0;
 }
 
