@@ -81,7 +81,7 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
 int32_t terminal_write(int32_t fd, uint8_t* buf, int32_t nbytes)
 Description: Terminal's read function. Reads from keyboardbuffer into the buffer passed in as buf
 Inputs: int32_t fd     = unused for now
-        uint8_t* buf   = buffer to be read from
+        uint8_t* buf   = buffer to be read from 
         int32_t nbytes = number of bytes to write to screen from buf
 Outputs: returns int32_t = 0 on success
 */

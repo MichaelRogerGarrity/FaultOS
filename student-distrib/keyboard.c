@@ -295,6 +295,7 @@ extern void keyboard_handler(void) {
         currkey = currkey + 1;
         charcount = charcount + 1;
         if(keycode == KEYBOARD_ENTER){
+            putc2(output);
             enterflag = 1;
         }
         else
@@ -307,6 +308,7 @@ extern void keyboard_handler(void) {
         currkey = currkey + 1;
         charcount = charcount + 1;
         enterflag = 1;
+        putc2(output);
     }
     send_eoi(KEYBOARD_IRQ);
     return;
