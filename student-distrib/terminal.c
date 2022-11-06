@@ -99,7 +99,7 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
     charcount = 0;
     //set_screen_y(get_screen_y()-linecount); // handles unknown number of lines fed as input
     if(keyboardbuffersize != 0)
-    set_screen_y(get_screen_y()+1);
+    putc2('\n');
     for(i=0; i<nbytes; i++){
         if(buft[i] != '\0'){
             if(buft[i] == '\t'){ // tab is equivalent to four spaces
