@@ -13,7 +13,6 @@
 static int currpid = -1;
 pcb_t *globalpcb;
 extern page_dir_entry page_directory[1024] __attribute__((aligned(SIZE_OF_PG)));
-extern page_table_entry page_table[1024] __attribute__((aligned(SIZE_OF_PG)));
 
 /* System Call Functions */
 
@@ -48,9 +47,13 @@ int32_t halt(uint8_t status)
     */
 
     /* 1. Set up return value: */
-    
+    /* expand the 8-bit arg from BL into the 32-bit return value to the parent program*/
+    // 
+    // 
+    // 
 
     /* 2. Close all processes */
+    /* Close all processes except the parent execute system call*/
 
     // int shellflag = 0;
     // if (globalpcb->parent_id == -1)
@@ -59,6 +62,24 @@ int32_t halt(uint8_t status)
     // pcb_t * parentpcb; 
     // if (shellflag)
     //     parentpcb =  (uint32_t *)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (1)));
+
+    // pcb_t * currpcb = ; 
+    // int8_t  parent_exec_syscall_id; // insert 
+    // while (currpcb->parent_id != parent_exec_syscall_id){
+    //   /* 3. set the current pcb->active bit to 0 (non active)*/
+    //   currpcb->active = 0;
+
+    //   /* 4. check if it is the main shell (restart if yes) */
+    //   // if (currpcb->)
+
+    //   /* iterate to the parent's pcb */
+    //   currpcb = (pcb_t*)currpcb->parent_id;
+    // }
+
+
+
+
+    
     
 
 
@@ -73,14 +94,44 @@ int32_t halt(uint8_t status)
    */
 
 
+    // /* (a) Get parent Process */
+    // currpcb = (pcb_t*)currpcb->parent_id;
+    // pcb_t* parent_pcb = currpcb;
+
+    // /* (b) Set TSS for parent */
+    
+    // /* (c) Unmap pages for current process */
+
+    // /* (d) Map pages for parent process */
+
+    // /* (e) Set Parents Process as active */
+    // parent_pcb->active = 1;
+
+    // /* (f) Call halt return */
+    // asm
+    // (
+    //     "call halt_return; \n"
+    // )
 
     /* 6. halt return (assembly)
     take in esp, ebp, retval
     set esp, ebp as esp ebp args
     set eax regs as ret val
     */
+    // int8_t saved_esp = parent_pcb->saved_esp;
+    // int8_t saved_ebp = parent_pcb->saved_ebp;
+    // int8_t 
+    // asm volatile
+    // (
+    //     "halt_return: \n"
+    //         "pushl %%esp; \n"
+    //         "pushl %%ebp; \n"
+    //         "movl %parent%%esp"
 
-
+    //     : "=g"(esp), "=g"(ebp), "=g"(retval)             // output 
+    //     : "g"(parent_saved_esp), "g"(parent_saved_ebp)   // input
+    //     : "eax"
+    // )
 
     //cli()
 
@@ -174,6 +225,11 @@ int32_t execute(const uint8_t *command)
             // break;
         } 
     }   // end of arg parsing
+    // Weird arg passing - change later
+    if (filename[filenamechar-1] == '\n')
+        filename[filenamechar-1] = '\0';
+    // filename[filenamechar-2] = '\0';
+
 
 
 
@@ -216,7 +272,7 @@ int32_t execute(const uint8_t *command)
     
     // Future checkpoints: make an array of structs. Right now, just use a single pid thing. 
     currpid++;                  // New process is active.
-
+    // currpid = 1; //CHANGEDDDD!!!!
     uint32_t physaddr = (PDE_PROCESS_START + currpid) * FOUR_MB;
     page_directory[PDE_VIRTUAL_MEM].ps = 1; // make it a 4 mb page
     page_directory[PDE_VIRTUAL_MEM].pt_baddr = physaddr >> PAGE_SHIFT;
@@ -237,10 +293,10 @@ int32_t execute(const uint8_t *command)
     if (read_data(currdentryinodenum, 0, addrptr, currdentryinodelen) < 0 )
         return -1;
 
-
+    //terminal_write(1,addrptr,1900000);
 
     /* 5. Set up PCB stuff too - create new PCB */
-    
+    cli();
     pcb_t * currpcb; 
 
 
@@ -316,10 +372,11 @@ int32_t execute(const uint8_t *command)
  
 
 
-    uint32_t currksp = (uint32_t)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * currpid) - FOUR_BYTE_OFFSET);
+    uint32_t currksp = (uint32_t)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * currpid) );
     //subtract 4 
     tss.ss0 = KERNEL_DS;
     tss.esp0 = currksp;
+
 
     /* 
      The other important bit of information that you need to execute programs is the entry point into the
@@ -338,7 +395,7 @@ int32_t execute(const uint8_t *command)
     stack_eip = (stack_eip | buffer[1]);
     stack_eip = stack_eip << 8;
     stack_eip = (stack_eip | buffer[0]);
-
+     
     // stack_eip = (stack_eip | buffer[0]);
     // stack_eip = stack_eip << 8;
     // stack_eip = (stack_eip | buffer[1]);
@@ -346,7 +403,7 @@ int32_t execute(const uint8_t *command)
     // stack_eip = (stack_eip | buffer[2]);
     // stack_eip = stack_eip << 8;
     // stack_eip = (stack_eip | buffer[3]);
-
+    tss.eip = stack_eip;
     /* 
     Stuff to push to stack (to convert to usermode) in order:
     USER_DS
@@ -359,6 +416,7 @@ int32_t execute(const uint8_t *command)
     */
     //uint32_t stack_eip = buffer; 
     //flip endianess 
+    // uint32_t stack_esp = PROG_START - FOUR_BYTE_OFFSET;
     uint32_t stack_esp = PROG_START - FOUR_BYTE_OFFSET;
 
     //!!! NEED TO ADD CLI AND STU SOMEWHERE HERE 
@@ -366,11 +424,6 @@ int32_t execute(const uint8_t *command)
     int usrCS = USER_CS;
 
     /* Start doing IRET */
-    // pop flags into eax, and the val in eax 0x0200, push that
-    // order:
-    // user ds
-    // user esp
-    // 
     asm volatile("pushl %0;"
         "pushl %1; \n"
         "pushfl; \n"
@@ -383,8 +436,9 @@ int32_t execute(const uint8_t *command)
 
         :                            
         : "g"(usrDS), "g"(stack_esp), "g"(usrCS), "g"(stack_eip)
-        :"%eax"
+        :"%eax", "memory", "cc"
         );
+        sti();
 
 
     return 0;
@@ -403,6 +457,7 @@ Outputs:
 */
 int32_t read(int32_t fd, void *buf, int32_t nbytes)
 {
+    sti();
     /* sanity check: initial file position at eof or beyonf end of curr file */
     if(buf == NULL || fd > MAX_FD_VAL || fd < MIN_FD_VAL || nbytes < 0) {return -1;}
 

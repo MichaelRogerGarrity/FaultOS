@@ -243,6 +243,20 @@ Outputs: int (0 if valid) - never reached
 int pageFault()
 {
     printf("Page fault");
+    // uint32_t save_esp = 0;
+    // uint32_t save_ebp asm("s_ebp") = 0;     
+    uint32_t cr2val = 0;
+    asm volatile
+    (
+        "movl %%cr2, %%eax; \n"
+        "movl %%eax, %0; \n"
+        :"=g"(cr2val)
+        :
+        : "%eax"
+    );
+
+
+    
     while (1)
     {
     }
@@ -411,11 +425,11 @@ void init_IDT()
         // curr.offset_15_00 = 0x0000FFFF & curr_func_addr;
         // curr.offset_31_16 = 0xFFFF0000 & curr_func_addr;
 
-        if(curr_func_addr == call_handler)
+        if(i == SYSTEM_CALL_IDT_ENTRY)
         {   
             curr.seg_selector = KERNEL_CS;
             curr.reserved4 = 0;
-            curr.reserved3 = 1;
+            curr.reserved3 = 1;     // Set to 1 to convert to trap gate (see diagram: https://ibb.co/DD3pcFF)
             curr.reserved2 = 1;
             curr.reserved1 = 1;
             curr.size = 1;

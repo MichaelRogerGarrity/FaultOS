@@ -31,4 +31,4 @@ jump_table:
 badcode:
 	movl $-1, %eax	# return error
 done:
-	IRET
+	iret

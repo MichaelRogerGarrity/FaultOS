@@ -166,6 +166,9 @@ void entry(unsigned long magic, unsigned long addr) {
     sti(); 
 
     clear();
+    set_screen_x(0);
+    set_screen_y(0);
+
     execute("shell");
 
 #ifdef RUN_TESTS

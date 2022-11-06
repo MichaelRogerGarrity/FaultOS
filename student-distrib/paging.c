@@ -52,24 +52,24 @@ void init_page(){
         page_table[i].pat = 0;                  // 4mb page table
         page_table[i].g =  0;                   
         page_table[i].avail = 0;   
-        page_table[i].pt_baddr = 0;             // cr3 - set in assebly. 
+        page_table[i].pt_baddr = i;             // cr3 - set in assebly. 
     }
     
     //set up the kernel (1 means set up kernel)
-    page_directory[1].p = 1;
-    page_directory[1].ps = 1;                   // 4mb page table
-    page_directory[1].rw = 1;
     page_directory[1].pt_baddr = (uint32_t)(KERNEL_ADDR) >> PAGE_SHIFT;     // x1 << 10 
+    page_directory[1].g = 1;                    // 4mb page table  
+    page_directory[1].ps = 1;                   // 4mb page table
+    page_directory[1].pcd =  1; 
+    page_directory[1].rw = 1;
+    page_directory[1].p = 1;
 
     //(uint32_t) 0xB8000 >> 12; //shift <<12 since lower 12 bits 0 for alignment (0xB8000 –> 0xC0000) descripters.pdf pg 5
     // what else? page_directory[0].us = 0; // set to kernel permission
-    //page_directory[1].g = 1;   // 4mb page table
-    //page_directory[1].pcd =  1; 
 
     //set the vid mem( 0 for video mem)
-    page_directory[0].p = 1;
-    page_directory[0].rw = 1;
     page_directory[0].pt_baddr = (int)(page_table) >> PAGE_SHIFT;
+    page_directory[0].rw = 1;
+    page_directory[0].p = 1;
     // what else? page_directory[0].us = 0; // set to kernel permission 
 
     
@@ -79,7 +79,6 @@ void init_page(){
         
         if( i == VIDEO >> PAGE_SHIFT){
             page_table[i].p = 1; 
-            
         }
     }
 

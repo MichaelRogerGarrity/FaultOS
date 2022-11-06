@@ -63,6 +63,7 @@ typedef struct func
 } __attribute__((packed)) func_t;
 // static func_t rtc_ops = {rtc_open, rtc_read, rtc_write, rtc_close}
 
+
 typedef struct file_desc
 {
     func_t fileop;
@@ -81,8 +82,8 @@ typedef struct pcb_struct
 {
     int8_t pid;
     int8_t parent_id;
-    int8_t saved_esp;
-    int8_t saved_ebp;
+    uint32_t saved_esp;
+    uint32_t saved_ebp;
     fd_t fdarray[MAX_FD_LEN];
     int8_t active;
 
