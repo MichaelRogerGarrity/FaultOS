@@ -162,7 +162,7 @@ int32_t read_rtc(int32_t fd, void* buf, int32_t nbytes) {
     return 0;
 }
 
-/* write_file
+/* write_rtc
  * Inputs:          none
  * Outputs:         -1 if any information is invalid. Otherwise, 0.
  * Description:

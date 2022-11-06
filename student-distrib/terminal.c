@@ -47,10 +47,16 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
     /* Will loop through infinitely waiting for an enter key from user to return with their input */
     while(1){
         if(enterflag){
+            int nullflag;
+            nullflag = 0;
             /* Will copy keyboardbuffer to buf */
             for(i=0; i < nbytes; i++){
-                count = i;
-                buft[i] = keyboardbuffer[i];
+                if(keyboardbuffer[i] == '\0' && !nullflag){
+                    count = i;
+                    nullflag = 1;
+                }
+                    //count = i;
+                    buft[i] = keyboardbuffer[i];
             }
             /* Clears out keyboardbuffer */
             keyboardbuffersize = 0;
@@ -64,7 +70,7 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
             currkey = 0;
             //charcount = 0;
             enterflag = 0;
-            return count;
+            return count-1;
         }
 
     //return 0;
@@ -86,6 +92,7 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
     int i;
     int linecount;
 
+
     set_screen_x(0);
     
     linecount = charcount/NUM_COLS;
@@ -93,19 +100,23 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
     //set_screen_y(get_screen_y()-linecount); // handles unknown number of lines fed as input
     if(keyboardbuffersize != 0)
     set_screen_y(get_screen_y()+1);
-    for(i=0; (i<nbytes); i++){
+    for(i=0; i<nbytes; i++){
         if(buft[i] != '\0'){
             if(buft[i] == '\t'){ // tab is equivalent to four spaces
                 putc2(' ');
                 putc2(' ');
                 putc2(' ');
-                putc2(' ');
+                putc2(' '); 
             }
-            else{
-                putc2(buft[i]);
+            else if (buft[i] == '\n')  {
+                putc2('\n'); 
+            }
+            else {
+                putc2(buft[i]); 
             }
         }
     }
+    keyboardbuffersize = 0;
 
     return 0;
 }

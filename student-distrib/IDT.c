@@ -21,6 +21,7 @@ int generic_interrupt()
     while (1)
     {
     }
+    // halt();
     return 0;
 }
 
@@ -36,6 +37,7 @@ int divide_error()
     while (1)
     {
     }
+    // halt();
     return 0;
 }
 
@@ -51,6 +53,7 @@ int RESERVED()
     while (1)
     {
     }
+    // halt();
     return 0;
 }
 
@@ -66,6 +69,7 @@ int NMI()
     while (1)
     {
     }
+    // halt();
     return 0;
 }
 
@@ -81,6 +85,7 @@ int breakpoint()
     while (1)
     {
     }
+    // halt();
     return 0;
 }
 
@@ -96,6 +101,7 @@ int overflow()
     while (1)
     {
     }
+    // halt();
     return 0;
 }
 
@@ -111,6 +117,7 @@ int bound()
     while (1)
     {
     }
+    // halt();
     return 0;
 }
 
@@ -126,6 +133,7 @@ int InvalidOpcode()
     while (1)
     {
     }
+    // halt();
     return 0;
 }
 
@@ -141,6 +149,7 @@ int WAIT()
     while (1)
     {
     }
+    // halt();
     return 0;
 }
 
@@ -156,6 +165,7 @@ int DoubleFalt()
     while (1)
     {
     }
+    // halt();
     return 0;
 }
 
@@ -171,6 +181,7 @@ int overrun()
     while (1)
     {
     }
+    // halt();
     return 0;
 }
 
@@ -186,6 +197,7 @@ int TSS()
     while (1)
     {
     }
+    // halt();
     return 0;
 }
 
@@ -201,6 +213,7 @@ int segment()
     while (1)
     {
     }
+    // halt();
     return 0;
 }
 
@@ -216,6 +229,7 @@ int stackSegment()
     while (1)
     {
     }
+    // halt();
     return 0;
 }
 
@@ -231,6 +245,7 @@ int protect()
     while (1)
     {
     }
+    // halt();
     return 0;
 }
 
@@ -260,6 +275,7 @@ int pageFault()
     while (1)
     {
     }
+    // halt();
     return 0;
 }
 
@@ -275,6 +291,7 @@ int RESERVED2()
     while (1)
     {
     }
+    // halt();
     return 0;
 }
 
@@ -290,6 +307,7 @@ int FPU()
     while (1)
     {
     }
+    // halt();
     return 0;
 }
 
@@ -305,6 +323,7 @@ int align()
     while (1)
     {
     }
+    // halt();
     return 0;
 }
 
@@ -320,6 +339,7 @@ int machine()
     while (1)
     {
     }
+    // halt();
     return 0;
 }
 
@@ -335,6 +355,7 @@ int SIMD()
     while (1)
     {
     }
+    // halt();
     return 0;
 }
 
