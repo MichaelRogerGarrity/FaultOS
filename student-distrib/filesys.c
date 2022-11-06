@@ -1,9 +1,9 @@
 #include "filesys.h"
 #include "lib.h"
-static dentry_t currdentry;
-static uint32_t globoffset; // change name 
-static uint32_t diridx;
+#include "syscall.h"
 
+
+extern pcb_t *globalpcb;
 /* file_init
 * Inputs:           none
 * Outputs:          0 means done
@@ -13,7 +13,7 @@ int32_t file_init(uint32_t startAddr) {
     fstart_adddr = startAddr;
     bootblockptr = (boot_block_t*)(fstart_adddr);
     currdentryptr = bootblockptr->dirEntries;
-    inodeptr = (inode_t*)(bootblockptr + 1); // arpan change
+    inodeptr = (inode_t*)(bootblockptr + 1);
     datablockptr = (dataBlock_t*)(bootblockptr + bootblockptr->num_of_inodes + 1);
     return 0;
 }
@@ -34,7 +34,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
         return -1;
     int namepres = 0;
     int i;
-    diridx = 0;
+    int index = 0;
 
     /* This traverses through directory and tries to find the file with matching name. */
     for (i = 0; i < bootblockptr->num_of_dirs; i++)
@@ -44,7 +44,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
         int32_t temp = strncmp(s1, s2, MAX_FILENAME_LEN);
         /* File was found, and we want the index of the file, and leave the loop */
         if (temp == 0) {
-            diridx = i;
+            index = i;
             namepres = 1;                                                           // We found the name
             break;
         }
@@ -53,7 +53,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
         return -1;                                                                  // The file was not found. Leave.
     }
     int rVal;
-    rVal = read_dentry_by_index(diridx, dentry);                                    // Put into our dentry the next directory we want to read.
+    rVal = read_dentry_by_index(index, dentry);                                    // Put into our dentry the next directory we want to read.
     if (rVal == -1)                                                                 // The index does not exist. This failed.
         return -1;
     return 0;
@@ -119,8 +119,11 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     curInodePtr - pointer to the relevant Inode
     j = index inside block - adjust for starting & ending & offset
     */
-
-    while (curNbytes < (uint32_t)(curInodePtr->length) /*i++*/)  // traversing through 
+    bootblockptr = (boot_block_t *)(fstart_adddr);
+    currdentryptr = bootblockptr->dirEntries;
+    inodeptr = (inode_t *)(bootblockptr + 1);
+    datablockptr = (dataBlock_t *)(bootblockptr + bootblockptr->num_of_inodes + 1);
+    while ((curNbytes < (uint32_t)(curInodePtr->length)) && (curNbytes < length)/*i++*/)  // traversing through 
     {
         /* Offset checker - if the offset and bytes exceed the length of the current node we are done. */
         if (curNbytes >= curInodePtr->length - offset) {
@@ -129,22 +132,22 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
         // curDataIdx = (uint32_t)(inode_t *)(inodeptr + inode)->data_block[((offset + curNbytes)/FOUR_KILO_BYTE) % 1023]; // gets into the current data block
         /* We do 2 checks for the data block index - first we move to the right data block, then we check if it bigger than num of data blocks available */
         int dblockidx = ((offset + curNbytes) / FOUR_KILO_BYTE);
-        if (dblockidx >= 1023) {
+        if (dblockidx >= 1023) { //make return -1 
             return curNbytes;
         }
 
         curDataIdx = curInodePtr->data_block[dblockidx];
-        dataBlock_t* curdblockptr = (dataBlock_t*)(datablockptr + curDataIdx);
+        dataBlock_t *curdblockptr = (dataBlock_t *)(bootblockptr + bootblockptr->num_of_inodes + 1 + curDataIdx);
 
         cur_data = curdblockptr->data;
-        uint8_t temp, temp1;
+        //uint8_t temp, temp1;
         /* Traverse each data block, and make sure you keep offset within bounds*/
-        for (j = ((curNbytes + offset) % FOUR_KILO_BYTE); (j < FOUR_KILO_BYTE) && (curNbytes < (uint32_t)(curInodePtr->length)); j++)
+        for (j = ((curNbytes + offset) % FOUR_KILO_BYTE); (j < FOUR_KILO_BYTE) && (curNbytes < (uint32_t)(curInodePtr->length) && (curNbytes < length)); j++)
         {
             /* Copy one byte at a time, and put the data into the buffer. */
             buf[curNbytes] = cur_data[j];
-            temp = cur_data[j];
-            temp1 = buf[curNbytes];
+            //temp = cur_data[j];
+            //temp1 = buf[curNbytes];
             curNbytes++;
         }
     }
@@ -160,14 +163,15 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 * Description:      Uses read_dentry_by_name, initializes any temporary structures.
 */
 int32_t open_file(const uint8_t* filename) {
-    /* Check if name is valid, and if read dentry call is valid. */
+    /* Check if name is valid, and if read dentry call is valid. 
+    change: we need to fill in the fd aray with the new file*/
+
     const int8_t* s = (int8_t*)filename;
     uint32_t namelen = strlen(s);
     if (namelen > MAX_FILENAME_LEN) {
         return -1;
     }
-    diridx = 0;
-    globoffset = 0;
+    dentry_t currdentry;
     /* We call dentry by name so we can fill our current dentry with the information of the given file name. */
     if ((filename == NULL) || (read_dentry_by_name(filename, &currdentry) == -1)) {
         return -1;
@@ -194,6 +198,7 @@ int32_t close_file(int32_t fd) {
  * Description:     reads count bytes of data from file into buf. Call read_data.
  */
 int32_t read_file(int32_t fd, void* buf, int32_t nbytes) {
+    
     if (fd < MIN_FD_VAL || fd > MAX_FD_VAL)
         return -1;
     if (buf == NULL)
@@ -202,11 +207,12 @@ int32_t read_file(int32_t fd, void* buf, int32_t nbytes) {
         return 0;
     /* We call read data so we can fill in our current global dentry with the information. */
     int rVal;
-    rVal = read_data(currdentry.inode, globoffset, buf, nbytes);
+    
+    rVal = read_data(globalpcb->fdarray[fd].inode, globalpcb->fdarray[fd].filepos, buf, nbytes);
     if (rVal == -1) {
         return -1;
     }
-    globoffset += nbytes;
+    globalpcb->fdarray[fd].filepos += nbytes;
     return 0;
 }
 
@@ -240,12 +246,13 @@ int32_t open_dir(const uint8_t* filename) {
     if ((filename == NULL) || namelen > MAX_FILENAME_LEN) {
         return -1;
     }
-    /* We call read dentry by name so we can fill out global dentry in with thr information received through filename. */
-    int numb = 0;
-    numb = read_dentry_by_name(filename, &currdentry);
-    if (numb < 0) {
-        return -1;
-    }
+    // /* We call read dentry by name so we can fill out global dentry in with thr information received through filename. */
+    // int numb = 0;
+    // dentry_t currdentry;
+    // numb = read_dentry_by_name(filename, &currdentry);
+    // if (numb < 0) {
+    //     return -1;
+    // }
     return 0;
 }
 
@@ -281,7 +288,8 @@ int32_t read_dir(int32_t fd, void* buf, int32_t nbytes) {
     /* We call read dentry by index, where index is a global variable that updates each time read dir is called.
     We can fill out global dentry in with the information received through the current index. */
     int val;
-    val = read_dentry_by_index(diridx, &currdentry);
+    dentry_t currdentry;
+    val = read_dentry_by_index(globalpcb->fdarray[fd].filepos, &currdentry);
     if (val != 0) {
         return -1;
     }
@@ -301,9 +309,11 @@ int32_t read_dir(int32_t fd, void* buf, int32_t nbytes) {
 
     }
     /* Store into our buffer the entire string. This will be used to print the name. */
-    strncpy((int8_t*)buf, (int8_t*)(wholestr), 32);
+    strncpy((int8_t*)buf, (int8_t*)(wholestr), MAX_FILENAME_LEN);
     /* Increments the dir index for each file when it is opened. */
-    diridx++;
+    globalpcb->fdarray[fd].filepos++;
+    if (globalpcb->fdarray[fd].filepos <= MAX_NUM_FILES)
+        return nbytes;
     return 0;
 }
 

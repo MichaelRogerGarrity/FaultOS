@@ -124,6 +124,8 @@ int32_t open_rtc(const uint8_t* filename) {
     /* Start RTC off with the rate of 2. */
     rtc_set_freq(OPEN_AT_2HZ);
     return 0;
+
+    
 }
 
 
@@ -160,7 +162,7 @@ int32_t read_rtc(int32_t fd, void* buf, int32_t nbytes) {
     return 0;
 }
 
-/* write_file
+/* write_rtc
  * Inputs:          none
  * Outputs:         -1 if any information is invalid. Otherwise, 0.
  * Description:

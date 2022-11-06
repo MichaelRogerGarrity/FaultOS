@@ -1,20 +1,25 @@
 /* filesys.h - Defines used in interactions with the file system.
  */
 
- // #ifndef _FILESYS_H
- // #define _FILESYS_H
+ #ifndef _FILESYS_H
+ #define _FILESYS_H
 
 #include "multiboot.h"
 #include "lib.h"
+// #include "syscall.h"
 
 /* Variables used in the program: */
 #define RESERVED_BITS_DENTRY        6
 #define RESERVED_BITS_BOOTBL        13
 #define DIR_ENTRIES                 63
-#define FOUR_KILO_BYTE              4096
+#define FOUR_KILO_BYTE              0x4000 //        4096
+#define EIGHT_MEGA_BYTE             0x800000
+#define EIGHT_KILO_BYTE             0x2000
 #define MAX_FILENAME_LEN            32
 #define MAX_FD_VAL                  7
 #define MIN_FD_VAL                  0
+#define START_FD_VAL                2
+#define MAX_NUM_FILES               17
 
 /* Dentry Struct */
 typedef struct f1_dir
@@ -55,6 +60,9 @@ typedef struct f4_dir
 
 } __attribute__((packed)) dataBlock_t;
 
+
+
+
 // 4 structs
 
 /* Pointers needed to initialie our structs */
@@ -88,4 +96,4 @@ int32_t close_dir(int32_t fd);
 int32_t read_dir(int32_t fd, void* buf, int32_t nbytes);
 int32_t write_dir(int32_t fd, const void* buf, int32_t nbytes);
 
-// #endif /* _FILESYS_H */
+#endif /* _FILESYS_H */

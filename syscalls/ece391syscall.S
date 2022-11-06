@@ -12,7 +12,7 @@ name:   PUSHL	%EBX          ;\
 	MOVL	8(%ESP),%EBX  ;\
 	MOVL	12(%ESP),%ECX ;\
 	MOVL	16(%ESP),%EDX ;\
-	INT	$0x80         ;\
+	INT	$0x80         ;\			# cmpl $0xFFFFF001, %eax   -> -1 to -4095 are errors -> jb done   -> other things in lecture 19 slides for handling errors
 	POPL	%EBX          ;\
 	RET
 
@@ -30,7 +30,7 @@ DO_CALL(ece391_sigreturn,SYS_SIGRETURN)
 
 
 /* Call the main() function, then halt with its return value. */
-
+/*
 .GLOBAL _start
 _start:
 	CALL	main
@@ -38,4 +38,4 @@ _start:
     PUSHL   $0
 	PUSHL	%EAX
 	CALL	ece391_halt
-
+*/

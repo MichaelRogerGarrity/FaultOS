@@ -1,13 +1,14 @@
 /* IDT.h - Defines used in interactions with the IDT
  */
 
-#ifndef _IDT_H
-#define _IDT_H
+// #ifndef _IDT_H
+// #define _IDT_H
 
 #define KEYBOARD_IDT_ENTRY          0x21
 #define RTC_IDT_ENTRY               0x28
 #define TOTAL_IDT_ENTRIES           256
 #define SYSTEM_CALL_IDT_ENTRY       0x80
+#define HALT_CODE                   15
 
 /* Function Definitions for the IDT Functions.  */
 /* Externally-visible functions */
@@ -34,7 +35,12 @@ int FPU();
 int allign();
 int machine();
 int SIMD();
-int system_call_placeholder();
+// int system_call_placeholder();
+extern void call_handler();
 void init_IDT();
 
-#endif /* _IDT_H */
+
+
+
+
+// #endif /* _IDT_H */

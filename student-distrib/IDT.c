@@ -2,10 +2,12 @@
 #include "IDT.h"
 #include "lib.h"
 #include "linkageheader.h"
+#include "filesys.h"
+#include "syscall.h"
 
 /* Note for all interrupt functions:
-* Each of these just define the exceptions and interrupts as defined in the Interrupt Descriptor Table.
-*/
+ * Each of these just define the exceptions and interrupts as defined in the Interrupt Descriptor Table.
+ */
 
 /*
 int generic_interrupt()
@@ -16,9 +18,7 @@ Outputs: int (0 if valid) - never reached
 int generic_interrupt()
 {
     printf("Generic non-descript interrupt");
-    while (1)
-    {
-    }
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -31,9 +31,7 @@ Outputs: int (0 if valid) - never reached
 int divide_error()
 {
     printf("Divide by zero error");
-    while (1)
-    {
-    }
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -46,9 +44,7 @@ Outputs: int (0 if valid) - never reached
 int RESERVED()
 {
     printf("Reserved for Intel");
-    while (1)
-    {
-    }
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -61,9 +57,7 @@ Outputs: int (0 if valid) - never reached
 int NMI()
 {
     printf("Nonmaskable external interrupt");
-    while (1)
-    {
-    }
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -76,9 +70,7 @@ Outputs: int (0 if valid) - never reached
 int breakpoint()
 {
     printf("Breakpoint reached");
-    while (1)
-    {
-    }
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -91,9 +83,7 @@ Outputs: int (0 if valid) - never reached
 int overflow()
 {
     printf("Overflow");
-    while (1)
-    {
-    }
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -106,9 +96,7 @@ Outputs: int (0 if valid) - never reached
 int bound()
 {
     printf("Bounds range exceeded (BOUND)");
-    while (1)
-    {
-    }
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -121,9 +109,7 @@ Outputs: int (0 if valid) - never reached
 int InvalidOpcode()
 {
     printf("Invalid opcode");
-    while (1)
-    {
-    }
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -136,9 +122,7 @@ Outputs: int (0 if valid) - never reached
 int WAIT()
 {
     printf("Device not available");
-    while (1)
-    {
-    }
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -151,9 +135,7 @@ Outputs: int (0 if valid) - never reached
 int DoubleFalt()
 {
     printf("Double fault");
-    while (1)
-    {
-    }
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -166,9 +148,7 @@ Outputs: int (0 if valid) - never reached
 int overrun()
 {
     printf("Coprocessor segment overrun");
-    while (1)
-    {
-    }
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -181,9 +161,7 @@ Outputs: int (0 if valid) - never reached
 int TSS()
 {
     printf("Invalid TSS");
-    while (1)
-    {
-    }
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -196,9 +174,7 @@ Outputs: int (0 if valid) - never reached
 int segment()
 {
     printf("Segment not present");
-    while (1)
-    {
-    }
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -211,9 +187,7 @@ Outputs: int (0 if valid) - never reached
 int stackSegment()
 {
     printf("Stack-segment fault");
-    while (1)
-    {
-    }
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -226,9 +200,7 @@ Outputs: int (0 if valid) - never reached
 int protect()
 {
     printf("General protection fault");
-    while (1)
-    {
-    }
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -241,9 +213,20 @@ Outputs: int (0 if valid) - never reached
 int pageFault()
 {
     printf("Page fault");
-    while (1)
-    {
-    }
+    // uint32_t save_esp = 0;
+    // uint32_t save_ebp asm("s_ebp") = 0;     
+    uint32_t cr2val = 0;
+    // asm volatile
+    // (
+    //     "movl %%cr2, %%eax; \n"
+    //     "movl %%eax, %0; \n"
+    //     :"=g"(cr2val)
+    //     :
+    //     : "%eax"
+    // );
+
+    halt(HALT_CODE);
+
     return 0;
 }
 
@@ -256,9 +239,8 @@ Outputs: int (0 if valid) - never reached
 int RESERVED2()
 {
     printf("Reserved");
-    while (1)
-    {
-    }
+    
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -271,9 +253,7 @@ Outputs: int (0 if valid) - never reached
 int FPU()
 {
     printf("x87 FPU error");
-    while (1)
-    {
-    }
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -286,9 +266,7 @@ Outputs: int (0 if valid) - never reached
 int align()
 {
     printf("Alignment check");
-    while (1)
-    {
-    }
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -301,9 +279,7 @@ Outputs: int (0 if valid) - never reached
 int machine()
 {
     printf("Machine check");
-    while (1)
-    {
-    }
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -316,26 +292,30 @@ Outputs: int (0 if valid) - never reached
 int SIMD()
 {
     printf("SIMD Floating-Point Exception");
-    while (1)
-    {
-    }
+    halt(HALT_CODE);
     return 0;
 }
 
-/*
-int system_call_placeholder()
-Description:  Interrupt generated for when a System Call is generated.
-Inputs: none
-Outputs: int (0 if valid) - never reached
-*/
-int system_call_placeholder(){
+// Commented out this function because having an in-between C function being called creates a new stack and screws up our registers.
+// I went ahead and replaced it with the actual assembly function in the IDT
+//
+// /*
+// int system_call_placeholder()
+// Description:  Interrupt generated for when a System Call is generated.
+// Inputs: none
+// Outputs: int (0 if valid) - never reached
+// */
+// int system_call_placeholder()
+// {
+//     /* Assembly call */
+//     call_handler();
+//     printf("System Call Was Called");
+//     while (1)
+//     {
+//     }
+//     return 0;
+// }
 
-    printf("System Call Was Called");
-        while (1)
-        {
-        }
-        return 0;
-}
 
 /*
 void init_IDT()
@@ -403,7 +383,21 @@ void init_IDT()
         // curr.offset_15_00 = 0x0000FFFF & curr_func_addr;
         // curr.offset_31_16 = 0xFFFF0000 & curr_func_addr;
 
-        if (curr_func_addr != 0)
+        if(i == SYSTEM_CALL_IDT_ENTRY)
+        {   
+            curr.seg_selector = KERNEL_CS;
+            curr.reserved4 = 0;
+            curr.reserved3 = 1;     // Set to 1 to convert to trap gate (see diagram: https://ibb.co/DD3pcFF)
+            curr.reserved2 = 1;
+            curr.reserved1 = 1;
+            curr.size = 1;
+            curr.reserved0 = 0;
+            curr.dpl = 3;
+            curr.present = 1;
+            SET_IDT_ENTRY(curr, (uint32_t *)curr_func_addr);
+            idt[i] = curr;
+        }
+        else if (curr_func_addr != 0)
         {
             curr.seg_selector = KERNEL_CS;
             curr.reserved4 = 0;
@@ -424,11 +418,11 @@ void init_IDT()
             {
             };
         }
-    }  
+    }
     // puts system call
-    SET_IDT_ENTRY(idt[SYSTEM_CALL_IDT_ENTRY], system_call_placeholder);     // System Calls are in IDT entry table 0x80
-    SET_IDT_ENTRY(idt[KEYBOARD_IDT_ENTRY], keyboard_handler_function);      // Keyboard is in IDT entry table 0x21
-    SET_IDT_ENTRY(idt[RTC_IDT_ENTRY], rtc_handler_linkage);                 // RTC is in IDT entry table 0x28
+    SET_IDT_ENTRY(idt[SYSTEM_CALL_IDT_ENTRY], call_handler); // System Calls are in IDT entry table 0x80
+    SET_IDT_ENTRY(idt[KEYBOARD_IDT_ENTRY], keyboard_handler_function);  // Keyboard is in IDT entry table 0x21
+    SET_IDT_ENTRY(idt[RTC_IDT_ENTRY], rtc_handler_linkage);             // RTC is in IDT entry table 0x28
     // lidt(idt_desc_ptr);
     return;
 }

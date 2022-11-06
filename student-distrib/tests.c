@@ -243,7 +243,7 @@ int testFilesys(uint8_t *testfname){
 	printf("FILENAME: %s",testfname);
 	printf("\n");
 
-	numb = read_file(fd, buf, 32);
+	numb = read_file(fd, buf,180000);
 	if (numb < 0 ) {
 		printf("INVALID FILENAME: %s",testfname);
 		return -1;
@@ -265,6 +265,37 @@ int testFilesys(uint8_t *testfname){
 	
 }
 
+int testReadData()
+{
+	clear();
+	set_screen_x(0);
+	set_screen_y(0);
+	int i;
+
+	uint8_t buf[180000];
+	
+for (i = 0; i <180000; i++)
+	buf[i] = NULL;
+
+	int fd = 1;
+	dentry_t tdentry;
+
+	read_dentry_by_name((const uint8_t *)"shell", &tdentry);
+	
+
+	// printf("%d", tdentry->inode);
+
+	read_data(tdentry.inode, 0, buf, 180000);
+	//printf("%s", buf);
+	terminal_write(fd, buf, 180000);
+	 
+	
+	//printf(fd, buf, 180000);
+
+	return 0;
+}
+
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -279,12 +310,12 @@ void launch_tests() {
 	//	TEST_OUTPUT("System Call Test", sysCallTest());				// System Call Test
 	// Our RTC Test is checked through rtc.c where we call test_interrupts() to check frequency.
 /* Checkpoint 2 */
-
+	//testReadData();
 	/* Test 1: List all files: */
-	testFileDrivers();
+	//testFileDrivers();
 
 	/* Test 2: List file by name: */
-	// 		Normal files:
+			// Normal files:
 	// testFilesys((uint8_t *)"frame0.txt");
 	// testFilesys((uint8_t *)"frame1.txt");
 	
