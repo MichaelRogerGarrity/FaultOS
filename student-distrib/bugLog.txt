@@ -145,3 +145,91 @@ b. passed in wrong nbytes
 - Symptom: write freq did not work for test cases 
 - Difficulty: 30 min
 - Fix: we had a check that nbytes was 4 bytes and we passsed a random nbytes param for the test cases so write freq never excuted so it was always at 2hz. 
+
+
+Checkpoint 3
+
+1. Support System Calls
+
+a. set the DPL in idt
+- Symptom: shell would not show up cuaig general protection fault  
+- Difficulty: 3hrs
+- Fix: when setting up the idt we set an if for x80 bit cehout for call_handler function instead of int x80 so DPL was not set
+
+b. Assembly linkage failed
+- Symptom: No system calls were being executed
+- Difficulty: 1hr
+- Fix: Check for 0x80 when initializing our IDT instead of the direct pointer to the call_handler function.
+
+c. 
+- Symptom: 
+- Difficulty: 
+- Fix: 
+
+2. Support A Loader
+
+a. 
+- Symptom:
+- Difficulty:
+- Fix:
+
+b.
+- Symptom:
+- Difficulty:
+- Fix:
+
+c. 
+- Symptom:
+- Difficulty:
+- Fix:
+
+3. Support A Loader
+
+a. 
+- Symptom:
+- Difficulty:
+- Fix:
+
+b.
+- Symptom:
+- Difficulty:
+- Fix:
+
+c. 
+- Symptom:
+- Difficulty:
+- Fix:
+
+4. Executing User-level Code
+
+a. Write to correct file in ls
+- Symptom: ls was passing an fd value of zero instead of the fd corresponding to the recently opened file
+- Difficulty: 1hr
+- Fix: Rather than just return 0 on success, our open() system call had to return the fd index corresponding to the file opened
+
+b. Ls calls to terminal_write() not functioning properly
+- Symptom: Extra spaces were appearing between file directory entries due to extra newlines printed in the terminal_write().
+- Difficulty: 1hr
+- Fix: Terminal_write needed to set keyboardbuffersize to zero after one write. This was because the function checked whether to print a newline first based off the value of the keyboardbuffersize.
+
+c. 
+- Symptom:
+- Difficulty:
+- Fix:
+
+5. Process Control Block
+
+a. 
+- Symptom:
+- Difficulty:
+- Fix:
+
+b.
+- Symptom:
+- Difficulty:
+- Fix:
+
+c. 
+- Symptom:
+- Difficulty:
+- Fix:

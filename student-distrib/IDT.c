@@ -18,10 +18,7 @@ Outputs: int (0 if valid) - never reached
 int generic_interrupt()
 {
     printf("Generic non-descript interrupt");
-    while (1)
-    {
-    }
-    // halt();
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -34,10 +31,7 @@ Outputs: int (0 if valid) - never reached
 int divide_error()
 {
     printf("Divide by zero error");
-    while (1)
-    {
-    }
-    // halt();
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -50,10 +44,7 @@ Outputs: int (0 if valid) - never reached
 int RESERVED()
 {
     printf("Reserved for Intel");
-    while (1)
-    {
-    }
-    // halt();
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -66,10 +57,7 @@ Outputs: int (0 if valid) - never reached
 int NMI()
 {
     printf("Nonmaskable external interrupt");
-    while (1)
-    {
-    }
-    // halt();
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -82,10 +70,7 @@ Outputs: int (0 if valid) - never reached
 int breakpoint()
 {
     printf("Breakpoint reached");
-    while (1)
-    {
-    }
-    // halt();
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -98,10 +83,7 @@ Outputs: int (0 if valid) - never reached
 int overflow()
 {
     printf("Overflow");
-    while (1)
-    {
-    }
-    // halt();
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -114,10 +96,7 @@ Outputs: int (0 if valid) - never reached
 int bound()
 {
     printf("Bounds range exceeded (BOUND)");
-    while (1)
-    {
-    }
-    // halt();
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -130,10 +109,7 @@ Outputs: int (0 if valid) - never reached
 int InvalidOpcode()
 {
     printf("Invalid opcode");
-    while (1)
-    {
-    }
-    // halt();
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -146,10 +122,7 @@ Outputs: int (0 if valid) - never reached
 int WAIT()
 {
     printf("Device not available");
-    while (1)
-    {
-    }
-    // halt();
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -162,10 +135,7 @@ Outputs: int (0 if valid) - never reached
 int DoubleFalt()
 {
     printf("Double fault");
-    while (1)
-    {
-    }
-    // halt();
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -178,10 +148,7 @@ Outputs: int (0 if valid) - never reached
 int overrun()
 {
     printf("Coprocessor segment overrun");
-    while (1)
-    {
-    }
-    // halt();
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -194,10 +161,7 @@ Outputs: int (0 if valid) - never reached
 int TSS()
 {
     printf("Invalid TSS");
-    while (1)
-    {
-    }
-    // halt();
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -210,10 +174,7 @@ Outputs: int (0 if valid) - never reached
 int segment()
 {
     printf("Segment not present");
-    while (1)
-    {
-    }
-    // halt();
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -226,10 +187,7 @@ Outputs: int (0 if valid) - never reached
 int stackSegment()
 {
     printf("Stack-segment fault");
-    while (1)
-    {
-    }
-    // halt();
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -242,10 +200,7 @@ Outputs: int (0 if valid) - never reached
 int protect()
 {
     printf("General protection fault");
-    while (1)
-    {
-    }
-    // halt();
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -261,21 +216,17 @@ int pageFault()
     // uint32_t save_esp = 0;
     // uint32_t save_ebp asm("s_ebp") = 0;     
     uint32_t cr2val = 0;
-    asm volatile
-    (
-        "movl %%cr2, %%eax; \n"
-        "movl %%eax, %0; \n"
-        :"=g"(cr2val)
-        :
-        : "%eax"
-    );
+    // asm volatile
+    // (
+    //     "movl %%cr2, %%eax; \n"
+    //     "movl %%eax, %0; \n"
+    //     :"=g"(cr2val)
+    //     :
+    //     : "%eax"
+    // );
 
+    halt(HALT_CODE);
 
-    
-    while (1)
-    {
-    }
-    // halt();
     return 0;
 }
 
@@ -288,10 +239,8 @@ Outputs: int (0 if valid) - never reached
 int RESERVED2()
 {
     printf("Reserved");
-    while (1)
-    {
-    }
-    // halt();
+    
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -304,10 +253,7 @@ Outputs: int (0 if valid) - never reached
 int FPU()
 {
     printf("x87 FPU error");
-    while (1)
-    {
-    }
-    // halt();
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -320,10 +266,7 @@ Outputs: int (0 if valid) - never reached
 int align()
 {
     printf("Alignment check");
-    while (1)
-    {
-    }
-    // halt();
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -336,10 +279,7 @@ Outputs: int (0 if valid) - never reached
 int machine()
 {
     printf("Machine check");
-    while (1)
-    {
-    }
-    // halt();
+    halt(HALT_CODE);
     return 0;
 }
 
@@ -352,10 +292,7 @@ Outputs: int (0 if valid) - never reached
 int SIMD()
 {
     printf("SIMD Floating-Point Exception");
-    while (1)
-    {
-    }
-    // halt();
+    halt(HALT_CODE);
     return 0;
 }
 

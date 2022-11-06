@@ -3,16 +3,23 @@
 # NUM_SYS_CALLS: 10
 
 # before calling:
-#	 %EAX: Call Number
-#	 %EBX: Arg 1
-#	 %ECX: Arg 2
-#	 %EDX: Arg 3
+#	 EAX: Call Number
+#	 EBX: Arg 1 - left
+#	 ECX: Arg 2
+#	 EDX: Arg 3 - right
 .text
  .globl call_handler
 call_handler:
+	
+	pushl %esp
+	pushl %ebp
+	pushl %edi
+	pushl %esi
+	
 	cmpl $10, %eax
-	ja badcode
-	addl $-1, %eax 	# jump_table is zero-indexed
+	jg badcode
+	cmpl $0, %eax
+	jle badcode
 	pushfl
 	pushl %edx
 	pushl %ecx
@@ -23,12 +30,20 @@ call_handler:
 	popl %edx
 	popfl
 
+	popl %esi
+	popl %edi
+	popl %ebp
+	popl %esp
+
 	jmp done
 
 jump_table:
-	.long halt, execute, read, write, open, close, getargs, vidmap, set_handler, sigreturn
+	.long 0, halt, execute, read, write, open, close, getargs, vidmap, set_handler, sigreturn
 
-badcode:
-	movl $-1, %eax	# return error
+
 done:
 	iret
+	
+badcode:
+	movl $-1, %eax	# return error
+	ret

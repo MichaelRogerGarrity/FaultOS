@@ -44,13 +44,14 @@ int32_t execute(const uint8_t *command)
 
 
     if (currpid >= 6) {
+        puts2("\nToo many processes called! (>6)\n", ERRMSG);
         return 0;
     }
     /*  1. Extract name and args - check whether executable  */
 
     int cmd_len = strlen((const int8_t *)(command));
     uint8_t filename[MAX_FILENAME_LEN];
-    uint32_t arg0[MAX_ARG_LEN];
+    uint8_t arg0[MAX_ARG_LEN];
     // uint32_t arg1[32];
     // uint32_t arg2[32];
     uint8_t buffer[4];
@@ -62,7 +63,7 @@ int32_t execute(const uint8_t *command)
     for (i = 0; i < MAX_ARG_LEN; i++) {      // change
         if (i < MAX_FILENAME_LEN)
             filename[i] = '\0';
-        arg0[i] = '\0';
+        // arg0[i] = '\0';
         // arg1[i] = '\0';
         // arg2[i] = '\0';
     }
@@ -251,7 +252,7 @@ int32_t execute(const uint8_t *command)
  
 
 
-    uint32_t currksp = (uint32_t)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * currpid) );
+    uint32_t currksp = (uint32_t)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * currpid) - FOUR_BYTE_OFFSET);
     //subtract 4 
     tss.ss0 = KERNEL_DS;
     tss.esp0 = currksp;
@@ -282,7 +283,7 @@ int32_t execute(const uint8_t *command)
     // stack_eip = (stack_eip | buffer[2]);
     // stack_eip = stack_eip << 8;
     // stack_eip = (stack_eip | buffer[3]);
-    tss.eip = stack_eip;
+    // tss.eip = stack_eip;
     /* 
     Stuff to push to stack (to convert to usermode) in order:
     USER_DS
@@ -382,8 +383,10 @@ int32_t halt(uint8_t status)
 
 
     uint32_t status_ret_val = 0x0000;
-    status_ret_val |= status;
-    cli();
+
+    if (status == 15) {
+        status_ret_val = 256;
+    }
 
 
 
@@ -395,8 +398,8 @@ int32_t halt(uint8_t status)
     int parent_pcbaddr;   
      pcb_t* currpcb = (pcb_t *)globalpcb;
     if (currpid == 0 || currpcb->parent_id == -1){
-        /* DO NOTHING */
-        return status; // change!!!
+        currpid--;
+        execute((const uint8_t *)"shell");
     }
     // parent is not shell
     //curr_pcbaddr   = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1)); // redundant
@@ -483,35 +486,31 @@ int32_t halt(uint8_t status)
     set eax regs as ret val
     */
 
-    uint32_t saved_esp = 0;   // get from output of asm
-    uint32_t saved_ebp = 0;   // get from output of asm
-    uint32_t retval = 0;      // get from output of asm
-    uint32_t args_esp = parentpcb->saved_esp;
-    uint32_t args_ebp = parentpcb->saved_ebp;
-    uint32_t parentksp = (uint32_t)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid) ));
+    uint32_t args_esp = currpcb->saved_esp;
+    uint32_t args_ebp = currpcb->saved_ebp;
+    uint32_t parentksp = (uint32_t)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid) ) - FOUR_BYTE_OFFSET);
     tss.ss0 = KERNEL_DS;
     tss.esp0 = parentksp;
+    globalpcb = parentpcb;
     // tss.esp0 = args_esp;
     // /* (f) Call halt return */
-    sti();
     /* func. imp. of (halt_return) */
-    asm volatile
+
+    // printf("%d \n", status_ret_val);
+
+        asm volatile
     (
-        /* take in esp, ebp, retval*/
-        "   movl %%esp, %0 \n"
-        "   movl %%ebp, %1 \n"
-        "   movl %%ebx, %2 \n"
+
         /* set esp, ebp as esp ebp args */
-        "   movl %3, %%esp \n"
-        "   movl %4, %%ebp \n"
+        "   movl %0, %%esp \n"
+        "   movl %1, %%ebp \n"
         /* set eax regs as ret val */
-        "   movl %5, %%eax; \n"
+        "   movl %2, %%eax \n"
         "   leave;          \n"
         "   ret;            \n"
-
-        : "=g"(saved_esp), "=g"(saved_ebp), "=g"(retval)                // output 
-        : "g"(args_esp), "g"(args_ebp), "g"(status_ret_val)             // input
-        : "eax"
+        :
+        : "r"(args_esp), "r"(args_ebp), "r"(status_ret_val)             // input
+        : "cc"
     );
 
     
@@ -566,8 +565,13 @@ int32_t read(int32_t fd, void *buf, int32_t nbytes)
         return terminal_read(fd, buf, nbytes);
     }
 
-    return ((globalpcb->fdarray[fd]).fileop.read)(fd, buf, nbytes); // not sure how to call function
+    if(globalpcb->fdarray[fd].present == 0) return -1;  // not present
 
+
+    int rval = ((globalpcb->fdarray[fd]).fileop.read)(fd, buf, nbytes); // not sure how to call function
+    if (rval < 0)
+        return -1;
+    return rval;
 }
 
 // Write: System Call Number 4
@@ -589,6 +593,8 @@ int32_t write(int32_t fd, void *buf, int32_t nbytes)
     if((fd == 1)) {
         return terminal_write(fd, buf, nbytes);
     }
+
+     if(globalpcb->fdarray[fd].present == 0) return -1;  // not present
 
     int rval = ((globalpcb->fdarray[fd]).fileop.write)(fd, buf, nbytes); // not sure how to call function
     if (rval < 0)

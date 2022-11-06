@@ -24,6 +24,7 @@
 #define MAGIC_3                 0x46                  
 #define PROG_START              0x8400000                  
 #define MIN_FD_VAL_STD          2                  
+#define ERRMSG                  32                  
 
 
 /* All calls return >= 0 on success or -1 on failure. */
