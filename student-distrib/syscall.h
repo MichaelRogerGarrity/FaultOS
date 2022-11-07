@@ -24,7 +24,17 @@
 #define MAGIC_3                 0x46                  
 #define PROG_START              0x8400000                  
 #define MIN_FD_VAL_STD          2                  
-#define ERRMSG                  32                  
+#define ERRMSG                  33                  
+#define MAX_NUM_PROCESSES       5                  
+#define BYTEZERO                0
+#define BYTEONE                 1
+#define BYTETWO                 2
+#define BYTETHREE               3
+#define HALT_CODE               15
+#define TYPE_FILE               2
+#define TYPE_DIR                1
+#define TYPE_RTC                0
+#define BUFFER_SHIFT            8
 
 
 /* All calls return >= 0 on success or -1 on failure. */
@@ -45,11 +55,8 @@ extern int32_t close(int32_t fd);                                  // 6
 extern int32_t getargs(uint8_t* buf, int32_t nbytes);              // 7
 extern int32_t vidmap(uint8_t** screen_start);                     // 8
 extern int32_t set_handler(int32_t signum, void* handler_address); // 9
-extern int32_t sigreturn(void);                                    // 10
-// extern void call_handler();
+extern int32_t sigreturn(void);  
 
-
-//helper
 int32_t read_fail(const uint8_t *filename);
 int32_t write_fail(int32_t fd);
 int32_t open_fail(int32_t fd, void* buf, int32_t nbytes);
@@ -63,8 +70,6 @@ typedef struct func
     int32_t (*close)(int32_t fd);
 
 } __attribute__((packed)) func_t;
-// static func_t rtc_ops = {rtc_open, rtc_read, rtc_write, rtc_close}
-
 
 typedef struct file_desc
 {

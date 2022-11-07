@@ -392,7 +392,7 @@ void init_IDT()
             curr.reserved1 = 1;
             curr.size = 1;
             curr.reserved0 = 0;
-            curr.dpl = 3;
+            curr.dpl = USER_DPL;
             curr.present = 1;
             SET_IDT_ENTRY(curr, (uint32_t *)curr_func_addr);
             idt[i] = curr;

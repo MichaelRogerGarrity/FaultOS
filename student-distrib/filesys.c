@@ -132,7 +132,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
         // curDataIdx = (uint32_t)(inode_t *)(inodeptr + inode)->data_block[((offset + curNbytes)/FOUR_KILO_BYTE) % 1023]; // gets into the current data block
         /* We do 2 checks for the data block index - first we move to the right data block, then we check if it bigger than num of data blocks available */
         int dblockidx = ((offset + curNbytes) / FOUR_KILO_BYTE);
-        if (dblockidx >= 1023) { //make return -1 
+        if (dblockidx >= INODEDBLOCKS) { //make return -1 
             return curNbytes;
         }
 

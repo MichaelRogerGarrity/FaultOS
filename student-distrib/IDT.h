@@ -7,8 +7,9 @@
 #define KEYBOARD_IDT_ENTRY          0x21
 #define RTC_IDT_ENTRY               0x28
 #define TOTAL_IDT_ENTRIES           256
+#define EXCEPTION_CALLED            256
 #define SYSTEM_CALL_IDT_ENTRY       0x80
-#define HALT_CODE                   15
+#define USER_DPL                    3
 
 /* Function Definitions for the IDT Functions.  */
 /* Externally-visible functions */

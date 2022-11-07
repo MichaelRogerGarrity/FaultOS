@@ -1,4 +1,4 @@
-# interruptlinkage.S - Set up a macro for the interrupt linkage - convers normal handlers to ASM wrapped handlers.
+# pagingasm.S - ASM coding for paging - enabling paging and flushing.
 # vim:ts=4 noexpandtab
 
 # alloc the space for the directory and table

@@ -1,3 +1,5 @@
+# syscallasm.S - Create system linkage between user / kernel
+# vim:ts=4 noexpandtab
 
 
 # NUM_SYS_CALLS: 10
@@ -16,7 +18,7 @@ call_handler:
 	pushl %edi
 	
 	
-	cmpl $10, %eax
+	cmpl $10, %eax		# valid number of arguments
 	jg badcode
 	cmpl $0, %eax
 	jle badcode
@@ -47,6 +49,6 @@ done:
 	
 badcode:
 	movl $-1, %eax	# return error
-	addl $12, %esp
+	addl $12, %esp	# pop the 3 values off the register
 
 	iret

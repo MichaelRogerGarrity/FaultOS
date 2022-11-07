@@ -37,7 +37,8 @@ Outputs: returns int32_t = number of bytes read
 int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
     uint8_t* buft = (uint8_t*)buf;
     if(buft == NULL || fd > MAX_FD_VAL || fd < MIN_FD_VAL) return -1;
-    if(nbytes < 0) return -1;
+    if(nbytes < 0) 
+        return -1;
     int i;
     int count;
     int j;
