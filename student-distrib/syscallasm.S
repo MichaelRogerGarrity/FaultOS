@@ -14,7 +14,7 @@ call_handler:
 	pushl %esp
 	pushl %ebp
 	pushl %edi
-	pushl %esi
+	
 	
 	cmpl $10, %eax
 	jg badcode
@@ -30,7 +30,7 @@ call_handler:
 	popl %edx
 	popfl
 
-	popl %esi
+	
 	popl %edi
 	popl %ebp
 	popl %esp
@@ -47,6 +47,6 @@ done:
 	
 badcode:
 	movl $-1, %eax	# return error
-	addl $16, %esp
+	addl $12, %esp
 
 	iret

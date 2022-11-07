@@ -44,7 +44,7 @@ int32_t execute(const uint8_t *command)
 
 
     if (currpid >= 6) {
-        puts2("\nToo many processes called! (>6)\n", ERRMSG);
+        puts2("Too many processes called! (>6)\n", ERRMSG);
         return 0;
     }
     /*  1. Extract name and args - check whether executable  */
