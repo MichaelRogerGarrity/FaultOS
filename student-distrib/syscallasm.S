@@ -42,8 +42,11 @@ jump_table:
 
 
 done:
+	
 	iret
 	
 badcode:
 	movl $-1, %eax	# return error
+	addl $16, %esp
+
 	ret
