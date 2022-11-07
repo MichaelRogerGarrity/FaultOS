@@ -215,7 +215,7 @@ int pageFault()
     printf("Page fault");
     // uint32_t save_esp = 0;
     // uint32_t save_ebp asm("s_ebp") = 0;     
-    uint32_t cr2val = 0;
+    // uint32_t cr2val = 0;
     // asm volatile
     // (
     //     "movl %%cr2, %%eax; \n"
