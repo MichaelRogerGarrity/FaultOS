@@ -161,10 +161,15 @@ b. Assembly linkage failed
 - Difficulty: 1hr
 - Fix: Check for 0x80 when initializing our IDT instead of the direct pointer to the call_handler function.
 
-c. 
-- Symptom: 
-- Difficulty: 
-- Fix: 
+c. syserr failed for testing int x80
+- Symptom: page fault after doing a bad invalid int x80
+- Difficulty: 2hrs
+- Fix: we jumped past the pop's for 4 registers when there was a bad code so we needed to pop 4 times if we get a bad code
+
+d. page fault on execute 
+- Symptom: page fault
+- Difficulty: 1 hr
+- Fix: we passed a pointer to read dentry by name instead of making a local dentry and then passing address of
 
 2. Support A Loader
 
@@ -219,10 +224,10 @@ c.
 
 5. Process Control Block
 
-a. 
-- Symptom:
+a. didnt set the register to uint_32
+- Symptom: the halt didnt work 
 - Difficulty:
-- Fix:
+- Fix: we set the saved ebp and esp to uint 32 instead of uint 8 so the address was wrong for halt
 
 b.
 - Symptom:

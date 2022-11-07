@@ -49,4 +49,4 @@ badcode:
 	movl $-1, %eax	# return error
 	addl $16, %esp
 
-	ret
+	iret

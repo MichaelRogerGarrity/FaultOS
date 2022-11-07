@@ -157,6 +157,11 @@ extern void keyboard_handler(void) {
     /* Below is the logic for backspacing characters */
     if(keycode == KEYBOARD_BACKSPACE){
 
+        if(currkey == 0){
+            send_eoi(KEYBOARD_IRQ);
+            return;
+        }
+
         /* First we have the logic for backspacing tab characters, since they are more complicated than most */
         if(keyboardbuffer[currkey-1] == '\t'){
             if(get_screen_x() > TAB_SIZE-1){             // max offset of tab from edge of screen
@@ -310,6 +315,7 @@ extern void keyboard_handler(void) {
         enterflag = 1;
         putc2(output);
     }
+    ctrlflag = 0;
     send_eoi(KEYBOARD_IRQ);
     return;
 }
