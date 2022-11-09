@@ -12,7 +12,7 @@ name:   PUSHL	%EBX          ;\
 	MOVL	8(%ESP),%EBX  ;\
 	MOVL	12(%ESP),%ECX ;\
 	MOVL	16(%ESP),%EDX ;\
-	INT	$0x80         ;\			# cmpl $0xFFFFF001, %eax   -> -1 to -4095 are errors -> jb done   -> other things in lecture 19 slides for handling errors
+	INT	$0x80         ;\
 	POPL	%EBX          ;\
 	RET
 
