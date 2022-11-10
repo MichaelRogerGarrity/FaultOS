@@ -50,45 +50,52 @@ int32_t execute(const uint8_t *command)
 
     int cmd_len = strlen((const int8_t *)(command));
     uint8_t filename[MAX_FILENAME_LEN];
-    uint8_t arg0[MAX_ARG_LEN];
+    uint8_t finalarg[MAX_ARG_LEN];
     uint8_t buffer[4];
-    int i = 0, argflag = -1, filefound = 0;
-    int filenamechar = 0, arg0char = 0;
+    int i = 0;
+    int filechar = 0;
+    int finalchar = 0;
+
 
     /* Initialize the name, args as NULL */
+    for (i = 0; i < MAX_FILENAME_LEN; i++) {
+        filename[i] = '\0';
+    }
+    
     for (i = 0; i < MAX_ARG_LEN; i++) {
-        if (i < MAX_FILENAME_LEN)
-            filename[i] = '\0';
+        finalarg[i] = '\0';
+    }
+    
+    i = 0;
+
+    int start = 0;
+    /* Parse the args / command name */
+    for (; i < cmd_len; i++) {
+        if (start == 0) {
+            if (command[i] == ' ')
+                continue;
+            start = 1;
+            filename[filechar++] = command[i];
+        } 
+        else {
+            if (command[i] == ' ')
+                break;
+            filename[filechar++] = command[i];
+        }
+    } 
+    start = 0;
+    for (; i < cmd_len; i++) {
+        if (start == 0) {
+            if (command[i] == ' ')
+                continue;
+            start = 1;
+            finalarg[finalchar++] = command[i];
+        } 
+        else {
+            finalarg[finalchar++] = command[i];
+        }
     }
 
-    /* Parse the args / command name */
-    for (i = 0; i < cmd_len; i++) {
-        if (command[i] == ' ' && filefound == 1) {
-            argflag++;
-            continue;
-        }
-
-        switch (argflag) {
-
-            case -1:
-            if (filenamechar < MAX_FILENAME_LEN) {
-                if (command[i] != ' ') { // removes starting nulls.
-                    filename[filenamechar++] = command[i];
-                    filefound++; 
-                }
-            }
-            else
-                return -1;
-            break;
-
-            case 0:
-            if (arg0char < MAX_ARG_LEN)
-                arg0[arg0char++] = command[i];
-            else
-                return -1;
-            break;
-        } 
-    }   // Finished parsing args. 
 
 
     /* 2. Search file system for the name of the file given: store it in the currdentry. */
@@ -203,8 +210,11 @@ int32_t execute(const uint8_t *command)
     (currpcb->fdarray[1]).fileop.write = terminal_write;
     (currpcb->fdarray[1]).fileop.close = terminal_close;
     (currpcb->fdarray[1]).present = 1;
+    
 
     globalpcb = currpcb;
+    
+    strcpy(globalpcb->argbuffer, finalarg);
 
     /* 6. Set up context switch ( kernel stack base into esp of tss ) */
  
@@ -584,6 +594,69 @@ Outputs:
 */
 int32_t getargs(uint8_t *buf, int32_t nbytes)
 {
+
+    // int cmd_len = strlen((const int8_t *)(buf));
+    // uint8_t arg1[MAX_FILENAME_LEN];
+    // uint8_t arg2[MAX_FILENAME_LEN];
+    // uint8_t arg3[MAX_FILENAME_LEN];
+    // int i = 0;
+    // int arg1char = 0;
+    // int arg2char = 0;
+    // int arg3char = 0;
+    // for (i = 0; i < MAX_FILENAME_LEN; i++) {
+    //     arg1[i] = '\0';
+    //     arg2[i] = '\0';
+    //     arg3[i] = '\0';
+    // }
+    // i = 0;
+    // int start = 0;
+    // for (; i < cmd_len; i++) {
+    //     if (start == 0) {
+    //         if (buf[i] == ' ')
+    //             continue;
+    //         start = 1;
+    //         arg1[arg1char++] = buf[i];
+    //     } 
+    //     else {
+    //         if (buf[i] == ' ')
+    //             break;
+    //         arg1[arg1char++] = buf[i];
+    //     }
+    // } 
+
+    // start = 0;
+    // for (; i < cmd_len; i++) {
+    //     if (start == 0) {
+    //         if (buf[i] == ' ')
+    //             continue;
+    //         start = 1;
+    //         arg2[arg2char++] = buf[i];
+    //     } 
+    //     else {
+    //         if (buf[i] == ' ')
+    //             break;
+    //         arg2[arg2char++] = buf[i];
+    //     }
+    // } 
+    // start = 0;
+    // for (; i < cmd_len; i++) {
+    //     if (start == 0) {
+    //         if (buf[i] == ' ')
+    //             continue;
+    //         start = 1;
+    //         arg3[arg3char++] = buf[i];
+    //     } 
+    //     else {
+    //         if (buf[i] == ' ')
+    //             break;
+    //         arg3[arg3char++] = buf[i];
+    //     }
+    // } 
+
+    if(strlen((uint8_t *)globalpcb->argbuffer) == 0) return -1;
+
+    strncpy((uint8_t *)buf, (uint8_t *)(globalpcb->argbuffer), nbytes);
+
     return 0;
 }
 

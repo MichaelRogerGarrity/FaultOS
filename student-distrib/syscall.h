@@ -93,6 +93,7 @@ typedef struct pcb_struct
     uint32_t saved_ebp;
     fd_t fdarray[MAX_FD_LEN];
     int8_t active;
+    uint8_t argbuffer[MAX_ARG_LEN];
 
 } __attribute__((packed)) pcb_t;
 

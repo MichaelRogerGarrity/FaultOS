@@ -213,7 +213,7 @@ int32_t read_file(int32_t fd, void* buf, int32_t nbytes) {
         return -1;
     }
     globalpcb->fdarray[fd].filepos += nbytes;
-    return 0;
+    return nbytes;
 }
 
 /* write_file

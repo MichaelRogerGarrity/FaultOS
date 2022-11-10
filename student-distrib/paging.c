@@ -3,6 +3,7 @@
 
 page_dir_entry page_directory[1024] __attribute__((aligned(SIZE_OF_PG)));
 page_table_entry page_table[1024] __attribute__((aligned(SIZE_OF_PG)));
+page_table_entry page_table_vidmem[1024] __attribute__((aligned(SIZE_OF_PG)));
 void init_page();
 
 //uint32_t page __attribute__((aligned(SIZE_OF_PG))); //4kb page 
@@ -53,6 +54,18 @@ void init_page(){
         page_table[i].g =  0;                   
         page_table[i].avail = 0;   
         page_table[i].pt_baddr = i;             // cr3 - set in assebly. 
+
+        page_table_vidmem[i].p = 0;
+        page_table_vidmem[i].rw = 1;                   // set to 1 (enable rw)
+        page_table_vidmem[i].us = 1;            // set us to 1 for user 
+        page_table_vidmem[i].pwt = 0;  
+        page_table_vidmem[i].pcd =  0;    
+        page_table_vidmem[i].a =  0;   
+        page_table_vidmem[i].d =  0;   
+        page_table_vidmem[i].pat = 0;                  
+        page_table_vidmem[i].g =  0;                   
+        page_table_vidmem[i].avail = 0;   
+        page_table_vidmem[i].pt_baddr = i;            
     }
     
     //set up the kernel (1 means set up kernel)
@@ -74,13 +87,11 @@ void init_page(){
 
     
     // Setting Video Memory inside the page table
-    for(i = 0; i<NUM_ELEMS_PAGE; i++){
-        page_table[i].pt_baddr = i;
-        
-        if( i == VIDEO >> PAGE_SHIFT){
-            page_table[i].p = 1; 
-        }
-    }
+
+    page_table[(VIDEO >> PAGE_SHIFT)].p = 1; 
+    // page_table_vidmem[i].p = 1;
+    
+    //setup vidmap 
 
     //page_table[h].pt_baddr = (uint32_t)(VIDEO) >> 12; 
 
