@@ -13,6 +13,7 @@
 static int currpid = -1;
 pcb_t *globalpcb;
 extern page_dir_entry page_directory[1024] __attribute__((aligned(SIZE_OF_PG)));
+extern page_table_entry page_table_user_vidmem[1024] __attribute__((aligned(SIZE_OF_PG)));
 
 /* System Call Functions */
 
@@ -122,7 +123,7 @@ int32_t execute(const uint8_t *command)
     if (!exec) 
         return -1;                              // it is not executable
 
-
+    cli();
 
     /* 4. Paging: Use PID to decide 8 + (PID*4MB)
           Then copy the whole file into that virtual address 128MB location.
@@ -147,10 +148,12 @@ int32_t execute(const uint8_t *command)
     uint32_t currdentryinodelen = ((inode_t *)(inodeptr + currdentryinodenum))->length;
     
     /* Uses read_data to copy information into the user page. */
-    if (read_data(currdentryinodenum, 0, addrptr, currdentryinodelen) < 0 )
+    int rval = read_data(currdentryinodenum, 0, addrptr, currdentryinodelen);
+    
+    if (  rval< 0 )
         return -1;
 
-    cli();
+
 
 
     /* 5. Create new PCB for the current newly created process. */
@@ -669,7 +672,32 @@ Outputs:
 */
 int32_t vidmap(uint8_t **screen_start)
 {
-    return 0;
+    /* We are given a double pointer - we need to check validity.*/
+    if (screen_start == NULL)
+        return -1;
+    
+    // if (screen_start < VIDST_USER || screen_start > VIDEND_USER)
+    //     return -1;
+
+    /* Perform map of 132 + b8 */
+
+        /* Setting up Video memory for user where physical is B8 and virtual is 132 + B8. (0xB8000 – 0xC0000) descripters.pdf pg 5
+    PD entry is 0, PT entry is B8
+    */
+    page_directory[USERVIDMEM_PDE_ENTRY].pt_baddr = (int)(page_table_user_vidmem) >> PAGE_SHIFT;       // Shift << 12 since lower 12 bits 0 for alignment B8000 -> B8
+    page_directory[USERVIDMEM_PDE_ENTRY].rw = 1;
+    page_directory[USERVIDMEM_PDE_ENTRY].us = 1;
+    page_directory[USERVIDMEM_PDE_ENTRY].p = 1;
+// 
+    /* Setting Video Memory inside the page table */
+    page_table_user_vidmem[(VIDEO >> PAGE_SHIFT)].pt_baddr = (VIDEO>>PAGE_SHIFT);   
+    page_table_user_vidmem[(VIDEO >> PAGE_SHIFT)].us = 1;                   // set us to 1 for user 
+    page_table_user_vidmem[(VIDEO >> PAGE_SHIFT)].p = 1; 
+    loadPageDir(page_directory); // flush TLB //? check with os dev maybe other stuff for flushing 
+
+    *screen_start = (uint8_t *)VIDST_USER;
+
+    return (int32_t)(*screen_start);
 }
 
 // Set_handler: System Call Number 9
@@ -681,7 +709,7 @@ Outputs:
 */
 int32_t set_handler(int32_t signum, void *handler_address)
 {
-    return 0;
+    return -1;
 }
 
 // Sigreturn: System Call Number 10
@@ -693,7 +721,7 @@ Outputs:
 */
 int32_t sigreturn(void)
 {
-    return 0;
+    return -1;
 }
 
 /*-------------fail helper funcs--------------*/

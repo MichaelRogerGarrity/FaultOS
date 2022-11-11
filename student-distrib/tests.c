@@ -272,24 +272,25 @@ int testReadData()
 	set_screen_y(0);
 	int i;
 
-	uint8_t buf[180000];
+	uint8_t buf[200000];
 	
-for (i = 0; i <180000; i++)
-	buf[i] = NULL;
+	for (i = 0; i <200000; i++)
+		buf[i] = NULL;
 
 	int fd = 1;
 	dentry_t tdentry;
 
-	read_dentry_by_name((const uint8_t *)"shell", &tdentry);
+	read_dentry_by_name((const uint8_t *)"ls", &tdentry);
 	
 
 	// printf("%d", tdentry->inode);
 
-	read_data(tdentry.inode, 0, buf, 180000);
+	read_data(tdentry.inode, 0, buf, 200000);
 	//printf("%s", buf);
-	terminal_write(fd, buf, 180000);
-	 
-	
+	// puts2(buf);
+	terminal_write(fd, buf, 200000);
+
+
 	//printf(fd, buf, 180000);
 
 	return 0;
@@ -310,7 +311,7 @@ void launch_tests() {
 	//	TEST_OUTPUT("System Call Test", sysCallTest());				// System Call Test
 	// Our RTC Test is checked through rtc.c where we call test_interrupts() to check frequency.
 /* Checkpoint 2 */
-	//testReadData();
+	testReadData();
 	/* Test 1: List all files: */
 	//testFileDrivers();
 
@@ -321,7 +322,7 @@ void launch_tests() {
 	
 	// 		Executables:	
 	// testFilesys((uint8_t *)"cat");
-	// testFilesys((uint8_t *)"ls");
+	//testFilesys((uint8_t *)"ls");
 	// testFilesys((uint8_t *)"grep");
 
 	// 		Large files:

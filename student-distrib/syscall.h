@@ -13,7 +13,7 @@
 #define FOUR_MB                 0x400000            
 #define PDE_VIRTUAL_MEM         32                  // 128 virt addr is 32th pd 
 #define MAX_ARG_LEN             128               
-#define VIRT_ADDR               0x08048000          
+#define VIRT_ADDR               0x8048000          
 #define VIRT_ADDR_INSTRUC       24          
 #define MAX_FD_LEN              8                 
 #define BYTES_TO_COPY           4                 
@@ -22,7 +22,7 @@
 #define MAGIC_1                 0x45                  
 #define MAGIC_2                 0x4c                  
 #define MAGIC_3                 0x46                  
-#define PROG_START              0x8400000                  
+#define PROG_START              0x8400000           // 132 mb             
 #define MIN_FD_VAL_STD          2                  
 #define ERRMSG                  33                  
 #define MAX_NUM_PROCESSES       5                  
@@ -35,7 +35,8 @@
 #define TYPE_DIR                1
 #define TYPE_RTC                0
 #define BUFFER_SHIFT            8
-
+#define VIDST_USER              0x084B8000  
+#define VIDEND_USER             0x084B9000  
 
 /* All calls return >= 0 on success or -1 on failure. */
 

@@ -126,7 +126,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     while ((curNbytes < (uint32_t)(curInodePtr->length)) && (curNbytes < length)/*i++*/)  // traversing through 
     {
         /* Offset checker - if the offset and bytes exceed the length of the current node we are done. */
-        if ((offset + curNbytes > curInodePtr->length) || (curNbytes >= curInodePtr->length - offset)) {
+        if (offset + curNbytes >= curInodePtr->length) {
             return curNbytes;
         }
         // curDataIdx = (uint32_t)(inode_t *)(inodeptr + inode)->data_block[((offset + curNbytes)/FOUR_KILO_BYTE) % 1023]; // gets into the current data block
@@ -151,7 +151,15 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
             curNbytes++;
         }
     }
+
+
+
+
     return curNbytes;                                               // Finished copying, return how many bytes were copied.
+
+
+
+
 }
 
 

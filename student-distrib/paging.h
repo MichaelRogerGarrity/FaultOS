@@ -8,11 +8,15 @@
 #include "x86_desc.h"
 #include "lib.h"
 
-#define SIZE_OF_PG          4096
-#define VIDEO               0xB8000
-#define KERNEL_ADDR         0x00400000
-#define NUM_ELEMS_PAGE      1024
-#define PAGE_SHIFT          12
+#define SIZE_OF_PG              4096
+#define VIDEO                   0xB8000
+#define VIDEO_END               0xB9000
+#define KERNEL_ADDR             0x00400000
+#define NUM_ELEMS_PAGE          1024
+#define PAGE_SHIFT              12
+#define KERNEL_PDE_ENTRY        1
+#define VIDMEM_PDE_ENTRY        0
+#define USERVIDMEM_PDE_ENTRY    33
 
 /* Struct for the Page Directory. Refer to Descriptors.pdf. */
 typedef struct p_d1{

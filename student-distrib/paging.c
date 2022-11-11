@@ -3,7 +3,7 @@
 
 page_dir_entry page_directory[1024] __attribute__((aligned(SIZE_OF_PG)));
 page_table_entry page_table[1024] __attribute__((aligned(SIZE_OF_PG)));
-page_table_entry page_table_vidmem[1024] __attribute__((aligned(SIZE_OF_PG)));
+page_table_entry page_table_user_vidmem[1024] __attribute__((aligned(SIZE_OF_PG)));
 void init_page();
 
 //uint32_t page __attribute__((aligned(SIZE_OF_PG))); //4kb page 
@@ -55,45 +55,50 @@ void init_page(){
         page_table[i].avail = 0;   
         page_table[i].pt_baddr = i;             // cr3 - set in assebly. 
 
-        page_table_vidmem[i].p = 0;
-        page_table_vidmem[i].rw = 1;                   // set to 1 (enable rw)
-        page_table_vidmem[i].us = 1;            // set us to 1 for user 
-        page_table_vidmem[i].pwt = 0;  
-        page_table_vidmem[i].pcd =  0;    
-        page_table_vidmem[i].a =  0;   
-        page_table_vidmem[i].d =  0;   
-        page_table_vidmem[i].pat = 0;                  
-        page_table_vidmem[i].g =  0;                   
-        page_table_vidmem[i].avail = 0;   
-        page_table_vidmem[i].pt_baddr = i;            
+        
+        page_table_user_vidmem[i].rw = 1;                   // set to 1 (enable rw)
+        page_table_user_vidmem[i].us = 1;            // set us to 1 for user 
+        page_table_user_vidmem[i].pwt = 0;  
+        page_table_user_vidmem[i].pcd =  0;    
+        page_table_user_vidmem[i].a =  0;   
+        page_table_user_vidmem[i].d =  0;   
+        page_table_user_vidmem[i].pat = 0;                  
+        page_table_user_vidmem[i].g =  0;                   
+        page_table_user_vidmem[i].avail = 0;   
+        page_table_user_vidmem[i].pt_baddr = i;           
+        page_table_user_vidmem[i].p = 0; 
     }
-    
-    //set up the kernel (1 means set up kernel)
-    page_directory[1].pt_baddr = (uint32_t)(KERNEL_ADDR) >> PAGE_SHIFT;     // x1 << 10 
-    page_directory[1].g = 1;                    // 4mb page table  
-    page_directory[1].ps = 1;                   // 4mb page table
-    page_directory[1].pcd =  1; 
-    page_directory[1].rw = 1;
-    page_directory[1].p = 1;
 
-    //(uint32_t) 0xB8000 >> 12; //shift <<12 since lower 12 bits 0 for alignment (0xB8000 –> 0xC0000) descripters.pdf pg 5
-    // what else? page_directory[0].us = 0; // set to kernel permission
-
-    //set the vid mem( 0 for video mem)
-    page_directory[0].pt_baddr = (int)(page_table) >> PAGE_SHIFT;
-    page_directory[0].rw = 1;
-    page_directory[0].p = 1;
-    // what else? page_directory[0].us = 0; // set to kernel permission 
 
     
-    // Setting Video Memory inside the page table
+    /* Set up the 4MB kernel */
+    page_directory[KERNEL_PDE_ENTRY].pt_baddr = (uint32_t)(KERNEL_ADDR) >> PAGE_SHIFT;     // x1 << 10 
+    page_directory[KERNEL_PDE_ENTRY].g = 1;                    // 4mb page table  
+    page_directory[KERNEL_PDE_ENTRY].ps = 1;                   // 4mb page table
+    page_directory[KERNEL_PDE_ENTRY].pcd =  1; 
+    page_directory[KERNEL_PDE_ENTRY].rw = 1;
+    page_directory[KERNEL_PDE_ENTRY].p = 1;
 
+    /* Setting up Video memory (actual) where physical and virtual are both B8. (0xB8000 – 0xC0000) descripters.pdf pg 5
+    PD entry is 0, PT entry is B8
+    */
+    page_directory[VIDMEM_PDE_ENTRY].pt_baddr = (int)(page_table) >> PAGE_SHIFT;       // Shift << 12 since lower 12 bits 0 for alignment B8000 -> B8
+    page_directory[VIDMEM_PDE_ENTRY].rw = 1;
+    page_directory[VIDMEM_PDE_ENTRY].p = 1;
+    /* Setting Video Memory inside the page table */
     page_table[(VIDEO >> PAGE_SHIFT)].p = 1; 
-    // page_table_vidmem[i].p = 1;
     
-    //setup vidmap 
+    // /* Setting up Video memory for user where physical is B8 and virtual is 132 + B8. (0xB8000 – 0xC0000) descripters.pdf pg 5
+    // PD entry is 0, PT entry is B8
+    // */
+    // page_directory[USERVIDMEM_PDE_ENTRY].pt_baddr = (int)(page_table_user_vidmem) >> PAGE_SHIFT;       // Shift << 12 since lower 12 bits 0 for alignment B8000 -> B8
+    // page_directory[USERVIDMEM_PDE_ENTRY].rw = 1;
+    // page_directory[USERVIDMEM_PDE_ENTRY].us = 1;
+    // page_directory[USERVIDMEM_PDE_ENTRY].p = 1;
 
-    //page_table[h].pt_baddr = (uint32_t)(VIDEO) >> 12; 
+    // /* Setting Video Memory inside the page table */
+    // page_table_user_vidmem[(VIDEO >> PAGE_SHIFT)].us = 1;                   // set us to 1 for user 
+    // page_table_user_vidmem[(VIDEO >> PAGE_SHIFT)].p = 1; 
 
     loadPageDir(page_directory); 
     enPaging();

@@ -124,7 +124,6 @@ int32_t open_rtc(const uint8_t* filename) {
     /* Start RTC off with the rate of 2. */
     rtc_set_freq(OPEN_AT_2HZ);
     return 0;
-
     
 }
 
@@ -153,12 +152,14 @@ int32_t close_rtc(int32_t fd) {
 int32_t read_rtc(int32_t fd, void* buf, int32_t nbytes) {
     if (fd < MIN_FD_VAL || fd > MAX_FD_VAL || nbytes == NULL)
         return -1;
+    interrupt_flag_rtc = 0;
+    sti();
     while (!interrupt_flag_rtc) {
         /* This stays here until the RTC generates another interrupt. */
     }
     interrupt_flag_rtc = 0;
     // int8_t* name = "Int in RTC occurs once (Read only called once)";
-    
+    cli();
     return 0;
 }
 
