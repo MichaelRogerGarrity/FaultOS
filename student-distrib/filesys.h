@@ -12,7 +12,7 @@
 #define RESERVED_BITS_DENTRY        6
 #define RESERVED_BITS_BOOTBL        13
 #define DIR_ENTRIES                 63
-#define FOUR_KILO_BYTE              0x4000 //        4096
+#define FOUR_KILO_BYTE              0x1000 //        4096
 #define EIGHT_MEGA_BYTE             0x800000
 #define EIGHT_KILO_BYTE             0x2000
 #define MAX_FILENAME_LEN            32

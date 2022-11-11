@@ -596,67 +596,9 @@ Inputs:
 Outputs:
 */
 int32_t getargs(uint8_t *buf, int32_t nbytes)
-{
+{ 
 
-    // int cmd_len = strlen((const int8_t *)(buf));
-    // uint8_t arg1[MAX_FILENAME_LEN];
-    // uint8_t arg2[MAX_FILENAME_LEN];
-    // uint8_t arg3[MAX_FILENAME_LEN];
-    // int i = 0;
-    // int arg1char = 0;
-    // int arg2char = 0;
-    // int arg3char = 0;
-    // for (i = 0; i < MAX_FILENAME_LEN; i++) {
-    //     arg1[i] = '\0';
-    //     arg2[i] = '\0';
-    //     arg3[i] = '\0';
-    // }
-    // i = 0;
-    // int start = 0;
-    // for (; i < cmd_len; i++) {
-    //     if (start == 0) {
-    //         if (buf[i] == ' ')
-    //             continue;
-    //         start = 1;
-    //         arg1[arg1char++] = buf[i];
-    //     } 
-    //     else {
-    //         if (buf[i] == ' ')
-    //             break;
-    //         arg1[arg1char++] = buf[i];
-    //     }
-    // } 
-
-    // start = 0;
-    // for (; i < cmd_len; i++) {
-    //     if (start == 0) {
-    //         if (buf[i] == ' ')
-    //             continue;
-    //         start = 1;
-    //         arg2[arg2char++] = buf[i];
-    //     } 
-    //     else {
-    //         if (buf[i] == ' ')
-    //             break;
-    //         arg2[arg2char++] = buf[i];
-    //     }
-    // } 
-    // start = 0;
-    // for (; i < cmd_len; i++) {
-    //     if (start == 0) {
-    //         if (buf[i] == ' ')
-    //             continue;
-    //         start = 1;
-    //         arg3[arg3char++] = buf[i];
-    //     } 
-    //     else {
-    //         if (buf[i] == ' ')
-    //             break;
-    //         arg3[arg3char++] = buf[i];
-    //     }
-    // } 
-
-    if(strlen((uint8_t *)globalpcb->argbuffer) == 0) return -1;
+    if((strlen((uint8_t *)globalpcb->argbuffer) == 0) || (strlen((uint8_t *)globalpcb->argbuffer) + 1 > nbytes)) return -1; // not sure if the +1 is necessary. Added based off "if the arguments and a terminal NULL (0-byte) do not fit in the buffer"
 
     strncpy((uint8_t *)buf, (uint8_t *)(globalpcb->argbuffer), nbytes);
 
