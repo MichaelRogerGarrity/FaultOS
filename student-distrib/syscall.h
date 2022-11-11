@@ -35,8 +35,12 @@
 #define TYPE_DIR                1
 #define TYPE_RTC                0
 #define BUFFER_SHIFT            8
-#define VIDST_USER              0x084B8000  
-#define VIDEND_USER             0x084B9000  
+#define VIDST_USER              0x8000000  
+#define VIDEND_USER             0x8400000 
+
+#define VID_START               0x084B8000 
+
+                                // 0x8050d40
 
 /* All calls return >= 0 on success or -1 on failure. */
 

@@ -93,7 +93,6 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
     int i;
     int linecount;
 
-    uint8_t * temb = buf;
     //set_screen_x(0);
     
     linecount = charcount/NUM_COLS;

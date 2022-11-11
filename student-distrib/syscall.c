@@ -217,7 +217,7 @@ int32_t execute(const uint8_t *command)
 
     globalpcb = currpcb;
     
-    strcpy(globalpcb->argbuffer, finalarg);
+    strcpy((int8_t *)(globalpcb->argbuffer), (int8_t *)(finalarg));
 
     /* 6. Set up context switch ( kernel stack base into esp of tss ) */
  
@@ -598,9 +598,9 @@ Outputs:
 int32_t getargs(uint8_t *buf, int32_t nbytes)
 { 
 
-    if((strlen((uint8_t *)globalpcb->argbuffer) == 0) || (strlen((uint8_t *)globalpcb->argbuffer) + 1 > nbytes)) return -1; // not sure if the +1 is necessary. Added based off "if the arguments and a terminal NULL (0-byte) do not fit in the buffer"
+    if((buf == NULL) || (strlen((int8_t *)globalpcb->argbuffer) == 0) || (strlen((int8_t *)globalpcb->argbuffer) + 1 > nbytes)) return -1; // not sure if the +1 is necessary. Added based off "if the arguments and a terminal NULL (0-byte) do not fit in the buffer"
 
-    strncpy((uint8_t *)buf, (uint8_t *)(globalpcb->argbuffer), nbytes);
+    strncpy((int8_t *)buf, (int8_t *)(globalpcb->argbuffer), nbytes);
 
     return 0;
 }
@@ -617,9 +617,10 @@ int32_t vidmap(uint8_t **screen_start)
     /* We are given a double pointer - we need to check validity.*/
     if (screen_start == NULL)
         return -1;
-    
-    // if (screen_start < VIDST_USER || screen_start > VIDEND_USER)
-    //     return -1;
+    //  screen_start from test: 0x8050d40
+    if (screen_start < (int)VIDST_USER || screen_start > (int)VIDEND_USER)
+        return -1;
+
 
     /* Perform map of 132 + b8 */
 
@@ -637,7 +638,7 @@ int32_t vidmap(uint8_t **screen_start)
     page_table_user_vidmem[(VIDEO >> PAGE_SHIFT)].p = 1; 
     loadPageDir(page_directory); // flush TLB //? check with os dev maybe other stuff for flushing 
 
-    *screen_start = (uint8_t *)VIDST_USER;
+    *screen_start = (uint8_t *)VID_START;
 
     return (int32_t)(*screen_start);
 }

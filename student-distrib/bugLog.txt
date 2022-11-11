@@ -171,39 +171,6 @@ d. page fault on execute
 - Difficulty: 1 hr
 - Fix: we passed a pointer to read dentry by name instead of making a local dentry and then passing address of
 
-2. Support A Loader
-
-a. 
-- Symptom:
-- Difficulty:
-- Fix:
-
-b.
-- Symptom:
-- Difficulty:
-- Fix:
-
-c. 
-- Symptom:
-- Difficulty:
-- Fix:
-
-3. Support A Loader
-
-a. 
-- Symptom:
-- Difficulty:
-- Fix:
-
-b.
-- Symptom:
-- Difficulty:
-- Fix:
-
-c. 
-- Symptom:
-- Difficulty:
-- Fix:
 
 4. Executing User-level Code
 
@@ -217,10 +184,6 @@ b. Ls calls to terminal_write() not functioning properly
 - Difficulty: 1hr
 - Fix: Terminal_write needed to set keyboardbuffersize to zero after one write. This was because the function checked whether to print a newline first based off the value of the keyboardbuffersize.
 
-c. 
-- Symptom:
-- Difficulty:
-- Fix:
 
 5. Process Control Block
 
@@ -229,12 +192,24 @@ a. didnt set the register to uint_32
 - Difficulty:
 - Fix: we set the saved ebp and esp to uint 32 instead of uint 8 so the address was wrong for halt
 
-b.
-- Symptom:
-- Difficulty:
-- Fix:
+Checkpoint 4
 
-c. 
-- Symptom:
-- Difficulty:
-- Fix:
+1. 
+
+a. read_data
+- Symptom: would not fill the whole bufer with the data for the excute to the heap was incorrect and counter,fish didnt work 
+- Difficulty: 9hrs
+- Fix: change the label for 4kilobyte to 4096 :( 
+
+b. read_data return value
+- Symptom: cat was not displaying anything 
+- Difficulty: 20 min
+- Fix: needed to have the read syscall return read_data return which was curNbytes 
+
+c. vidmap range
+- Symptom: checking if in a 1kb page instead of 4mb page  
+- Difficulty: 20 min
+- Fix: chaneg the labels for the range to be within 1 mb page  
+
+
+
