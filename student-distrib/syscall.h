@@ -25,7 +25,7 @@
 #define PROG_START              0x8400000           // 132 mb             
 #define MIN_FD_VAL_STD          2                  
 #define ERRMSG                  33                  
-#define MAX_NUM_PROCESSES       5                  
+#define MAX_NUM_PROCESSES       2                  
 #define BYTEZERO                0
 #define BYTEONE                 1
 #define BYTETWO                 2

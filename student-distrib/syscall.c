@@ -43,7 +43,7 @@ int32_t execute(const uint8_t *command)
 
     /* Checks if we have max number of processes: */
     if (currpid >= MAX_NUM_PROCESSES) {
-        puts2("Too many processes called! (>6)\n", ERRMSG);
+        puts2("Too many processes called! (>3)\n", ERRMSG);
         return 0;
     }
 
@@ -624,14 +624,13 @@ int32_t vidmap(uint8_t **screen_start)
 
     /* Perform map of 132 + b8 */
 
-        /* Setting up Video memory for user where physical is B8 and virtual is 132 + B8. (0xB8000 – 0xC0000) descripters.pdf pg 5
+    /* Setting up Video memory for user where physical is B8 and virtual is 132 + B8. (0xB8000 – 0xC0000) descripters.pdf pg 5
     PD entry is 0, PT entry is B8
     */
     page_directory[USERVIDMEM_PDE_ENTRY].pt_baddr = (int)(page_table_user_vidmem) >> PAGE_SHIFT;       // Shift << 12 since lower 12 bits 0 for alignment B8000 -> B8
     page_directory[USERVIDMEM_PDE_ENTRY].rw = 1;
     page_directory[USERVIDMEM_PDE_ENTRY].us = 1;
     page_directory[USERVIDMEM_PDE_ENTRY].p = 1;
-// 
     /* Setting Video Memory inside the page table */
     page_table_user_vidmem[(VIDEO >> PAGE_SHIFT)].pt_baddr = (VIDEO>>PAGE_SHIFT);   
     page_table_user_vidmem[(VIDEO >> PAGE_SHIFT)].us = 1;                   // set us to 1 for user 
