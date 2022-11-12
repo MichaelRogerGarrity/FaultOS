@@ -588,17 +588,18 @@ int32_t close(int32_t fd)
 
     return 0;
 }
-
 /*
 int getargs(uint8_t* buf, int32_t nbytes)
-Description:
-Inputs:
-Outputs:
+Inputs:                 buf: buffer where the args will get stored
+                        nbytes: size of the buffer to copy into
+Outputs:                whether call was successful (0) or not (-1)
+Description:            Puts the arguments from the PCB into the buffer
 */
 int32_t getargs(uint8_t *buf, int32_t nbytes)
 { 
 
-    if((buf == NULL) || (strlen((int8_t *)globalpcb->argbuffer) == 0) || (strlen((int8_t *)globalpcb->argbuffer) + 1 > nbytes)) return -1; // not sure if the +1 is necessary. Added based off "if the arguments and a terminal NULL (0-byte) do not fit in the buffer"
+    if((buf == NULL) || (strlen((int8_t *)globalpcb->argbuffer) == 0) || (strlen((int8_t *)globalpcb->argbuffer) + 1 > nbytes)) 
+        return -1;                      // Added based off "if the arguments and a terminal NULL (0-byte) do not fit in the buffer"
 
     strncpy((int8_t *)buf, (int8_t *)(globalpcb->argbuffer), nbytes);
 
@@ -607,10 +608,12 @@ int32_t getargs(uint8_t *buf, int32_t nbytes)
 
 // Vidmap: System Call Number 8
 /*
+
+/*
 int vidmap(uint8_t** screen_start)
-Description:
-Inputs:
-Outputs:
+Inputs:                 screen_start: the double pointer from the user side that needs to be set to the start of the vidmem section.
+Outputs:                whether call was successful (0) or not (-1)
+Description:            It moves the user's pointer to the newly created page that will help the user to write directly into vidmap.
 */
 int32_t vidmap(uint8_t **screen_start)
 {
@@ -620,7 +623,6 @@ int32_t vidmap(uint8_t **screen_start)
     //  screen_start from test: 0x8050d40
     if (screen_start < (int)VIDST_USER || screen_start > (int)VIDEND_USER)
         return -1;
-
 
     /* Perform map of 132 + b8 */
 
