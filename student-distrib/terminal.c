@@ -1,7 +1,10 @@
 #include "terminal.h"
+#include "keyboard.h"
 #include "lib.h"
+#include "syscall.h"
 #include "i8259.h"
 #include "filesys.h"
+#include "paging.h"
 
 /*
 int32_t terminal_open(const uint8_t* filename)
@@ -118,4 +121,18 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
     return 0;
 }
 
+int32_t terminal_switch(int32_t newTerminal){
+
+    if(newTerminal > 2 || newTerminal < 0)
+        return -1;
+
+    // Not sure about these first two memcpy lines
+    memcpy(VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal), VIDEO, FOUR_KILO_BYTE);
+    memcpy(VIDEO, VIDEO_T1 + FOUR_KILO_BYTE * (newTerminal), FOUR_KILO_BYTE);
+    memcpy(terminalArray[currTerminal].terminalbuffer, keyboardbuffer, KEYBOARD_BUFFER_MAX_SIZE);
+    memcpy(keyboardbuffer, terminalArray[newTerminal].terminalbuffer, KEYBOARD_BUFFER_MAX_SIZE);
+    currTerminal = newTerminal;
+
+    return 0;
+}
 

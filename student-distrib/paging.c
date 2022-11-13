@@ -98,7 +98,11 @@ void init_page(){
 
     // /* Setting Video Memory inside the page table */
     // page_table_user_vidmem[(VIDEO >> PAGE_SHIFT)].us = 1;                   // set us to 1 for user 
-    // page_table_user_vidmem[(VIDEO >> PAGE_SHIFT)].p = 1; 
+    // page_table_user_vidmem[(VIDEO >> PAGE_SHIFT)].p = 1;
+    
+    page_table[(VIDEO_T1 >> PAGE_SHIFT)].p = 1;
+    page_table[(VIDEO_T2 >> PAGE_SHIFT)].p = 1;
+    page_table[(VIDEO_T3 >> PAGE_SHIFT)].p = 1;
 
     loadPageDir(page_directory); 
     enPaging();

@@ -11,6 +11,9 @@
 #define SIZE_OF_PG              4096
 #define VIDEO                   0xB8000
 #define VIDEO_END               0xB9000
+#define VIDEO_T1                0xBA
+#define VIDEO_T2                0xBC
+#define VIDEO_T3                0xBE
 #define KERNEL_ADDR             0x00400000
 #define NUM_ELEMS_PAGE          1024
 #define PAGE_SHIFT              12
