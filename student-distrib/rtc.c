@@ -9,7 +9,8 @@
 
 // Declaration for the RTC Test interrupts.  
 void test_interrupts();
-
+int cnt = 0;
+int cur_freq;
 /*
 void rtc_init(void)
 Description:        Initialize the RTC
@@ -24,15 +25,16 @@ void rtc_init(void) {
     unsigned char prev_b = inb(RTC_PORT_RW);    // read curr B value
     outb(REG_B, RTC_PORT_IDX);                  // set idx again (due to resetting of index to reg D due to a read)
     outb(prev_b | BIT_SIX_ON, RTC_PORT_RW);     // turn on bit 6 and reqrite prev value  
-
+    int rate = 0x06;
     outb(REG_A, RTC_PORT_IDX);              // select B, disable NMI
     unsigned char prev_a = inb(RTC_PORT_RW);    // read curr A value
     outb(REG_A, RTC_PORT_IDX);                  // set idx again (due to resetting of index to reg D due to a read)
-    outb((prev_a & 0xF0) | 6, RTC_PORT_RW);     // mask bottom 4 bits | 6 and get bits 1 and 2 turn on bit 6 and reqrite prev value  
+    outb((prev_a & RATEBITS) | rate, RTC_PORT_RW);     // mask bottom 4 bits | 6 and get bits 1 and 2 turn on bit 6 and reqrite prev value  
     interrupt_flag_rtc = 0;
     // turn on interrupts at IRQ number 8 because that is where RTC goes
+    cur_freq = 1;
     enable_irq(RTC_IRQ);
-    rtc_set_freq(OPEN_AT_2HZ);
+
     return;
 }
 
@@ -51,7 +53,8 @@ extern void rtc_handler(void) {
     temp &= 0xFFFF;                             // Avoid warning of unused temp.
     /* Here we call test interrupts / or putc2 (new terminal function) to make sure our RTC is working. */
     // test_interrupts();
-    // putc2('a');      
+    // putc2('a');    
+    cnt++;  
     interrupt_flag_rtc = 1;
     send_eoi(RTC_IRQ);
     return;
@@ -70,7 +73,7 @@ int rtc_set_freq(int newfreq) {
 
     unsigned long flags;
     cli_and_save(flags);
-    int rate = 0x0F;			               // rate must be above 2 and not over 15
+    int rate = 1;			               // rate must be above 2 and not over 15
     /* Check if rate is between 2 and 15 */
     switch (newfreq) {
         /* Note: Numbers here are possible frequencies - they cannot be any other value. Taken from Datasheet. */
@@ -100,13 +103,13 @@ int rtc_set_freq(int newfreq) {
         // rate = RATE_FOR_2; break;
     }
 
-    outb(REG_A, RTC_PORT_IDX);                  // set index to register A, disable NMI
-    unsigned char prev_a = inb(RTC_PORT_RW);    // get initial value of register A
-    outb(REG_A, RTC_PORT_IDX);
-    outb(((prev_a & RATEBITS) | rate), RTC_PORT_RW);
+    // outb(REG_A, RTC_PORT_IDX);                  // set index to register A, disable NMI
+    // unsigned char prev_a = inb(RTC_PORT_RW);    // get initial value of register A
+    // outb(REG_A, RTC_PORT_IDX);
+    // outb(((prev_a & RATEBITS) | rate), RTC_PORT_RW);
 
     restore_flags(flags);
-    return 0;
+    return rate;
 
 }
 
@@ -152,13 +155,12 @@ int32_t close_rtc(int32_t fd) {
 int32_t read_rtc(int32_t fd, void* buf, int32_t nbytes) {
     if (fd < MIN_FD_VAL || fd > MAX_FD_VAL || nbytes == NULL)
         return -1;
-    interrupt_flag_rtc = 0;
+    cnt = 0;
     sti();
-    while (!interrupt_flag_rtc) {
+    while (cnt < cur_freq) {
         /* This stays here until the RTC generates another interrupt. */
     }
-    interrupt_flag_rtc = 0;
-    // int8_t* name = "Int in RTC occurs once (Read only called once)";
+    cnt = 0;
     cli();
     return 0;
 }
@@ -191,6 +193,7 @@ int32_t write_rtc(int32_t fd, const void* buf, int32_t nbytes) {
     chkfreq = rtc_set_freq(frequency);
     if (chkfreq < 0) 
         return -1;
+    cur_freq = chkfreq;
     sti();
     return 0;
 }

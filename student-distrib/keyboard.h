@@ -29,6 +29,9 @@
 #define KEYBOARD_BACKSPACE          14
 #define KEYBOARD_TAB                15
 #define KEYBOARD_L_KEY_DOWN         38
+#define KEYBOARD_F1_DOWN            59
+#define KEYBOARD_F2_DOWN            60
+#define KEYBOARD_F3_DOWN            61
 
 /* Ports that each Keyboard sits on */
 #define KEYBOARD_PORT               0x60
@@ -42,9 +45,9 @@ uint8_t keyboardbuffer[128];
 int keyboardbuffersize;
 int charcount;
 int capslock;
-int shiftflag;
-int ctrlflag;
-int altflag;
+volatile int shiftflag;
+volatile int ctrlflag;
+volatile int altflag;
 int currkey;
 int enterflag;
 
