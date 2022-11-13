@@ -133,15 +133,16 @@ int32_t execute(const uint8_t *command)
     currpid++;                                  // New process is active.
     
     uint32_t physaddr = (PDE_PROCESS_START + currpid) * FOUR_MB;
+    map_helper(PDE_VIRTUAL_MEM, physaddr);
+    /*
     page_directory[PDE_VIRTUAL_MEM].ps = 1;             // make it a 4 mb page
     page_directory[PDE_VIRTUAL_MEM].pt_baddr = physaddr >> PAGE_SHIFT;
-    page_directory[PDE_VIRTUAL_MEM].g = 0;              // Want page to be flushed when tlb is flushed
     page_directory[PDE_VIRTUAL_MEM].pcd = 1;            // in desc.pdf
     page_directory[PDE_VIRTUAL_MEM].us = 1;             // must be 1 for all user-level pages and mem ranges
     page_directory[PDE_VIRTUAL_MEM].p = 1;              // the page is present.
-    /* Flush the TLB */
-    loadPageDir(page_directory); // flush TLB //? check with os dev maybe other stuff for flushing 
-
+    // Flush the TLB
+    loadPageDir(page_directory);
+    */
     /* Now we start copying into 4MB User pages */
     uint8_t *addrptr = (uint8_t *)(VIRT_ADDR); // PASSED INTO READ DATA AS BUFFER
     uint32_t currdentryinodenum = currdentry.inode;
@@ -359,8 +360,6 @@ int32_t halt(uint8_t status)
 
     /* (a) Get parent Process */
     /* parentpcb was set at the begining: Step 2*/
-
-
     
     /* (c) Unmap pages for current process */
     /* currpid = static int global variable */
@@ -372,15 +371,16 @@ int32_t halt(uint8_t status)
     /* currpid was decremented, now currpid is set to the parent (currpid - 1)*/
     int parentpid = currpid;
     uint32_t parent_physaddr = (PDE_PROCESS_START + parentpid) * FOUR_MB;
+    map_helper(PDE_VIRTUAL_MEM, parent_physaddr);
+    /*
     page_directory[PDE_VIRTUAL_MEM].ps = 1; // make it a 4 mb page
     page_directory[PDE_VIRTUAL_MEM].pt_baddr = parent_physaddr >> PAGE_SHIFT;
-    page_directory[PDE_VIRTUAL_MEM].g = 0;              // Want page to be flushed when tlb is flushed
     page_directory[PDE_VIRTUAL_MEM].pcd = 1;            // in desc.pdf
     page_directory[PDE_VIRTUAL_MEM].us = 1;             // must be 1 for all user-level pages and mem ranges
     page_directory[PDE_VIRTUAL_MEM].p = 1;         
-    /* Flush the TLB */
+    // Flush the TLB
     loadPageDir(page_directory);
-
+    */
     /* (e) Set Parents Process as active */
     parentpcb->active = 1;
 
@@ -608,8 +608,6 @@ int32_t getargs(uint8_t *buf, int32_t nbytes)
 
 // Vidmap: System Call Number 8
 /*
-
-/*
 int vidmap(uint8_t** screen_start)
 Inputs:                 screen_start: the double pointer from the user side that needs to be set to the start of the vidmem section.
 Outputs:                whether call was successful (0) or not (-1)
@@ -621,7 +619,7 @@ int32_t vidmap(uint8_t **screen_start)
     if (screen_start == NULL)
         return -1;
     //  screen_start from test: 0x8050d40
-    if (screen_start < (int)VIDST_USER || screen_start > (int)VIDEND_USER)
+    if ((int)screen_start < (int)VIDST_USER || (int)screen_start > (int)VIDEND_USER)
         return -1;
 
     /* Perform map of 132 + b8 */
@@ -709,7 +707,42 @@ int32_t close_fail(int32_t fd, const void* buf, int32_t nbytes){
     return -1;
 }  
 
+/*
+int32_t map_helper(uint32_t pdeentry, uint32_t pdeaddr)
+Inputs:             pdeentry: the entry of the PDE that needs to be changed.
+                    pdeaddr: the address of the PDE to be changed depending on the process number
+Outputs:            0 if successful
+Description:        Maps the user page to the right location
+*/
+int32_t map_helper(uint32_t pdeentry, uint32_t pdeaddr) {
+    page_directory[pdeentry].ps = 1;             // make it a 4 mb page
+    page_directory[pdeentry].pt_baddr = pdeaddr >> PAGE_SHIFT;
+    page_directory[pdeentry].pcd = 1;            // in desc.pdf
+    page_directory[pdeentry].us = 1;             // must be 1 for all user-level pages and mem ranges
+    page_directory[pdeentry].p = 1;              // the page is present.
+    /* Flush the TLB */
+    loadPageDir(page_directory); // flush TLB //? check with os dev maybe other stuff for flushing
+    return 0;
+}
 
+
+/*
+int32_t unmap_helper(uint32_t pdeentry, uint32_t pdeaddr)
+Inputs:             pdeentry: the entry of the PDE that needs to be changed.
+                    pdeaddr: the address of the PDE to be chan
+Outputs:            
+Description:
+*/
+int32_t unmap_helper(uint32_t pdeentry, uint32_t pdeaddr) {
+    page_directory[pdeentry].ps = 1;             // make it a 4 mb page
+    page_directory[pdeentry].pt_baddr = pdeaddr >> PAGE_SHIFT;
+    page_directory[pdeentry].pcd = 1;            // in desc.pdf
+    page_directory[pdeentry].us = 1;             // must be 1 for all user-level pages and mem ranges
+    page_directory[pdeentry].p = 1;              // should we set p = 0 ??
+    /* Flush the TLB */
+    loadPageDir(page_directory); // flush TLB //? check with os dev maybe other stuff for flushing
+    return 0;
+}
 
 
 

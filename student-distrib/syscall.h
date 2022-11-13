@@ -62,6 +62,8 @@ extern int32_t vidmap(uint8_t** screen_start);                     // 8
 extern int32_t set_handler(int32_t signum, void* handler_address); // 9
 extern int32_t sigreturn(void);  
 
+int32_t map_helper(uint32_t pdeentry, uint32_t pdeaddr);
+
 int32_t read_fail(const uint8_t *filename);
 int32_t write_fail(int32_t fd);
 int32_t open_fail(int32_t fd, void* buf, int32_t nbytes);
