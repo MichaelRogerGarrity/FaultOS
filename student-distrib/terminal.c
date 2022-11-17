@@ -122,17 +122,57 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
 }
 
 int32_t terminal_switch(int32_t newTerminal){
-
     if(newTerminal > 2 || newTerminal < 0)
-        return -1;
+        return -1;      // CHECK
 
-    // Not sure about these first two memcpy lines
-    memcpy(VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal), VIDEO, FOUR_KILO_BYTE);
-    memcpy(VIDEO, VIDEO_T1 + FOUR_KILO_BYTE * (newTerminal), FOUR_KILO_BYTE);
+    if(newTerminal == currTerminal){
+            return 0;
+    }
+    terminalArray[currTerminal].cursor_x = get_screen_x();
+    terminalArray[currTerminal].cursor_y = get_screen_y();
+    /* First copy vid mem to the actual terminal location */
+    // memcpy((uint8_t *)((VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT), (uint8_t *)(VIDEO >> PAGE_SHIFT), FOUR_KILO_BYTE);
+    memcpy((uint8_t *)((VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) ), (uint8_t *)(VIDEO  ), FOUR_KILO_BYTE);
+    /* Then copy from the new terminal location into vid mem */
+    memcpy(VIDEO  , (VIDEO_T1 + FOUR_KILO_BYTE * (newTerminal))  , FOUR_KILO_BYTE);
+    /* Copy from the current terminal's keyboard buffer into the stored buffer */
     memcpy(terminalArray[currTerminal].terminalbuffer, keyboardbuffer, KEYBOARD_BUFFER_MAX_SIZE);
+    /* Copy from the stored buffer of the new terminal into the current terminal's keyboard buffer */
     memcpy(keyboardbuffer, terminalArray[newTerminal].terminalbuffer, KEYBOARD_BUFFER_MAX_SIZE);
+    /* unmap current to itself */
+    map_table((VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal))  , (VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal))   );
+    /*newTerminal should map to vid mem*/
+    map_table((VIDEO_T1 + FOUR_KILO_BYTE * (newTerminal))  , VIDEO  ); //???
+    /* Update the current terminal's cursor */
+    
+    update_cursor(terminalArray[newTerminal].cursor_x, terminalArray[newTerminal].cursor_y);
+    set_screen_x(terminalArray[newTerminal].cursor_x);
+    set_screen_y(terminalArray[newTerminal].cursor_y);
+    update_cursor(terminalArray[newTerminal].cursor_x, terminalArray[newTerminal].cursor_y);
     currTerminal = newTerminal;
-
+    
     return 0;
+}
+
+
+void terminal_init(){
+    int i; 
+    currpid = 0;
+    
+    for(i = 0; i<MAX_TERMINALS; i++){
+        processesid[i] = 1;    // SAYS PROCESS IS ACTIVE
+        execute((const uint8_t *)("shell"));    //pid 0
+        terminalArray[i].currRTC = 1024;
+        // terminalArray[i].cur_PCB = ;
+        // terminalArray[i].savedt_esp = ;
+        // terminalArray[i].savedt_ebp = ;
+        //terminalArray[i].terminalbuffer; 
+        terminalArray[i].cursor_x = 0;
+        terminalArray[i].cursor_y = 0;
+        terminalArray[i].vidmemloc = VIDEO_T1 + FOUR_KILO_BYTE *i;
+        currpid++;
+    }
+
+    currTerminal = 0;
 }
 

@@ -12,6 +12,7 @@
 #define ATTRIB      0x7
 
 #include "types.h"
+#include "paging.h"
 
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);

@@ -2,8 +2,8 @@
  * vim:ts=4 noexpandtab
  */
 
-// #ifndef _PAGING_H
-// #define _PAGING_H
+#ifndef _PAGING_H
+#define _PAGING_H
 
 #include "x86_desc.h"
 #include "lib.h"
@@ -11,9 +11,9 @@
 #define SIZE_OF_PG              4096
 #define VIDEO                   0xB8000
 #define VIDEO_END               0xB9000
-#define VIDEO_T1                0xBA
-#define VIDEO_T2                0xBC
-#define VIDEO_T3                0xBE
+#define VIDEO_T1                0xBA000
+#define VIDEO_T2                0xBB000
+#define VIDEO_T3                0xBC000
 #define KERNEL_ADDR             0x00400000
 #define NUM_ELEMS_PAGE          1024
 #define PAGE_SHIFT              12
@@ -78,4 +78,4 @@ void init_page();
 extern void loadPageDir(page_dir_entry* page_directory);
 extern void enPaging();
 
-//#endif 
+#endif 

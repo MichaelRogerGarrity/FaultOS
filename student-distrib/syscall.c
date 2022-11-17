@@ -10,13 +10,22 @@
 
 /* Variables for the different system calls */
 
-static int currpid = -1;
+
 pcb_t *globalpcb;
 extern page_dir_entry page_directory[1024] __attribute__((aligned(SIZE_OF_PG)));
+extern page_table_entry page_table[1024] __attribute__((aligned(SIZE_OF_PG)));
 extern page_table_entry page_table_user_vidmem[1024] __attribute__((aligned(SIZE_OF_PG)));
 
 /* System Call Functions */
-
+int find_available_pid(){
+    int i;
+    for(i = MAX_TERMINALS; i<MAX_NUM_PROCESSES; i++){
+        if(processesid[i] == 0){
+            return i; //found empty id
+        }
+    }
+    return -1; // at max pid's 
+}
 /*
 int execute(const uint8_t* command)
 Inputs:         command - gives the command + args from the terminal
@@ -38,13 +47,18 @@ Things done in execute:
 7. IRET
 
 */
+
 int32_t execute(const uint8_t *command)
 {
 
     /* Checks if we have max number of processes: */
-    if (currpid >= MAX_NUM_PROCESSES) {
-        puts2("Too many processes called! (>3)\n", ERRMSG);
-        return 0;
+    if (currpid >= 3) {
+        int rval = find_available_pid();
+        if (rval < 0) {
+            puts2("Too many processes called! (>6)\n", ERRMSG);
+            return 0;
+        }
+        currpid = rval;
     }
 
     /*  1. Extract name and args - check whether executable  */
@@ -129,9 +143,7 @@ int32_t execute(const uint8_t *command)
           Then copy the whole file into that virtual address 128MB location.
     */
     
-    // Future checkpoints: make an array of structs. Right now, just use a single pid thing. 
-    currpid++;                                  // New process is active.
-    
+
     uint32_t physaddr = (PDE_PROCESS_START + currpid) * FOUR_MB;
     map_helper(PDE_VIRTUAL_MEM, physaddr);
     /*
@@ -161,13 +173,21 @@ int32_t execute(const uint8_t *command)
     
     int curraddr = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1));
     pcb_t * currpcb; 
+    pcb_t * parentpcb;
     currpcb =  (pcb_t *)(curraddr);
-    
+
+    parentpcb = terminalArray[currTerminal].cur_PCB;
+
+    terminalArray[currTerminal].cur_PCB = currpcb;
+
+    globalpcb = terminalArray[currTerminal].cur_PCB;
+
+
     currpcb->pid = currpid;
-    if (currpid == 0)
+    if (currpid == 0 || currpid == 1 || currpid == 2 )
         currpcb-> parent_id = -1; // check what parent of shell should be 
     else
-        currpcb-> parent_id = currpid - 1;
+        currpcb-> parent_id = parentpcb->pid;
 
     uint32_t save_esp = 0;
     uint32_t save_ebp = 0;
@@ -216,7 +236,7 @@ int32_t execute(const uint8_t *command)
     (currpcb->fdarray[1]).present = 1;
     
 
-    globalpcb = currpcb;
+    //globalpcb = currpcb;
     
     strcpy((int8_t *)(globalpcb->argbuffer), (int8_t *)(finalarg));
 
@@ -327,16 +347,18 @@ int32_t halt(uint8_t status)
     - after 2.a, all currpcb == globalpcb AND all parentpcb == globalpcb - 1 */
     
     /* (a) check if the current process's parent is the shell program*/
-    if (currpid == 0 || currpcb->parent_id == -1){
-        currpid--;
+    if (currpid == 0 || currpid == 1  || currpid == 2  ){
         execute((const uint8_t *)"shell");
     }
     
-    parent_pcbaddr = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid));
+    parent_pcbaddr = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (globalpcb->parent_id+1));
     parentpcb = (pcb_t *)(parent_pcbaddr); 
 
     /* 3. set the current pcb->active bit to 0 (non active)*/
     currpcb->active = 0;
+
+    //set process id slot to avaliable 
+    processesid[currpid] = 0;
 
     /* Close all things in fd table of the currpcb (or globalpcb)*/
     int i; int close_result;
@@ -364,8 +386,8 @@ int32_t halt(uint8_t status)
     /* (c) Unmap pages for current process */
     /* currpid = static int global variable */
    
-    page_directory[PDE_VIRTUAL_MEM].p           = 0;
-    currpid--;
+    page_directory[PDE_VIRTUAL_MEM].p = 0;
+    currpid = globalpcb->parent_id;
 
     /* (d) Map pages for parent process */
     /* currpid was decremented, now currpid is set to the parent (currpid - 1)*/
@@ -387,7 +409,7 @@ int32_t halt(uint8_t status)
     /* (b) Set TSS for parent. ksp = kernel stack pointer */
     uint32_t args_esp = currpcb->saved_esp;
     uint32_t args_ebp = currpcb->saved_ebp;
-    uint32_t parentksp = (uint32_t)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid) ) - FOUR_BYTE_OFFSET);
+    uint32_t parentksp = (uint32_t)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (parentpid) ) - FOUR_BYTE_OFFSET); //change curpid to parent 
     tss.ss0 = KERNEL_DS;
     tss.esp0 = parentksp;
     globalpcb = parentpcb;
@@ -724,6 +746,22 @@ int32_t map_helper(uint32_t pdeentry, uint32_t pdeaddr) {
     loadPageDir(page_directory); // flush TLB //? check with os dev maybe other stuff for flushing
     return 0;
 }
+
+/*
+int32_t map_table(uint32_t pdeentry, uint32_t pdeaddr)
+Inputs:             ptentry: the entry of the PT that needs to be changed.
+                    pdeaddr: the address of the PT to be changed depending on the process number
+Outputs:            0 if successful
+Description:        Maps the user page to the right location
+*/
+int32_t map_table(uint32_t ptentry, uint32_t pteaddr) {
+    page_table[ptentry].pt_baddr = pteaddr >> PAGE_SHIFT; 
+    /* Flush the TLB */
+    loadPageDir(page_directory); // flush TLB 
+    return 0;
+}
+
+
 
 
 /*

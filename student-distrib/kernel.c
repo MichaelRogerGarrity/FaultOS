@@ -170,7 +170,12 @@ void entry(unsigned long magic, unsigned long addr) {
     set_screen_x(0);
     set_screen_y(0);
 
-    execute((const uint8_t *)("shell"));
+    terminal_init();
+
+    // execute((const uint8_t *)("shell"));    //pid 0
+
+    // execute((const uint8_t *)("shell"));  //pid 1
+    // execute((const uint8_t *)("shell"));  //pid 2
 
 #ifdef RUN_TESTS
     /* Run tests */

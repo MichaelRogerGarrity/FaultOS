@@ -2,6 +2,7 @@
  * rtc.c
 */
 #include "keyboard.h"
+#include "terminal.h"
 #include "lib.h"
 #include "i8259.h"
 #include "filesys.h"
@@ -132,6 +133,18 @@ extern void keyboard_handler(void) {
         return;
     }
 
+    if((altflag) && (keycode == KEYBOARD_F1_DOWN)){
+        if(currTerminal != 0)
+        terminal_switch(TERMINAL_1_NUM);
+    }
+    else if((altflag) && (keycode == KEYBOARD_F2_DOWN)){
+        if(currTerminal != 1)
+        terminal_switch(TERMINAL_2_NUM);
+    }
+    else if((altflag) && (keycode == KEYBOARD_F3_DOWN)){
+        if(currTerminal != 2)
+        terminal_switch(TERMINAL_3_NUM);
+    }
     
     /* If keycode is out of range or is one of the function keys already processed above, we simply send an EOI and leave. */
     if ((keycode < 0) || (keycode >= KEYBOARD_INPUT_RANGE) || (keycode == KEYBOARD_CAPS_LOCK) || (keycode == KEYBOARD_CTRL_DOWN) || (keycode == KEYBOARD_ALT_DOWN) || (keycode == KEYBOARD_SHIFT_DOWN) || (keycode == KEYBOARD_SHIFT_DOWN2) || (currkey >=KEYBOARD_BUFFER_MAX_SIZE)) {

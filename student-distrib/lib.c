@@ -8,6 +8,9 @@
 static int screen_x;
 static int screen_y;
 static char* video_mem = (char*)VIDEO;
+static char* video_mem1 = (char*)VIDEO_T1;
+static char* video_mem2 = (char*)VIDEO_T2;
+static char* video_mem3 = (char*)VIDEO_T3;
 
 /* void clear(void);
  * Inputs: void
