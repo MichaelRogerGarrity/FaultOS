@@ -1,7 +1,14 @@
+
+ #ifndef _TERMINAL_H
+ #define _TERMINAL_H
+
 #include "keyboard.h"
 #include "lib.h"
 #include "i8259.h"
 #include "syscall.h"
+
+#include "filesys.h"
+#include "paging.h"
 
 #define MAX_TERMINALS           3
 #define TERMINAL_1_NUM          0
@@ -25,7 +32,7 @@ typedef struct terminalStruct{
     uint8_t terminalbuffer[KEYBOARD_BUFFER_MAX_SIZE];
     uint8_t cursor_x;
     uint8_t cursor_y;
-    uint8_t vidmemloc; //b9,ba,bb,bc
+    uint8_t vidmemloc; //ba,bb,bc
     pcb_t*  cur_PCB;
 }__attribute__ ((packed)) terminalStruct_t;
 
@@ -33,4 +40,4 @@ uint8_t currTerminal;
 
 terminalStruct_t terminalArray[3];
 
-
+#endif /* _TERMINAL_H */

@@ -103,6 +103,7 @@ typedef struct pcb_struct
     fd_t fdarray[MAX_FD_LEN];
     int8_t active;
     uint8_t argbuffer[MAX_ARG_LEN];
+    uint8_t termid;
 
 } __attribute__((packed)) pcb_t;
 

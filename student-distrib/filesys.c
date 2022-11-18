@@ -1,14 +1,18 @@
 #include "filesys.h"
-#include "lib.h"
-#include "syscall.h"
 
 
-extern pcb_t *globalpcb;
+
+//extern pcb_t *globalpcb;
 /* file_init
 * Inputs:           none
 * Outputs:          0 means done
 * Description:      Initializes all our pointers / variables and sets pointers for structs to be used.
 */
+// extern uint8_t currTerminal;
+
+// extern terminalStruct_t terminalArray[3];
+
+
 int32_t file_init(uint32_t startAddr) {
     fstart_adddr = startAddr;
     bootblockptr = (boot_block_t*)(fstart_adddr);
@@ -206,13 +210,14 @@ int32_t close_file(int32_t fd) {
  * Description:     reads count bytes of data from file into buf. Call read_data.
  */
 int32_t read_file(int32_t fd, void* buf, int32_t nbytes) {
-    
     if (fd < MIN_FD_VAL || fd > MAX_FD_VAL)
         return -1;
     if (buf == NULL)
         return -1;
     if (!nbytes)                                                            // If 0 bytes need to be written we return 0.
         return 0;
+    pcb_t * globalpcb;
+    globalpcb = terminalArray[currTerminal].cur_PCB;
     /* We call read data so we can fill in our current global dentry with the information. */
     int rVal;
     
@@ -292,6 +297,8 @@ int32_t read_dir(int32_t fd, void* buf, int32_t nbytes) {
         return -1;
     if (!nbytes)
         return 0;
+    pcb_t * globalpcb;
+    globalpcb = terminalArray[currTerminal].cur_PCB;
     int i = 0;
     /* We call read dentry by index, where index is a global variable that updates each time read dir is called.
     We can fill out global dentry in with the information received through the current index. */

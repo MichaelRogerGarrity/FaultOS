@@ -171,7 +171,9 @@ void entry(unsigned long magic, unsigned long addr) {
     set_screen_y(0);
 
     terminal_init();
-
+    map_table(VIDEO_T1 >> PAGE_SHIFT, VIDEO );
+    
+    
     // execute((const uint8_t *)("shell"));    //pid 0
 
     // execute((const uint8_t *)("shell"));  //pid 1

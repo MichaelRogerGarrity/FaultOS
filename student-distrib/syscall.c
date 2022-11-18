@@ -11,7 +11,6 @@
 /* Variables for the different system calls */
 
 
-pcb_t *globalpcb;
 extern page_dir_entry page_directory[1024] __attribute__((aligned(SIZE_OF_PG)));
 extern page_table_entry page_table[1024] __attribute__((aligned(SIZE_OF_PG)));
 extern page_table_entry page_table_user_vidmem[1024] __attribute__((aligned(SIZE_OF_PG)));
@@ -202,6 +201,8 @@ int32_t execute(const uint8_t *command)
 
     currpcb->saved_esp = save_esp;
     currpcb->saved_ebp = save_ebp;
+
+    currpcb->termid = currTerminal;
     
     /*  Set up the FD (1, 2 for terminal, rest empty) */
     for(i = 0; i<MAX_FD_LEN; i++) {
@@ -347,7 +348,7 @@ int32_t halt(uint8_t status)
     - after 2.a, all currpcb == globalpcb AND all parentpcb == globalpcb - 1 */
     
     /* (a) check if the current process's parent is the shell program*/
-    if (currpid == 0 || currpid == 1  || currpid == 2  ){
+    if (terminalArray[currTerminal].cur_PCB->parent_id == -1){
         execute((const uint8_t *)"shell");
     }
     
@@ -648,18 +649,24 @@ int32_t vidmap(uint8_t **screen_start)
 
     /* Setting up Video memory for user where physical is B8 and virtual is 132 + B8. (0xB8000 – 0xC0000) descripters.pdf pg 5
     PD entry is 0, PT entry is B8
-    */
-    page_directory[USERVIDMEM_PDE_ENTRY].pt_baddr = (int)(page_table_user_vidmem) >> PAGE_SHIFT;       // Shift << 12 since lower 12 bits 0 for alignment B8000 -> B8
-    page_directory[USERVIDMEM_PDE_ENTRY].rw = 1;
-    page_directory[USERVIDMEM_PDE_ENTRY].us = 1;
-    page_directory[USERVIDMEM_PDE_ENTRY].p = 1;
-    /* Setting Video Memory inside the page table */
-    page_table_user_vidmem[(VIDEO >> PAGE_SHIFT)].pt_baddr = (VIDEO>>PAGE_SHIFT);   
-    page_table_user_vidmem[(VIDEO >> PAGE_SHIFT)].us = 1;                   // set us to 1 for user 
-    page_table_user_vidmem[(VIDEO >> PAGE_SHIFT)].p = 1; 
-    loadPageDir(page_directory); // flush TLB //? check with os dev maybe other stuff for flushing 
+    // */
+    // page_directory[USERVIDMEM_PDE_ENTRY].pt_baddr = (int)(page_table_user_vidmem) >> PAGE_SHIFT;       // Shift << 12 since lower 12 bits 0 for alignment B8000 -> B8
+    // page_directory[USERVIDMEM_PDE_ENTRY].rw = 1;
+    // page_directory[USERVIDMEM_PDE_ENTRY].us = 1;
+    // page_directory[USERVIDMEM_PDE_ENTRY].p = 1;
+    // /* Setting Video Memory inside the page table */
 
-    *screen_start = (uint8_t *)VID_START;
+    // page_table_user_vidmem[(VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT].pt_baddr = ((VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT);   
+    // //page_table_user_vidmem[(VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT].us = 1;                   // set us to 1 for user 
+    // //page_table_user_vidmem[(VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT].p = 1; 
+    
+    // page_table_user_vidmem[(VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT].pt_baddr = (VIDEO>> PAGE_SHIFT);   
+    // page_table_user_vidmem[(VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT].us = 1;                   // set us to 1 for user 
+    // page_table_user_vidmem[(VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT].p = 1; 
+
+    // loadPageDir(page_directory); // flush TLB //? check with os dev maybe other stuff for flushing 
+
+    *screen_start = terminalArray[globalpcb->termid].vidmemloc; //(uint8_t *)VID_START;
 
     return (int32_t)(*screen_start);
 }
@@ -756,6 +763,7 @@ Description:        Maps the user page to the right location
 */
 int32_t map_table(uint32_t ptentry, uint32_t pteaddr) {
     page_table[ptentry].pt_baddr = pteaddr >> PAGE_SHIFT; 
+    page_table[ptentry].p = 1;
     /* Flush the TLB */
     loadPageDir(page_directory); // flush TLB 
     return 0;

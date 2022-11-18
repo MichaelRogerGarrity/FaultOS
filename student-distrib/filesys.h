@@ -6,6 +6,10 @@
 
 #include "multiboot.h"
 #include "lib.h"
+#include "terminal.h"
+
+#include "syscall.h"
+
 // #include "syscall.h"
 
 /* Variables used in the program: */
