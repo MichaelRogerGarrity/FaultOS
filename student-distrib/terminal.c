@@ -14,6 +14,8 @@ Outputs: returns int32_t = 0 on success
 */
 extern global_pcb;
 
+
+
 int32_t terminal_open(const uint8_t* filename){
     if(filename == NULL) return -1;
     return 0;
@@ -137,6 +139,11 @@ int32_t terminal_switch(int32_t newTerminal){
     /* Then copy from the new terminal location into vid mem */
     memcpy(VIDEO, (VIDEO_T1 + FOUR_KILO_BYTE * (newTerminal))  , FOUR_KILO_BYTE);
     /* Copy from the current terminal's keyboard buffer into the stored buffer */
+
+    /* Switch execution to current terminal's user program */
+    // uint32_t physaddr = (PDE_PROCESS_START + terminalArray[currTerminal].currprocessid) * FOUR_MB;
+    // map_helper(PDE_VIRTUAL_MEM, physaddr);
+
     memcpy(terminalArray[currTerminal].terminalbuffer, keyboardbuffer, KEYBOARD_BUFFER_MAX_SIZE);
     /* Copy from the stored buffer of the new terminal into the current terminal's keyboard buffer */
     memcpy(keyboardbuffer, terminalArray[newTerminal].terminalbuffer, KEYBOARD_BUFFER_MAX_SIZE);
@@ -145,14 +152,21 @@ int32_t terminal_switch(int32_t newTerminal){
     /*newTerminal should map to vid mem*/
     map_table( (VIDEO_T1 + FOUR_KILO_BYTE * (newTerminal)) >> PAGE_SHIFT  , VIDEO  ); //???
     /* Update the current terminal's cursor */
-    update_cursor(terminalArray[newTerminal].cursor_x, terminalArray[newTerminal].cursor_y);
-    set_screen_x(terminalArray[newTerminal].cursor_x);
-    set_screen_y(terminalArray[newTerminal].cursor_y);
-    update_cursor(terminalArray[newTerminal].cursor_x, terminalArray[newTerminal].cursor_y);
+    // update_cursor(terminalArray[newTerminal].cursor_x, terminalArray[newTerminal].cursor_y);
+    // set_screen_x(terminalArray[newTerminal].cursor_x);
+    // set_screen_y(terminalArray[newTerminal].cursor_y);
+    // update_cursor(terminalArray[newTerminal].cursor_x, terminalArray[newTerminal].cursor_y);
     currTerminal = newTerminal;
 
     globalpcb = terminalArray[newTerminal].cur_PCB;
-    
+    // if (!term_2_flag) {
+    //     term_2_flag = 1;
+    //     execute((const uint8_t *)("shell"));    //pid 0
+    // }
+    // if (!term_3_flag) {
+    //     term_3_flag = 1;
+    //     execute((const uint8_t *)("shell"));    //pid 0
+    // }
     return 0;
 }
 
@@ -163,7 +177,6 @@ void terminal_init(){
     
     for(i = 0; i<MAX_TERMINALS; i++){
         processesid[i] = 1;    // SAYS PROCESS IS ACTIVE
-        execute((const uint8_t *)("shell"));    //pid 0
         terminalArray[i].currRTC = 1024;
         // terminalArray[i].cur_PCB = ;
         // terminalArray[i].savedt_esp = ;
@@ -172,13 +185,16 @@ void terminal_init(){
         terminalArray[i].cursor_x = 0;
         terminalArray[i].cursor_y = 0;
         terminalArray[i].vidmemloc = (VIDEO_T1 + FOUR_KILO_BYTE *i) >> PAGE_SHIFT;
-        currpid++;
+        terminalArray[i].currprocessid = i;
+        // currpid++;
         // if (i == 0)
         //     map_table(VIDEO_T1 >> PAGE_SHIFT, VIDEO);
         // else
         //     map_table((VIDEO_T1 + FOUR_KILO_BYTE *i) >> PAGE_SHIFT, (VIDEO_T1 + FOUR_KILO_BYTE *i));
     }
-
+    currpid = 0;
     currTerminal = 0;
+    execute((const uint8_t *)("shell"));    //pid 0
+
 }
 

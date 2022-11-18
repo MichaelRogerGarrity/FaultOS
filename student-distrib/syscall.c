@@ -11,6 +11,9 @@
 /* Variables for the different system calls */
 
 
+
+// extern int8_t term_2_flag;
+// extern int8_t term_3_flag;
 extern page_dir_entry page_directory[1024] __attribute__((aligned(SIZE_OF_PG)));
 extern page_table_entry page_table[1024] __attribute__((aligned(SIZE_OF_PG)));
 extern page_table_entry page_table_user_vidmem[1024] __attribute__((aligned(SIZE_OF_PG)));
@@ -58,6 +61,7 @@ int32_t execute(const uint8_t *command)
             return 0;
         }
         currpid = rval;
+        terminalArray[currTerminal].currprocessid = rval;
     }
 
     /*  1. Extract name and args - check whether executable  */
@@ -183,11 +187,25 @@ int32_t execute(const uint8_t *command)
 
 
     currpcb->pid = currpid;
-    if (currpid == 0 || currpid == 1 || currpid == 2 )
+    if ((currpid == 0 || currpid == 1 || currpid == 2 ))
         currpcb-> parent_id = -1; // check what parent of shell should be 
     else
         currpcb-> parent_id = parentpcb->pid;
+    /* if (!term_2_flag && (currTerminal == 1)) {
+        currpcb->parent_id = -1;
+        term_2_flag = 1;
+        currpid = 1;
+        terminalArray[1].currprocessid = 1;
+    }
+    else if (!term_3_flag && (currTerminal == 2)) {
+        currpcb->parent_id = -1;
+        term_3_flag = 1;
+        currpid = 2;
+        terminalArray[2].currprocessid = 2;
+    }
+    */
 
+   globalpcb->termid = currTerminal;
     uint32_t save_esp = 0;
     uint32_t save_ebp = 0;
 

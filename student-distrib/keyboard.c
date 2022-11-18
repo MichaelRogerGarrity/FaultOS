@@ -8,6 +8,9 @@
 #include "filesys.h"
 
 
+int8_t term_2_flag = 0;
+int8_t term_3_flag = 0;
+
 /* A map that can directly print the character relative to the scan code. 
    This one handles expected outputs when shift is not held down and caps lock is off. */
 uint8_t scancode_map_normal[KEYBOARD_INPUT_RANGE] = {
@@ -134,16 +137,33 @@ extern void keyboard_handler(void) {
     }
 
     if((altflag) && (keycode == KEYBOARD_F1_DOWN)){
-        if(currTerminal != 0)
-        terminal_switch(TERMINAL_1_NUM);
+        if(currTerminal != 0){
+            terminal_switch(TERMINAL_1_NUM);
+            send_eoi(KEYBOARD_IRQ);
+            return 0;
+        }
     }
     else if((altflag) && (keycode == KEYBOARD_F2_DOWN)){
-        if(currTerminal != 1)
-        terminal_switch(TERMINAL_2_NUM);
+        if(currTerminal != 1){
+            terminal_switch(TERMINAL_2_NUM);
+            send_eoi(KEYBOARD_IRQ);
+            if(!term_2_flag){
+                term_2_flag = 1; // Removed in the version where we did the flag stuff in the execute
+                execute("shell");
+            }
+            return 0;
+        }
     }
     else if((altflag) && (keycode == KEYBOARD_F3_DOWN)){
-        if(currTerminal != 2)
-        terminal_switch(TERMINAL_3_NUM);
+        if(currTerminal != 2){
+            terminal_switch(TERMINAL_3_NUM);
+            send_eoi(KEYBOARD_IRQ);
+            if(!term_3_flag){
+                term_3_flag = 1; // Removed in the version where we did the flag stuff in the execute
+                execute("shell"); 
+            }
+            return 0;
+        }
     }
     
     /* If keycode is out of range or is one of the function keys already processed above, we simply send an EOI and leave. */

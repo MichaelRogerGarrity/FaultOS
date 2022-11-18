@@ -33,6 +33,7 @@ typedef struct terminalStruct{
     uint8_t cursor_x;
     uint8_t cursor_y;
     uint8_t vidmemloc; //ba,bb,bc
+    uint8_t currprocessid;
     pcb_t*  cur_PCB;
 }__attribute__ ((packed)) terminalStruct_t;
 
