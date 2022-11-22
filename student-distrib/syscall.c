@@ -23,6 +23,7 @@ int find_available_pid(){
     int i;
     for(i = MAX_TERMINALS; i<MAX_NUM_PROCESSES; i++){
         if(processesid[i] == 0){
+            processesid[i] = 1;
             return i; //found empty id
         }
     }
@@ -56,13 +57,13 @@ int32_t execute(const uint8_t *command)
     /* Checks if we have max number of processes: */
 
     if (currpid >= 3) {
-        int rval = find_available_pid();
-        if (rval < 0) {
+        int rval_pid = find_available_pid();
+        if (rval_pid < 0) {
             puts2("Too many processes called! (>6)\n", ERRMSG);
             return 0;
         }
-        currpid = rval;
-        terminalArray[currTerminal].currprocessid = rval;
+        currpid = rval_pid;
+        terminalArray[currTerminal].currprocessid = rval_pid;
     }
 
     /*  1. Extract name and args - check whether executable  */
@@ -303,7 +304,10 @@ int32_t execute(const uint8_t *command)
     The ESP is basically the 132 MB location - 4 Bytes so we do not exceed the virtual stack location.
     */
    /* Oring to enable interrupts - 0x0200 with the flags, currently stored in eax */
-    
+//    cli();
+   
+   
+
     asm volatile("pushl %0;"
         "pushl %1; \n"
         "pushfl; \n"
@@ -685,7 +689,18 @@ int32_t vidmap(uint8_t **screen_start)
 
     // loadPageDir(page_directory); // flush TLB //? check with os dev maybe other stuff for flushing 
 
-    *screen_start = (uint8_t *)terminalArray[globalpcb->termid].vidmemloc; //(uint8_t *)VID_START;
+    // *screen_start = (uint8_t *)terminalArray[globalpcb->termid].vidmemloc; //(uint8_t *)VID_START;
+    if (globalpcb->termid == 0) {
+        *screen_start = VIDEO_T1;
+    }
+    else if (globalpcb->termid == 1)
+    {
+        *screen_start = VIDEO_T2;
+    }
+    else if (globalpcb->termid == 2)
+    {
+        *screen_start = VIDEO_T3;
+    }
 
     return (int32_t)(*screen_start);
 }

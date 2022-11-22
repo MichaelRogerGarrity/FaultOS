@@ -157,6 +157,7 @@ void entry(unsigned long magic, unsigned long addr) {
     rtc_init();
     keyboard_init();
     init_page();
+    pit_init();
 
 
     /* Enable interrupts */
@@ -169,12 +170,12 @@ void entry(unsigned long magic, unsigned long addr) {
     clear();
     set_screen_x(0);
     set_screen_y(0);
-
+    
     terminal_init();
-    map_table(VIDEO_T1 >> PAGE_SHIFT, VIDEO );
+    //map_table(VIDEO_T1 >> PAGE_SHIFT, VIDEO );
     
     
-    execute((const uint8_t *)("shell"));    //pid 0
+    //execute((const uint8_t *)("shell"));    //pid 0
 
 #ifdef RUN_TESTS
     /* Run tests */

@@ -423,7 +423,7 @@ void init_IDT()
     SET_IDT_ENTRY(idt[SYSTEM_CALL_IDT_ENTRY], call_handler); // System Calls are in IDT entry table 0x80
     SET_IDT_ENTRY(idt[KEYBOARD_IDT_ENTRY], keyboard_handler_function);  // Keyboard is in IDT entry table 0x21
     SET_IDT_ENTRY(idt[RTC_IDT_ENTRY], rtc_handler_linkage);             // RTC is in IDT entry table 0x28
-    // SET_IDT_ENTRY(idt[PIT_IDT_ENTRY], pit_handler_linkage);             // RTC is in IDT entry table 0x28
+    SET_IDT_ENTRY(idt[PIT_IDT_ENTRY], pit_handler_linkage);             // RTC is in IDT entry table 0x28
     // lidt(idt_desc_ptr);
     return;
 }
