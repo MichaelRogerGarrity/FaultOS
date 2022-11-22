@@ -51,7 +51,7 @@ int rtc_set_freq(int newfreq);
 /* Functions for RTC driver - open / close / r / w */
 
 /* initializes RTC frequency to 2HZ, return 0 */
-int32_t open_rtc(const uint8_t *filename);
+int32_t open_rtc(const uint8_t *filename,int32_t fd);
 /* probably does nothing, unless you virtualize RTC, return 0 */
 int32_t close_rtc(int32_t fd);
 /* should block until the next interrupt, return 0 */

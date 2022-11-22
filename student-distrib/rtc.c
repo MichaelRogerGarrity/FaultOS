@@ -53,10 +53,17 @@ extern void rtc_handler(void) {
     temp &= 0xFFFF;                             // Avoid warning of unused temp.
     /* Here we call test interrupts / or putc2 (new terminal function) to make sure our RTC is working. */
     // test_interrupts();
-    // putc2('a');    
-    cnt++;  
+    // putc2('a');
+    cli();
+    int i; 
+    for(i = 0;i<3; i++){
+        if(terminalArray[i].currRTC != -1){
+            terminalArray[i].currRTC++;
+        }
+    }
     interrupt_flag_rtc = 1;
     send_eoi(RTC_IRQ);
+    sti();
     return;
 }
 
@@ -121,11 +128,13 @@ int rtc_set_freq(int newfreq) {
 * Description:      rtc_open should reset the frequency to 2Hz.
 RTC open()          initializes RTC frequency to 2HZ, return 0
 */
-int32_t open_rtc(const uint8_t* filename) {
+int32_t open_rtc(const uint8_t* filename, int32_t fd) {
     if (filename == NULL)
         return -1;
     /* Start RTC off with the rate of 2. */
-    rtc_set_freq(OPEN_AT_2HZ);
+    cli();
+    globalpcb->fdarray[fd].filepos = MAXFREQ / MINFREQ;
+    sti();
     return 0;
     
 }
@@ -153,15 +162,19 @@ int32_t close_rtc(int32_t fd) {
                     NOT for reading the RTC frequency.
  */
 int32_t read_rtc(int32_t fd, void* buf, int32_t nbytes) {
-    if (fd < MIN_FD_VAL || fd > MAX_FD_VAL || nbytes == NULL)
+    if (fd < MIN_FD_VAL || fd > MAX_FD_VAL /*|| nbytes == NULL*/)
         return -1;
-    cnt = 0;
+    int target_freq;
+    cli();
+    terminalArray[globalpcb->termid].currRTC = 0;
+    target_freq = globalpcb->fdarray[fd].filepos;
     sti();
-    while (cnt < cur_freq) {
+    while (terminalArray[globalpcb->termid].currRTC  < target_freq) {
         /* This stays here until the RTC generates another interrupt. */
     }
-    cnt = 0;
     cli();
+     terminalArray[globalpcb->termid].currRTC = -1;
+     sti();
     return 0;
 }
 
@@ -179,21 +192,28 @@ int32_t write_rtc(int32_t fd, const void* buf, int32_t nbytes) {
     if (fd < MIN_FD_VAL || fd > MAX_FD_VAL || nbytes == NULL)
         return -1;
     /* Set the default frequency to 2. */
-    int chkfreq = 0;
-    chkfreq = rtc_set_freq(OPEN_AT_2HZ);
-    if (chkfreq < 0) 
-        return -1;
-    /* Extract the frequency from the buffer. */
+    // int chkfreq = 0;
+    // chkfreq = rtc_set_freq(OPEN_AT_2HZ);
+    // if (chkfreq < 0) 
+    //     return -1;
+    // /* Extract the frequency from the buffer. */
+    // int32_t frequency;
+    // frequency = *((int*)buf);
+    // if ((frequency < MINFREQ) || (frequency > MAXFREQ)) return -1;
+    // /* critical section */
+    // cli();
+    // /* Check if the power of 2 is done in set frequency. */
+    // chkfreq = rtc_set_freq(frequency);
+    // if (chkfreq < 0) 
+    //     return -1;
+    // cur_freq = chkfreq;
+    // sti();
     int32_t frequency;
     frequency = *((int*)buf);
-    if ((frequency < MINFREQ) || (frequency > MAXFREQ)) return -1;
-    /* critical section */
+    if ((frequency < MINFREQ) || (frequency > MAXFREQ)) return 0;
     cli();
-    /* Check if the power of 2 is done in set frequency. */
-    chkfreq = rtc_set_freq(frequency);
-    if (chkfreq < 0) 
-        return -1;
-    cur_freq = chkfreq;
+    globalpcb->fdarray[fd].filepos = MAXFREQ / frequency;
     sti();
+    
     return 0;
 }

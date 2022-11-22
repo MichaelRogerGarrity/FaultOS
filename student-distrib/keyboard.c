@@ -147,10 +147,10 @@ extern void keyboard_handler(void) {
         if(currTerminal != 1){
             terminal_switch(TERMINAL_2_NUM);
             send_eoi(KEYBOARD_IRQ);
-            if(!term_2_flag){
-                term_2_flag = 1; // Removed in the version where we did the flag stuff in the execute
-                execute("shell");
-            }
+            // if(!term_2_flag){
+            //     term_2_flag = 1; // Removed in the version where we did the flag stuff in the execute
+            //     // execute("shell");
+            // }
             return 0;
         }
     }
@@ -158,10 +158,10 @@ extern void keyboard_handler(void) {
         if(currTerminal != 2){
             terminal_switch(TERMINAL_3_NUM);
             send_eoi(KEYBOARD_IRQ);
-            if(!term_3_flag){
-                term_3_flag = 1; // Removed in the version where we did the flag stuff in the execute
-                execute("shell"); 
-            }
+            // if(!term_3_flag){
+            //     term_3_flag = 1; // Removed in the version where we did the flag stuff in the execute
+            //     execute("shell"); 
+            // }
             return 0;
         }
     }

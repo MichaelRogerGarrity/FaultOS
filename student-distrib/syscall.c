@@ -54,6 +54,7 @@ int32_t execute(const uint8_t *command)
 {
 
     /* Checks if we have max number of processes: */
+
     if (currpid >= 3) {
         int rval = find_available_pid();
         if (rval < 0) {
@@ -585,7 +586,7 @@ int32_t open(const uint8_t *filename)
     (globalpcb->fdarray[fd]).present = 1;
     (globalpcb->fdarray[fd]).type = currdentry.ftype;
     
-    int rval =  (globalpcb->fdarray[fd]).fileop.open(filename);
+    int rval =  (globalpcb->fdarray[fd]).fileop.open(filename,fd);
     
     /* if named file does not exist OR if no descriptor are free, then return -1 */
     if (rval < 0)
@@ -684,7 +685,7 @@ int32_t vidmap(uint8_t **screen_start)
 
     // loadPageDir(page_directory); // flush TLB //? check with os dev maybe other stuff for flushing 
 
-    *screen_start = terminalArray[globalpcb->termid].vidmemloc; //(uint8_t *)VID_START;
+    *screen_start = (uint8_t *)terminalArray[globalpcb->termid].vidmemloc; //(uint8_t *)VID_START;
 
     return (int32_t)(*screen_start);
 }

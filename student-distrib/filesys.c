@@ -174,7 +174,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 * Outputs:          -1 if invalid file, 0 if successful
 * Description:      Uses read_dentry_by_name, initializes any temporary structures.
 */
-int32_t open_file(const uint8_t* filename) {
+int32_t open_file(const uint8_t *filename,int32_t fd) {
     /* Check if name is valid, and if read dentry call is valid. 
     change: we need to fill in the fd aray with the new file*/
 
@@ -252,7 +252,7 @@ int32_t write_file(int32_t fd, const void* buf, int32_t nbytes) {
 * Description:      opens a directory file (note file types), return 0
                     read_dentry_by_name: name means filename
 */
-int32_t open_dir(const uint8_t* filename) {
+int32_t open_dir(const uint8_t *filename,int32_t fd) {
     /* Check if name is valid */
     const int8_t* s = (int8_t*)filename;
     uint32_t namelen = strlen(s);
