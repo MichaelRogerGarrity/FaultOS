@@ -12,6 +12,8 @@ static char* video_mem1 = (char*)VIDEO_T1;
 static char* video_mem2 = (char*)VIDEO_T2;
 static char* video_mem3 = (char*)VIDEO_T3;
 
+
+extern terminalrun;
 /* void clear(void);
  * Inputs: void
  * Return Value: none
@@ -215,7 +217,7 @@ void scroll() {
 
     screen_x = 0;
     screen_y = 0;
-    if(currTerminal == 0){
+    if(terminalrun == 0){
         for (i = 0; i < 1920; i++) {      // 1920 is the number of characters in the first 24 rows. 80*24 = 1920
             screen_x = (i % NUM_COLS);
             screen_y = (i / NUM_COLS);
@@ -231,7 +233,7 @@ void scroll() {
             *(uint8_t*)(video_mem1 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         }
     }
-    else if(currTerminal == 1){
+    else if(terminalrun == 1){
         for (i = 0; i < 1920; i++) {      // 1920 is the number of characters in the first 24 rows. 80*24 = 1920
             screen_x = (i % NUM_COLS);
             screen_y = (i / NUM_COLS);
@@ -247,7 +249,7 @@ void scroll() {
             *(uint8_t*)(video_mem2 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         }
     }
-    else if(currTerminal == 2){
+    else if(terminalrun == 2){
         for (i = 0; i < 1920; i++) {      // 1920 is the number of characters in the first 24 rows. 80*24 = 1920
             screen_x = (i % NUM_COLS);
             screen_y = (i / NUM_COLS);
@@ -289,9 +291,9 @@ int32_t puts2(int8_t* s, int nbytes) {
 void putc2(uint8_t c) {
     if (c == '\0')
         return;
-    int curr_screen_x = terminalArray[currTerminal].cursor_x;
-    int curr_screen_y = terminalArray[currTerminal].cursor_y;
-    if(currTerminal == 0){
+    int curr_screen_x = terminalArray[terminalrun].cursor_x;
+    int curr_screen_y = terminalArray[terminalrun].cursor_y;
+    if(terminalrun == 0){
         if (c == '\n' || c == '\r') {
             if (curr_screen_y != NUM_ROWS - 1) {
                 curr_screen_y++;
@@ -320,7 +322,7 @@ void putc2(uint8_t c) {
         }
         update_cursor(curr_screen_x, curr_screen_y);
     }
-    else if(currTerminal == 1){
+    else if(terminalrun == 1){
         if (c == '\n' || c == '\r') {
             if (curr_screen_y != NUM_ROWS - 1) {
                 curr_screen_y++;
@@ -349,7 +351,7 @@ void putc2(uint8_t c) {
         }
         update_cursor(curr_screen_x, curr_screen_y);
     }
-    else if(currTerminal == 2){
+    else if(terminalrun == 2){
         if (c == '\n' || c == '\r') {
             if (curr_screen_y != NUM_ROWS - 1) {
                 curr_screen_y++;
@@ -378,8 +380,8 @@ void putc2(uint8_t c) {
         }
         update_cursor(curr_screen_x, curr_screen_y);
     }
-    terminalArray[currTerminal].cursor_x = curr_screen_x;
-    terminalArray[currTerminal].cursor_y = curr_screen_y;
+    terminalArray[terminalrun].cursor_x = curr_screen_x;
+    terminalArray[terminalrun].cursor_y = curr_screen_y;
     
 }
 

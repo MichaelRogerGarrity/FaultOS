@@ -71,6 +71,8 @@ int32_t write_fail(int32_t fd);
 int32_t open_fail(int32_t fd, void* buf, int32_t nbytes);
 int32_t close_fail(int32_t fd, const void* buf, int32_t nbytes);
 
+int32_t execute_on_term(const uint8_t *command, int term);
+
 typedef struct func
 {
     int32_t (*open)(const uint8_t *filename,int32_t fd);

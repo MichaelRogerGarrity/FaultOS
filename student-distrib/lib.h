@@ -14,6 +14,7 @@
 #include "types.h"
 #include "paging.h"
 #include "terminal.h"
+//#include "scheduler.h"
 
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);

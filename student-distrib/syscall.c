@@ -49,9 +49,15 @@ Things done in execute:
 6. Set up context switch ( kernel stack base into esp of tss )
 7. IRET
 
+int32_t execute(const uint8_t *command)
+{
 */
 
 int32_t execute(const uint8_t *command)
+{
+    return execute_on_term(command,currTerminal);
+}
+int32_t execute_on_term(const uint8_t *command, int term)
 {
 
     /* Checks if we have max number of processes: */
@@ -63,7 +69,7 @@ int32_t execute(const uint8_t *command)
             return 0;
         }
         currpid = rval_pid;
-        terminalArray[currTerminal].currprocessid = rval_pid;
+        terminalArray[term].currprocessid = rval_pid;
     }
 
     /*  1. Extract name and args - check whether executable  */
@@ -181,11 +187,11 @@ int32_t execute(const uint8_t *command)
     pcb_t * parentpcb;
     currpcb =  (pcb_t *)(curraddr);
 
-    parentpcb = terminalArray[currTerminal].cur_PCB;
+    parentpcb = terminalArray[term].cur_PCB;
 
-    terminalArray[currTerminal].cur_PCB = currpcb;
+    terminalArray[term].cur_PCB = currpcb;
 
-    globalpcb = terminalArray[currTerminal].cur_PCB;
+    globalpcb = terminalArray[term].cur_PCB;
 
 
     currpcb->pid = currpid;
@@ -207,7 +213,7 @@ int32_t execute(const uint8_t *command)
     }
     */
 
-   globalpcb->termid = currTerminal;
+   globalpcb->termid = term;
     uint32_t save_esp = 0;
     uint32_t save_ebp = 0;
 
@@ -222,7 +228,7 @@ int32_t execute(const uint8_t *command)
     currpcb->saved_esp = save_esp;
     currpcb->saved_ebp = save_ebp;
 
-    currpcb->termid = currTerminal;
+    currpcb->termid = term;
     
     /*  Set up the FD (1, 2 for terminal, rest empty) */
     for(i = 0; i<MAX_FD_LEN; i++) {

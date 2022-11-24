@@ -133,7 +133,7 @@ int32_t terminal_switch(int32_t newTerminal){
     if(newTerminal == currTerminal){
             return 0;
     }
-    enable_irq(0);
+    //enable_irq(0);
     //cli();
     terminalArray[currTerminal].cursor_x = get_screen_x();
     terminalArray[currTerminal].cursor_y = get_screen_y();
@@ -143,7 +143,6 @@ int32_t terminal_switch(int32_t newTerminal){
     memcpy((uint8_t *)((VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) ), (uint8_t *)(VIDEO  ), FOUR_KILO_BYTE);
 
     /* Copy from the current terminal's keyboard buffer into the stored buffer */
-
 
     // memcpy(terminalArray[currTerminal].terminalbuffer, keyboardbuffer, KEYBOARD_BUFFER_MAX_SIZE);
     /* Copy from the stored buffer of the new terminal into the current terminal's keyboard buffer */
@@ -223,10 +222,10 @@ void terminal_init(){
     terminalArray[0].vidmemloc = (VIDEO_T1);
     terminalArray[1].vidmemloc = (VIDEO_T2);
     terminalArray[2].vidmemloc = VIDEO_T3;
-    currpid = 0;
+    currpid = -1;
     currTerminal = 0;
     // runningterminal = 0;
-    execute((const uint8_t *)("shell"));    //pid 0
+   // execute((const uint8_t *)("shell"));    //pid 0
 
 }
 

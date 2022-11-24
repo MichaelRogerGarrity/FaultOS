@@ -20,7 +20,7 @@
 #define LOW_BYTE        0xFF
 #define EIGHT_SHIFT     8
 
-int terminalrun = 0;
+int terminalrun = -1;
 /* Defined Functions */
 void pit_handler();
 void pit_init();

@@ -22,11 +22,11 @@ outportb(0x40, divisor >> 8);     Set high byte of divisor
 */
 void pit_init(void)
 {
-    int32_t divisor = 1193180 / 100;
+    int32_t divisor = 1193180 / 20;
     outb(0x36, PIT_CMD_PORT);
     outb(divisor & LOW_BYTE, CHAN_0);
     outb(divisor >> EIGHT_SHIFT, CHAN_0);
-    
+    // enable_irq(0);
     return;
 }
 
@@ -104,14 +104,38 @@ M3: use execute shell - weird edge cases
 */
 //need to enable irq 0 after 1st excute 
 void scheduler(){
+    
     cli();
-     //printf("%d",currpid);
+    // while(globalpcb == NULL){ //checking valid term
+    //     terminalrun = ((terminalrun + 1) % 3);
+    //     globalpcb = terminalArray[terminalrun].cur_PCB;
+    //    // if(terminalArray[terminalrun].cur_PCB == NULL){
+    //         currpid++;
+    //     // printf("%d",currpid);
+    //         send_eoi(PIT_IRQ);
+    //         sti();
+    //         execute((const uint8_t *)("shell"));
+    //     //}
+    // }
     pcb_t * prev_pcb;
     prev_pcb = globalpcb;
-    register uint32_t saved_ebp asm("ebp");
-    register uint32_t saved_esp asm("esp");
-    prev_pcb->saved_esp = (void *)saved_esp;
-    prev_pcb->saved_ebp = (void *) saved_ebp;
+    //int term2;
+        // terminalrun = ((terminalrun + 1) % 3);
+        // globalpcb = terminalArray[terminalrun].cur_PCB;
+        // if(terminalArray[terminalrun].cur_PCB == NULL){
+        //     currpid++;
+        //    // printf("%d",currpid);
+        //     send_eoi(PIT_IRQ);
+        //     sti();
+        //     execute((const uint8_t *)("shell"));
+        // }
+    // enable_irq(0);
+     //printf("%d",currpid);
+    //disable_irq(0);
+    // register uint32_t saved_ebp asm("ebp");
+    // register uint32_t saved_esp asm("esp");
+    // prev_pcb->saved_esp = (void *)saved_esp;
+    // prev_pcb->saved_ebp = (void *) saved_ebp;
     terminalrun = ((terminalrun + 1) % 3);
     globalpcb = terminalArray[terminalrun].cur_PCB;
     if(terminalArray[terminalrun].cur_PCB == NULL){
@@ -119,10 +143,14 @@ void scheduler(){
        // printf("%d",currpid);
         send_eoi(PIT_IRQ);
         sti();
-        execute((const uint8_t *)("shell"));
-       ;
+        execute_on_term((const uint8_t *)("shell"),currpid);
+       // execute((const uint8_t *)("shell"));
     }
-    else{
+    register uint32_t saved_ebp asm("ebp");
+    register uint32_t saved_esp asm("esp");
+    prev_pcb->saved_esp = (void *)saved_esp;
+    prev_pcb->saved_ebp = (void *) saved_ebp;
+    //else{
         /* Switch execution to current terminal's user program */
         uint32_t physaddr = (PDE_PROCESS_START + terminalArray[globalpcb->termid].currprocessid) * FOUR_MB;
         map_helper(PDE_VIRTUAL_MEM, physaddr);
@@ -142,7 +170,7 @@ void scheduler(){
         );
         
         
-    }
+   //}
     
     
 

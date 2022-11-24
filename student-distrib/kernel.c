@@ -157,21 +157,21 @@ void entry(unsigned long magic, unsigned long addr) {
     rtc_init();
     keyboard_init();
     init_page();
-    pit_init();
-
-
+    
+    terminal_init();
+    pit_init();    
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
      * without showing you any output */
     printf("Enabling Interrupts\n");
     sti(); 
-
     clear();
     set_screen_x(0);
     set_screen_y(0);
+    enable_irq(0);
+
     
-    terminal_init();
     //map_table(VIDEO_T1 >> PAGE_SHIFT, VIDEO );
     
     
