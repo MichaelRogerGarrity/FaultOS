@@ -75,7 +75,7 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
             for(j=0; j<KEYBOARD_BUFFER_MAX_SIZE; j++){
                 keyboardbuffer[j] = '\0';   // clear our buffer to prevent an infinite loop of read/write on the same line 
             }
-            currkey = 0;
+            terminalArray[currTerminal].currkey = 0;
             //charcount = 0;
             enterflag = 0;
             return count;
@@ -135,8 +135,8 @@ int32_t terminal_switch(int32_t newTerminal){
     }
     //enable_irq(0);
     //cli();
-    terminalArray[currTerminal].cursor_x = get_screen_x();
-    terminalArray[currTerminal].cursor_y = get_screen_y();
+    // terminalArray[currTerminal].cursor_x = get_screen_x();
+    // terminalArray[currTerminal].cursor_y = get_screen_y();
         /* unmap current to itself */
     map_table((VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT  , (VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal))   );
     /* First copy vid mem to the actual terminal location */

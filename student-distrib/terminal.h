@@ -30,6 +30,7 @@ typedef struct terminalStruct{
     uint32_t savedt_esp;
     uint32_t savedt_ebp;
     uint8_t terminalbuffer[KEYBOARD_BUFFER_MAX_SIZE];
+    int currkey;
     uint8_t cursor_x;
     uint8_t cursor_y;
     uint8_t vidmemloc; //ba,bb,bc

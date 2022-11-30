@@ -48,7 +48,6 @@ int capslock;
 volatile int shiftflag;
 volatile int ctrlflag;
 volatile int altflag;
-int currkey;
 int enterflag;
 
 /* Externally-visible functions */
