@@ -19,8 +19,11 @@
 #define FREQUENCY_RT    100
 #define LOW_BYTE        0xFF
 #define EIGHT_SHIFT     8
+#define PREVPCB0        0x7fe000
+#define PREVPCB1        0x7fc000
+#define PREVPCB2        0x7fa000
 
-int terminalrun = -1;
+int terminalrun = 0;
 /* Defined Functions */
 void pit_handler();
 void pit_init();

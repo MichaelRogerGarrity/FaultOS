@@ -106,70 +106,49 @@ M3: use execute shell - weird edge cases
 void scheduler(){
     
     cli();
-    // while(globalpcb == NULL){ //checking valid term
-    //     terminalrun = ((terminalrun + 1) % 3);
-    //     globalpcb = terminalArray[terminalrun].cur_PCB;
-    //    // if(terminalArray[terminalrun].cur_PCB == NULL){
-    //         currpid++;
-    //     // printf("%d",currpid);
-    //         send_eoi(PIT_IRQ);
-    //         sti();
-    //         execute((const uint8_t *)("shell"));
-    //     //}
-    // }
+
+    send_eoi(PIT_IRQ); //after the asm? //ADDED
+
     pcb_t * prev_pcb;
-    prev_pcb = globalpcb;
-    //int term2;
-        // terminalrun = ((terminalrun + 1) % 3);
-        // globalpcb = terminalArray[terminalrun].cur_PCB;
-        // if(terminalArray[terminalrun].cur_PCB == NULL){
-        //     currpid++;
-        //    // printf("%d",currpid);
-        //     send_eoi(PIT_IRQ);
-        //     sti();
-        //     execute((const uint8_t *)("shell"));
-        // }
-    // enable_irq(0);
-     //printf("%d",currpid);
-    //disable_irq(0);
-    // register uint32_t saved_ebp asm("ebp");
-    // register uint32_t saved_esp asm("esp");
-    // prev_pcb->saved_esp = (void *)saved_esp;
-    // prev_pcb->saved_ebp = (void *) saved_ebp;
-    terminalrun = ((terminalrun + 1) % 3);
-    globalpcb = terminalArray[terminalrun].cur_PCB;
-    if(terminalArray[terminalrun].cur_PCB == NULL){
-        currpid++;
-       // printf("%d",currpid);
-        send_eoi(PIT_IRQ);
-        sti();
-        execute_on_term((const uint8_t *)("shell"),currpid);
-       // execute((const uint8_t *)("shell"));
-    }
+    pcb_t * next_pcb;
+    int oldterm = terminalrun;
+    int newterm =  ((terminalrun + 1) % 3);
+    terminalrun = newterm;
+    prev_pcb = terminalArray[oldterm].cur_PCB;
+    next_pcb = terminalArray[newterm].cur_PCB;
+    /* Old esp ebp from old terminal */
     register uint32_t saved_ebp asm("ebp");
     register uint32_t saved_esp asm("esp");
-    prev_pcb->saved_esp = (void *)saved_esp;
-    prev_pcb->saved_ebp = (void *) saved_ebp;
+    
+    terminalArray[oldterm].savedt_esp = saved_esp;
+    terminalArray[oldterm].savedt_ebp = saved_ebp;
+
+    if(next_pcb == NULL){
+        currpid++;
+        execute_on_term((const uint8_t *)("shell"),currpid);
+        
+    }
     //else{
         /* Switch execution to current terminal's user program */
-        uint32_t physaddr = (PDE_PROCESS_START + terminalArray[globalpcb->termid].currprocessid) * FOUR_MB;
+        // uint32_t physaddr = (PDE_PROCESS_START + terminalArray[next_pcb->termid].currprocessid) * FOUR_MB;
+        uint32_t physaddr = (PDE_PROCESS_START + next_pcb->pid) * FOUR_MB;
         map_helper(PDE_VIRTUAL_MEM, physaddr);
-        tss.esp0 = EIGHT_MEGA_BYTE - EIGHT_KILO_BYTE * globalpcb->pid;
+        /* Context switch */
+        tss.esp0 = EIGHT_MEGA_BYTE - EIGHT_KILO_BYTE * next_pcb->pid;
         /* (b) Set TSS for parent. ksp = kernel stack pointer */
-        uint32_t args_esp = globalpcb->saved_esp;
-        uint32_t args_ebp = globalpcb->saved_ebp;
-        send_eoi(PIT_IRQ); //after the asm?
-        sti();
+        uint32_t args_esp = terminalArray[newterm].savedt_esp;
+        uint32_t args_ebp = terminalArray[newterm].savedt_ebp ;
+        
         asm volatile(
             /* set esp, ebp as esp ebp args */
-            "   movl %0, %%esp \n"
-            "   movl %1, %%ebp \n"
+            "   pushl %0 \n"
+            "   pushl %1 \n"
+            "   popl %%ebp \n"
+            "   popl %%esp \n"
             :
             : "r"(args_esp), "r"(args_ebp) // input
             : "cc"                         // ?
         );
-        
-        
    //}
     
     

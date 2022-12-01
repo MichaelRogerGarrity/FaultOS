@@ -392,7 +392,7 @@ void putc2(uint8_t c) {
         }
         update_cursor(curr_screen_x, curr_screen_y);
     }
-    else if(terminalrun == 1){
+    else if(globalpcb->termid == 1){
         if (c == '\n' || c == '\r') {
             if (curr_screen_y != NUM_ROWS - 1) {
                 curr_screen_y++;

@@ -5,7 +5,7 @@
 #include "linkageheader.h"
 #include "filesys.h"
 #include "paging.h"
-
+//#include "scheduler.h"
 #include "terminal.h"
 
 /* Variables for the different system calls */
@@ -14,6 +14,7 @@
 
 // extern int8_t term_2_flag;
 // extern int8_t term_3_flag;
+extern terminalrun;
 extern page_dir_entry page_directory[1024] __attribute__((aligned(SIZE_OF_PG)));
 extern page_table_entry page_table[1024] __attribute__((aligned(SIZE_OF_PG)));
 extern page_table_entry page_table_user_vidmem[1024] __attribute__((aligned(SIZE_OF_PG)));
@@ -55,8 +56,11 @@ int32_t execute(const uint8_t *command)
 
 int32_t execute(const uint8_t *command)
 {
-    return execute_on_term(command,currTerminal);
+    currpid = 3;
+ return execute_on_term(command, currTerminal);
+
 }
+
 int32_t execute_on_term(const uint8_t *command, int term)
 {
 
@@ -356,7 +360,7 @@ Description:        The halt system call terminates a process, returning the spe
 */
 int32_t halt(uint8_t status)
 {
-   
+   cli();
 /* 1. Set up return value:
     - expand the 8-bit arg from BL into the 32-bit return value to the parent program
     - 8-bit 'status' arguement = the (one of 256) interupt handler that called the 'halt' */
@@ -369,7 +373,9 @@ int32_t halt(uint8_t status)
 
 
     int parent_pcbaddr;   
+   
     pcb_t* currpcb = (pcb_t *)globalpcb;
+ 
     pcb_t* parentpcb;
 
     /* 2. Close all processes
@@ -377,7 +383,7 @@ int32_t halt(uint8_t status)
     - after 2.a, all currpcb == globalpcb AND all parentpcb == globalpcb - 1 */
     
     /* (a) check if the current process's parent is the shell program*/
-    if (terminalArray[currTerminal].cur_PCB->parent_id == -1){
+    if (terminalArray[terminalrun].cur_PCB->parent_id == -1){
         execute((const uint8_t *)"shell");
     }
     
@@ -449,6 +455,7 @@ int32_t halt(uint8_t status)
     set esp, ebp as esp ebp args
     set eax regs as ret val
     */
+   sti();
     asm volatile
     (
 
