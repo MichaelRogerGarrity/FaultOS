@@ -7,6 +7,8 @@
 #include "lib.h"
 #include "i8259.h"
 
+extern terminalrun;
+
 // Declaration for the RTC Test interrupts.  
 void test_interrupts();
 int cnt = 0;
@@ -133,7 +135,8 @@ int32_t open_rtc(const uint8_t* filename, int32_t fd) {
         return -1;
     /* Start RTC off with the rate of 2. */
     cli();
-    globalpcb->fdarray[fd].filepos = MAXFREQ / MINFREQ;
+    pcb_t * currpcb = terminalArray[terminalrun].cur_PCB;
+    currpcb->fdarray[fd].filepos = MAXFREQ / MINFREQ;
     sti();
     return 0;
     
@@ -166,14 +169,15 @@ int32_t read_rtc(int32_t fd, void* buf, int32_t nbytes) {
         return -1;
     int target_freq;
     cli();
-    terminalArray[globalpcb->termid].currRTC = 0;
-    target_freq = globalpcb->fdarray[fd].filepos;
+    pcb_t * currpcb = terminalArray[terminalrun].cur_PCB;
+    terminalArray[currpcb->termid].currRTC = 0;
+    target_freq = currpcb->fdarray[fd].filepos;
     sti();
-    while (terminalArray[globalpcb->termid].currRTC  < target_freq) {
+    while (terminalArray[currpcb->termid].currRTC  < target_freq) {
         /* This stays here until the RTC generates another interrupt. */
     }
     cli();
-     terminalArray[globalpcb->termid].currRTC = -1;
+     terminalArray[currpcb->termid].currRTC = -1;
      sti();
     return 0;
 }
@@ -212,7 +216,8 @@ int32_t write_rtc(int32_t fd, const void* buf, int32_t nbytes) {
     frequency = *((int*)buf);
     if ((frequency < MINFREQ) || (frequency > MAXFREQ)) return 0;
     cli();
-    globalpcb->fdarray[fd].filepos = MAXFREQ / frequency;
+    pcb_t * currpcb = terminalArray[terminalrun].cur_PCB;
+    currpcb->fdarray[fd].filepos = MAXFREQ / frequency;
     sti();
     
     return 0;

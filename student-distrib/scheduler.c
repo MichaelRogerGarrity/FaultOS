@@ -112,10 +112,14 @@ void scheduler(){
     pcb_t * prev_pcb;
     pcb_t * next_pcb;
     int oldterm = terminalrun;
+    if(terminalrun == -1){
+        oldterm = 2;
+    }
     int newterm =  ((terminalrun + 1) % 3);
     terminalrun = newterm;
     prev_pcb = terminalArray[oldterm].cur_PCB;
     next_pcb = terminalArray[newterm].cur_PCB;
+
     /* Old esp ebp from old terminal */
     register uint32_t saved_ebp asm("ebp");
     register uint32_t saved_esp asm("esp");
@@ -133,8 +137,10 @@ void scheduler(){
         // uint32_t physaddr = (PDE_PROCESS_START + terminalArray[next_pcb->termid].currprocessid) * FOUR_MB;
         uint32_t physaddr = (PDE_PROCESS_START + next_pcb->pid) * FOUR_MB;
         map_helper(PDE_VIRTUAL_MEM, physaddr);
+
         /* Context switch */
         tss.esp0 = EIGHT_MEGA_BYTE - EIGHT_KILO_BYTE * next_pcb->pid;
+
         /* (b) Set TSS for parent. ksp = kernel stack pointer */
         uint32_t args_esp = terminalArray[newterm].savedt_esp;
         uint32_t args_ebp = terminalArray[newterm].savedt_ebp ;
@@ -151,9 +157,6 @@ void scheduler(){
         );
    //}
     
-    
-
-
     return;
 
 }

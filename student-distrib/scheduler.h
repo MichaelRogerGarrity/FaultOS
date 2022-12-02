@@ -23,7 +23,7 @@
 #define PREVPCB1        0x7fc000
 #define PREVPCB2        0x7fa000
 
-int terminalrun = 0;
+volatile int terminalrun = -1;
 /* Defined Functions */
 void pit_handler();
 void pit_init();

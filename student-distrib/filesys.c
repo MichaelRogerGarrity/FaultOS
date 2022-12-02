@@ -12,6 +12,7 @@
 
 // extern terminalStruct_t terminalArray[3];
 
+extern terminalrun;
 
 int32_t file_init(uint32_t startAddr) {
     fstart_adddr = startAddr;
@@ -216,16 +217,15 @@ int32_t read_file(int32_t fd, void* buf, int32_t nbytes) {
         return -1;
     if (!nbytes)                                                            // If 0 bytes need to be written we return 0.
         return 0;
-    pcb_t * globalpcb;
-    globalpcb = terminalArray[currTerminal].cur_PCB;
+    pcb_t * currpcb = terminalArray[terminalrun].cur_PCB;
     /* We call read data so we can fill in our current global dentry with the information. */
     int rVal;
     
-    rVal = read_data(globalpcb->fdarray[fd].inode, globalpcb->fdarray[fd].filepos, buf, nbytes);
+    rVal = read_data(currpcb->fdarray[fd].inode, currpcb->fdarray[fd].filepos, buf, nbytes);
     if (rVal == -1) {
         return -1;
     }
-    globalpcb->fdarray[fd].filepos += nbytes;
+    currpcb->fdarray[fd].filepos += nbytes;
     return rVal;
 }
 
@@ -297,14 +297,13 @@ int32_t read_dir(int32_t fd, void* buf, int32_t nbytes) {
         return -1;
     if (!nbytes)
         return 0;
-    pcb_t * globalpcb;
-    globalpcb = terminalArray[currTerminal].cur_PCB;
+    pcb_t * currpcb = terminalArray[terminalrun].cur_PCB;
     int i = 0;
     /* We call read dentry by index, where index is a global variable that updates each time read dir is called.
     We can fill out global dentry in with the information received through the current index. */
     int val;
     dentry_t currdentry;
-    val = read_dentry_by_index(globalpcb->fdarray[fd].filepos, &currdentry);
+    val = read_dentry_by_index(currpcb->fdarray[fd].filepos, &currdentry);
     if (val != 0) {
         return -1;
     }
@@ -326,8 +325,8 @@ int32_t read_dir(int32_t fd, void* buf, int32_t nbytes) {
     /* Store into our buffer the entire string. This will be used to print the name. */
     strncpy((int8_t*)buf, (int8_t*)(wholestr), MAX_FILENAME_LEN);
     /* Increments the dir index for each file when it is opened. */
-    globalpcb->fdarray[fd].filepos++;
-    if (globalpcb->fdarray[fd].filepos <= MAX_NUM_FILES)
+    currpcb->fdarray[fd].filepos++;
+    if (currpcb->fdarray[fd].filepos <= MAX_NUM_FILES)
         return nbytes;
     return 0;
 }

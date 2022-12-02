@@ -12,7 +12,8 @@ Description: Terminal's open function
 Inputs: const uint8_t* filename = name of file to be opened
 Outputs: returns int32_t = 0 on success
 */
-extern global_pcb;
+//extern global_pcb;
+extern terminalrun;
 
 
 
@@ -54,7 +55,7 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
     }
     /* Will loop through infinitely waiting for an enter key from user to return with their input */
     while(1){
-        if(enterflag){
+        if((currTerminal == terminalrun)&&(enterflag)){
             int nullflag;
             nullflag = 0;
             /* Will copy keyboardbuffer to buf */

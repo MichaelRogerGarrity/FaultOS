@@ -109,7 +109,7 @@ typedef struct pcb_struct
 
 } __attribute__((packed)) pcb_t;
 
-pcb_t *globalpcb;
+//pcb_t *globalpcb;
 uint8_t processesid[MAX_NUM_PROCESSES];
 
 /* Terminal struct */

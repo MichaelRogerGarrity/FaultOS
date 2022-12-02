@@ -208,6 +208,7 @@ int32_t puts(int8_t* s) {
  *    to be the same as the row below it for all rows except the bottom row, which
  *    gets cleared. */
 void scroll() {
+    pcb_t * currpcb = terminalArray[terminalrun].cur_PCB;
     int x_temp;
     int y_temp;
     int i;
@@ -217,7 +218,7 @@ void scroll() {
 
     screen_x = 0;
     screen_y = 0;
-    if(globalpcb->termid == 0){
+    if(currpcb->termid == 0){
         for (i = 0; i < 1920; i++) {      // 1920 is the number of characters in the first 24 rows. 80*24 = 1920
             screen_x = (i % NUM_COLS);
             screen_y = (i / NUM_COLS);
@@ -233,7 +234,7 @@ void scroll() {
             *(uint8_t*)(video_mem1 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         }
     }
-    else if(globalpcb->termid == 1){
+    else if(currpcb->termid == 1){
         for (i = 0; i < 1920; i++) {      // 1920 is the number of characters in the first 24 rows. 80*24 = 1920
             screen_x = (i % NUM_COLS);
             screen_y = (i / NUM_COLS);
@@ -249,7 +250,7 @@ void scroll() {
             *(uint8_t*)(video_mem2 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         }
     }
-    else if(globalpcb->termid == 2){
+    else if(currpcb->termid == 2){
         for (i = 0; i < 1920; i++) {      // 1920 is the number of characters in the first 24 rows. 80*24 = 1920
             screen_x = (i % NUM_COLS);
             screen_y = (i / NUM_COLS);
@@ -361,9 +362,10 @@ int32_t puts2(int8_t* s, int nbytes) {
 void putc2(uint8_t c) {
     if (c == '\0')
         return;
-    int curr_screen_x = terminalArray[globalpcb->termid].cursor_x;
-    int curr_screen_y = terminalArray[globalpcb->termid].cursor_y;
-    if(globalpcb->termid == 0){
+    pcb_t * currpcb = terminalArray[terminalrun].cur_PCB;
+    int curr_screen_x = terminalArray[currpcb->termid].cursor_x;
+    int curr_screen_y = terminalArray[currpcb->termid].cursor_y;
+    if(currpcb->termid == 0){
         if (c == '\n' || c == '\r') {
             if (curr_screen_y != NUM_ROWS - 1) {
                 curr_screen_y++;
@@ -392,7 +394,7 @@ void putc2(uint8_t c) {
         }
         update_cursor(curr_screen_x, curr_screen_y);
     }
-    else if(globalpcb->termid == 1){
+    else if(currpcb->termid == 1){
         if (c == '\n' || c == '\r') {
             if (curr_screen_y != NUM_ROWS - 1) {
                 curr_screen_y++;
@@ -421,7 +423,7 @@ void putc2(uint8_t c) {
         }
         update_cursor(curr_screen_x, curr_screen_y);
     }
-    else if(globalpcb->termid == 2){
+    else if(currpcb->termid == 2){
         if (c == '\n' || c == '\r') {
             if (curr_screen_y != NUM_ROWS - 1) {
                 curr_screen_y++;
@@ -450,8 +452,8 @@ void putc2(uint8_t c) {
         }
         update_cursor(curr_screen_x, curr_screen_y);
     }
-    terminalArray[globalpcb->termid].cursor_x = curr_screen_x;
-    terminalArray[globalpcb->termid].cursor_y = curr_screen_y;
+    terminalArray[currpcb->termid].cursor_x = curr_screen_x;
+    terminalArray[currpcb->termid].cursor_y = curr_screen_y;
     
 }
 

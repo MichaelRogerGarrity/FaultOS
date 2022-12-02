@@ -38,7 +38,7 @@ typedef struct terminalStruct{
     pcb_t*  cur_PCB;
 }__attribute__ ((packed)) terminalStruct_t;
 
-uint8_t currTerminal;
+volatile uint8_t currTerminal;
 
 terminalStruct_t terminalArray[3];
 
