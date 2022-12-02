@@ -204,7 +204,7 @@ void terminal_init(){
     
     for(i = 0; i<MAX_TERMINALS; i++){
         processesid[i] = 1;    // SAYS PROCESS IS ACTIVE
-        terminalArray[i].currRTC = 0;
+        terminalArray[i].currRTC = -1;
         terminalArray[i].cur_PCB = NULL;
         // terminalArray[i].savedt_esp = ;
         // terminalArray[i].savedt_ebp = ;

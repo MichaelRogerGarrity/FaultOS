@@ -26,7 +26,7 @@ void terminal_init();
 /* Terminal Struct stuff */
 /* Struct for the Termial. */
 typedef struct terminalStruct{
-    uint32_t currRTC;            // it is virtualized
+   volatile uint32_t currRTC;            // it is virtualized
     uint32_t savedt_esp;
     uint32_t savedt_ebp;
     uint8_t terminalbuffer[KEYBOARD_BUFFER_MAX_SIZE];

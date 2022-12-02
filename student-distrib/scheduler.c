@@ -22,7 +22,7 @@ outportb(0x40, divisor >> 8);     Set high byte of divisor
 */
 void pit_init(void)
 {
-    int32_t divisor = 1193180 / 20;
+    int32_t divisor = 1193180 / 100;
     outb(0x36, PIT_CMD_PORT);
     outb(divisor & LOW_BYTE, CHAN_0);
     outb(divisor >> EIGHT_SHIFT, CHAN_0);
