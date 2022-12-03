@@ -153,7 +153,7 @@ int32_t execute_on_term(const uint8_t *command, int term)
 
 
     /* Checks if we have max number of processes: */
-    if ((currpid >= 3)&&(!baseShellFlag)) {
+    if ((currpid >= 3)&&(!baseShellFlag)) {    // using 3 since the other pids(0->2) for base are preset 
         int rval_pid = find_available_pid();
         if (rval_pid < 0) {
             puts2("Too many processes called! (>6)\n", ERRMSG);
@@ -215,7 +215,7 @@ int32_t execute_on_term(const uint8_t *command, int term)
 
 
     currpcb->pid = currpid;
-    if ((currpid == 0 || currpid == 1 || currpid == 2 ))
+    if ((currpid == 0 || currpid == 1 || currpid == 2 )) // checking 0, 1, 2 since those pids are for base shell
         currpcb-> parent_id = -1; // check what parent of shell should be 
     else
         currpcb-> parent_id = parentpcb->pid;

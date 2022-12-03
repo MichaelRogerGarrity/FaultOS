@@ -40,6 +40,6 @@ typedef struct terminalStruct{
 
 volatile uint8_t currTerminal;
 
-terminalStruct_t terminalArray[3];
+terminalStruct_t terminalArray[MAX_TERMINALS];
 
 #endif /* _TERMINAL_H */

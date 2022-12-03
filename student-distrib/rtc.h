@@ -22,6 +22,8 @@
 #define REG_C               0x8C
 #define REG_D               0x8D
 
+#define RATE_1024           0x06
+
 /* Possible rates corresponding to valid frequencies: Looked at the Datasheet for these values. */
 #define RATE_FOR_1024       0   
 #define RATE_FOR_512        1   

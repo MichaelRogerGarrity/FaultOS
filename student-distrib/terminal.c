@@ -137,8 +137,6 @@ int32_t terminal_switch(int32_t newTerminal){
     enterflag = 0;
     //enable_irq(0);
     //cli();
-    // terminalArray[currTerminal].cursor_x = get_screen_x();
-    // terminalArray[currTerminal].cursor_y = get_screen_y();
         /* unmap current to itself */
     map_table((VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT  , (VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal))   );
     /* First copy vid mem to the actual terminal location */
@@ -160,41 +158,7 @@ int32_t terminal_switch(int32_t newTerminal){
     set_screen_y(terminalArray[newTerminal].cursor_y);
     update_cursor(terminalArray[newTerminal].cursor_x, terminalArray[newTerminal].cursor_y);
     currTerminal = newTerminal;
-    // prev_pcb = globalpcb;
-    // register uint32_t saved_ebp asm("ebp");
-    // register uint32_t saved_esp asm("esp");
-    // prev_pcb->saved_esp = (void *)saved_esp;
-    // prev_pcb->saved_ebp = (void *) saved_ebp;
-    // globalpcb = terminalArray[newTerminal].cur_PCB;
-    // if(terminalArray[newTerminal].cur_PCB == NULL){
-    //     currpid++;
-    //     execute((const uint8_t *)("shell"));
-    // }else{
-    //     /* Switch execution to current terminal's user program */
-    //     uint32_t physaddr = (PDE_PROCESS_START + terminalArray[currTerminal].currprocessid) * FOUR_MB;
-    //     map_helper(PDE_VIRTUAL_MEM, physaddr);
-    //     tss.esp0 = EIGHT_MEGA_BYTE - EIGHT_KILO_BYTE * globalpcb->pid;
-    //     /* (b) Set TSS for parent. ksp = kernel stack pointer */
-    //     uint32_t args_esp = globalpcb->saved_esp;
-    //     uint32_t args_ebp = globalpcb->saved_ebp;
-    //     asm volatile(
-    //         /* set esp, ebp as esp ebp args */
-    //         "   movl %0, %%esp \n"
-    //         "   movl %1, %%ebp \n"
-    //         :
-    //         : "r"(args_esp), "r"(args_ebp) // input
-    //         : "cc"                         // ?
-    //     );
-    // }
-    // sti();
-    // if (!term_2_flag) {
-    //     term_2_flag = 1;
-    //     execute((const uint8_t *)("shell"));    //pid 0
-    // }
-    // if (!term_3_flag) {
-    //     term_3_flag = 1;
-    //     execute((const uint8_t *)("shell"));    //pid 0
-    // }
+    
     return 0;
 }
 
@@ -213,21 +177,16 @@ void terminal_init(){
 
         terminalArray[i].cursor_x = 0;
         terminalArray[i].cursor_y = 0;
-        // terminalArray[i].vidmemloc = (VIDEO_T1 + FOUR_KILO_BYTE *i);
+
         terminalArray[i].currprocessid = i;
-        // currpid++;
-        // if (i == 0)
-        //     map_table(VIDEO_T1 >> PAGE_SHIFT, VIDEO);
-        // else
-        //     map_table((VIDEO_T1 + FOUR_KILO_BYTE *i) >> PAGE_SHIFT, (VIDEO_T1 + FOUR_KILO_BYTE *i));
+
     }
     terminalArray[TERMINAL_1_NUM].vidmemloc = (uint32_t)(VIDEO_T1);
     terminalArray[TERMINAL_2_NUM].vidmemloc = (uint32_t)(VIDEO_T2);
     terminalArray[TERMINAL_3_NUM].vidmemloc = (uint32_t)(VIDEO_T3);
     currpid = -1;
     currTerminal = 0;
-    // runningterminal = 0;
-   // execute((const uint8_t *)("shell"));    //pid 0
+
 
 }
 

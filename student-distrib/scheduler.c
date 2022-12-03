@@ -123,9 +123,9 @@ void scheduler(){
     pcb_t * next_pcb;
     int oldterm = terminalrun;
     if(terminalrun == -1){
-        oldterm = 2;
+        oldterm = 2; //set to 2 since prev term of 1 is the 3rd term 
     }
-    int newterm =  ((terminalrun + 1) % 3);
+    int newterm =  ((terminalrun + 1) % 3); // using 3 since mmax num of terms 
     terminalrun = newterm;
     prev_pcb = terminalArray[oldterm].cur_PCB;
     next_pcb = terminalArray[newterm].cur_PCB;

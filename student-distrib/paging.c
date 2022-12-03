@@ -1,9 +1,9 @@
 #include "paging.h"
 
 
-page_dir_entry page_directory[1024] __attribute__((aligned(SIZE_OF_PG)));
-page_table_entry page_table[1024] __attribute__((aligned(SIZE_OF_PG)));
-page_table_entry page_table_user_vidmem[1024] __attribute__((aligned(SIZE_OF_PG)));
+page_dir_entry page_directory[NUM_ELEMS_PAGE] __attribute__((aligned(SIZE_OF_PG)));
+page_table_entry page_table[NUM_ELEMS_PAGE] __attribute__((aligned(SIZE_OF_PG)));
+page_table_entry page_table_user_vidmem[NUM_ELEMS_PAGE] __attribute__((aligned(SIZE_OF_PG))); 
 void init_page();
 
 //uint32_t page __attribute__((aligned(SIZE_OF_PG))); //4kb page 

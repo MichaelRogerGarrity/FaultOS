@@ -11,6 +11,8 @@
 int8_t term_2_flag = 0;
 int8_t term_3_flag = 0;
 
+// used code from here https://wiki.osdev.org/PS/2_Keyboard
+
 /* A map that can directly print the character relative to the scan code. 
    This one handles expected outputs when shift is not held down and caps lock is off. */
 uint8_t scancode_map_normal[KEYBOARD_INPUT_RANGE] = {

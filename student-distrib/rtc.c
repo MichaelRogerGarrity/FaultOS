@@ -28,11 +28,11 @@ void rtc_init(void) {
     unsigned char prev_b = inb(RTC_PORT_RW);    // read curr B value
     outb(REG_B, RTC_PORT_IDX);                  // set idx again (due to resetting of index to reg D due to a read)
     outb(prev_b | BIT_SIX_ON, RTC_PORT_RW);     // turn on bit 6 and reqrite prev value  
-    int rate = 0x06;
+    //int rate = 0x06;
     outb(REG_A, RTC_PORT_IDX);              // select B, disable NMI
     unsigned char prev_a = inb(RTC_PORT_RW);    // read curr A value
     outb(REG_A, RTC_PORT_IDX);                  // set idx again (due to resetting of index to reg D due to a read)
-    outb((prev_a & RATEBITS) | rate, RTC_PORT_RW);     // mask bottom 4 bits | 6 and get bits 1 and 2 turn on bit 6 and reqrite prev value  
+    outb((prev_a & RATEBITS) | RATE_1024, RTC_PORT_RW);     // mask bottom 4 bits | 6 and get bits 1 and 2 turn on bit 6 and reqrite prev value  
     interrupt_flag_rtc = 0;
     // turn on interrupts at IRQ number 8 because that is where RTC goes
     cur_freq = 1;
@@ -53,13 +53,13 @@ extern void rtc_handler(void) {
     /* Read contents of Reg C - RTC will not generate another interrupt if this is not done */
     outb(REG_C, RTC_PORT_IDX);                  // select register C
     unsigned char temp = inb(RTC_PORT_RW);
-    temp &= 0xFFFF;                             // Avoid warning of unused temp.
+    temp &= 0xFFFF;                             // Avoid warning of unused temp so random var.
     /* Here we call test interrupts / or putc2 (new terminal function) to make sure our RTC is working. */
     // test_interrupts();
     // putc2('a');
     cli();
     int i; 
-    for(i = 0;i<3; i++){
+    for(i = 0;i<3; i++){  //using 3 as max term num
         if(terminalArray[i].currRTC != -1){
             terminalArray[i].currRTC++;
         }
@@ -86,7 +86,7 @@ int rtc_set_freq(int newfreq) {
     int rate = 1;			               // rate must be above 2 and not over 15
     /* Check if rate is between 2 and 15 */
     switch (newfreq) {
-        /* Note: Numbers here are possible frequencies - they cannot be any other value. Taken from Datasheet. */
+        /* Note: Numbers here are possible frequencies (powers of 2 (2->1024)) - they cannot be any other value. Taken from Datasheet. */
     case 1024:
         rate = RATE_FOR_1024; break;
     case 512:

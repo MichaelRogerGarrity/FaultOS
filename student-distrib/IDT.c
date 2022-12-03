@@ -5,6 +5,8 @@
 #include "filesys.h"
 #include "syscall.h"
 
+// used code from here https://wiki.osdev.org/Interrupt_Descriptor_Table
+
 /* Note for all interrupt functions:
  * Each of these just define the exceptions and interrupts as defined in the Interrupt Descriptor Table.
  */

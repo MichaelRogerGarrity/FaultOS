@@ -571,11 +571,11 @@ void putc2Keyboard(uint8_t c) {
  *  Function: Enable the cursor in our terminal */
 void enable_cursor(uint8_t cursor_start, uint8_t cursor_end)
 {
-    outb(0x0A, 0x3D4);
-    outb((inb(0x3D5) & 0xC0) | cursor_start, 0x3D5);
+    outb(0x0A, 0x3D4);  // values taken from OSDev
+    outb((inb(0x3D5) & 0xC0) | cursor_start, 0x3D5);  // values taken from OSDev
 
-    outb(0x0B, 0x3D4);
-    outb((inb(0x3D5) & 0xE0) | cursor_end, 0x3D5);
+    outb(0x0B, 0x3D4);  // values taken from OSDev
+    outb((inb(0x3D5) & 0xE0) | cursor_end, 0x3D5);  // values taken from OSDev
 }
 
 /* void disable_cursor();
@@ -584,8 +584,8 @@ void enable_cursor(uint8_t cursor_start, uint8_t cursor_end)
  *  Function: Disable the cursor in our terminal */
 void disable_cursor()
 {
-    outb(0x0A, 0x3D4);
-    outb(0x20, 0x3D5);
+    outb(0x0A, 0x3D4);  // values taken from OSDev
+    outb(0x20, 0x3D5);  // values taken from OSDev
 }
 
 /* void update_cursor(int x, int y);
@@ -597,10 +597,10 @@ void update_cursor(int x, int y)
 {
     uint16_t pos = y * NUM_COLS + x;
 
-    outb(0x0F, 0x3D4);
-    outb((uint8_t)(pos & 0xFF), 0x3D5);
-    outb(0x0E, 0x3D4);
-    outb((uint8_t)((pos >> 8) & 0xFF), 0x3D5);
+    outb(0x0F, 0x3D4);  // values taken from OSDev
+    outb((uint8_t)(pos & 0xFF), 0x3D5);  // values taken from OSDev
+    outb(0x0E, 0x3D4);  // values taken from OSDev
+    outb((uint8_t)((pos >> 8) & 0xFF), 0x3D5);  // values taken from OSDev
 }
 
 /* void putc(uint8_t c);
