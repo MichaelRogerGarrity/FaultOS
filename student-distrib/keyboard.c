@@ -32,7 +32,7 @@ uint8_t scancode_map_normal[KEYBOARD_INPUT_RANGE] = {
     'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I',
     'O', 'P', '{', '}', '\n', '\0', 'A', 'S',
     'D', 'F', 'G', 'H', 'J', 'K', 'L', ':',
-    '|', '~', '\0', '\\', 'Z', 'X', 'C', 'V',
+    '\"', '~', '\0', '|', 'Z', 'X', 'C', 'V',
     'B', 'N', 'M', '<', '>', '?', '\0', '*',
     '\0', ' ', '\0'
  };
@@ -58,7 +58,7 @@ uint8_t scancode_map_shift_and_caps_lock[KEYBOARD_INPUT_RANGE] = {
     'q', 'w', 'e', 'r', 't', 'y', 'u', 'i',
     'o', 'p', '{', '}', '\n', '\0', 'a', 's',
     'd', 'f', 'g', 'h', 'j', 'k', 'l', ':',
-    '|', '~', '\0', '\\', 'z', 'x', 'c', 'v',
+    '\"', '~', '\0', '|', 'z', 'x', 'c', 'v',
     'b', 'n', 'm', '<', '>', '?', '\0', '*',
     '\0', ' ', '\0'
 };
@@ -91,6 +91,7 @@ Side Effects: Prints what was typed on the keyboard.
 */
 extern void keyboard_handler(void) {
     uint32_t keycode = inb(KEYBOARD_PORT);
+    ctrlflag = 0;
 
     /* This chunk of logic sets the flags for function keys */
     if((keycode == KEYBOARD_SHIFT_DOWN) || (keycode == KEYBOARD_SHIFT_DOWN2)){

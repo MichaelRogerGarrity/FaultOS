@@ -22,6 +22,9 @@
 #define PREVPCB0        0x7fe000
 #define PREVPCB1        0x7fc000
 #define PREVPCB2        0x7fa000
+#define PIT_INIT_CONST  1193180
+#define PIT_INIT_FREQ   100
+#define PIT_CMD_NUM     0x36
 
 volatile int terminalrun = -1;
 /* Defined Functions */

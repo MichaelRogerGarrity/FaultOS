@@ -10,9 +10,11 @@
 #define NUM_COLS    80
 #define NUM_ROWS    25
 #define ATTRIB      0x7
-#define T1ATTRIB    0x4
-#define T2ATTRIB    0x7
+#define T1ATTRIB    0x7
+#define T2ATTRIB    0x4
 #define T3ATTRIB    0x9
+#define ROW24       1920
+#define NUMCHARS    2000
 
 #include "types.h"
 #include "paging.h"

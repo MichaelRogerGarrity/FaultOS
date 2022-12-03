@@ -48,7 +48,7 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
     if(nbytes < 0) 
         return -1;
     int i;
-    int count = 127;
+    int count = KEYBOARD_BUFFER_MAX_SIZE-1;
     int j;
     if(nbytes > KEYBOARD_BUFFER_MAX_SIZE){   // handles overflow by just chopping off extra bytes
         nbytes = KEYBOARD_BUFFER_MAX_SIZE;
@@ -128,7 +128,7 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
 
 int32_t terminal_switch(int32_t newTerminal){
     // pcb_t * prev_pcb;
-    if(newTerminal > 2 || newTerminal < 0)
+    if(newTerminal > TERMINAL_3_NUM || newTerminal < TERMINAL_1_NUM)
         return -1;      // CHECK
 
     if(newTerminal == currTerminal){
@@ -220,9 +220,9 @@ void terminal_init(){
         // else
         //     map_table((VIDEO_T1 + FOUR_KILO_BYTE *i) >> PAGE_SHIFT, (VIDEO_T1 + FOUR_KILO_BYTE *i));
     }
-    terminalArray[0].vidmemloc = (uint32_t)(VIDEO_T1);
-    terminalArray[1].vidmemloc = (uint32_t)(VIDEO_T2);
-    terminalArray[2].vidmemloc = (uint32_t)(VIDEO_T3);
+    terminalArray[TERMINAL_1_NUM].vidmemloc = (uint32_t)(VIDEO_T1);
+    terminalArray[TERMINAL_2_NUM].vidmemloc = (uint32_t)(VIDEO_T2);
+    terminalArray[TERMINAL_3_NUM].vidmemloc = (uint32_t)(VIDEO_T3);
     currpid = -1;
     currTerminal = 0;
     // runningterminal = 0;

@@ -8,6 +8,7 @@
 #include "i8259.h"
 
 extern int terminalrun;
+// used code from https://wiki.osdev.org/RTC
 
 // Declaration for the RTC Test interrupts.  
 void test_interrupts();

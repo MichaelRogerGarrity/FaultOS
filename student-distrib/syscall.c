@@ -56,7 +56,7 @@ int32_t execute(const uint8_t *command)
 
 int32_t execute(const uint8_t *command)
 {
-    currpid = 3;
+    currpid = 3; //after init 0->2 always pid 3 for max processes check 
     sti();
     //enable_irq(0);
     while(1){
@@ -99,14 +99,14 @@ int32_t execute_on_term(const uint8_t *command, int term)
     for (; i < cmd_len; i++) {
         //printf("%d ",i);
         if (start == 0) {
-            if (command[i] == ' ')
+            if ((command[i] == ' ') || (command[i] == '\t'))
                 continue;
             start = 1;
             if(i <MAX_FILENAME_LEN)
             filename[filechar++] = command[i];
         } 
         else {
-            if (command[i] == ' ')
+            if ((command[i] == ' ') || (command[i] == '\t'))
                 break;
             if(i<MAX_FILENAME_LEN)
             filename[filechar++] = command[i];
@@ -115,7 +115,7 @@ int32_t execute_on_term(const uint8_t *command, int term)
     start = 0;
     for (; i < cmd_len; i++) {
         if (start == 0) {
-            if (command[i] == ' ')
+            if ((command[i] == ' ') || (command[i] == '\t'))
                 continue;
             start = 1;
             finalarg[finalchar++] = command[i];
@@ -304,7 +304,7 @@ int32_t execute_on_term(const uint8_t *command, int term)
         return -1;              // could not read those 4 bytes.
     uint32_t stack_eip = 0; // buffer[3],buffer[2],buffer[1],buffer[0]
     /* Reversing 4 bytes of the buffer (bytes 24-27 of the file) due to little endianness*/
-    stack_eip = (stack_eip | buffer[3]);
+    stack_eip = (stack_eip | buffer[3]); // acessing from top buffer bytes to bottom 3->0
     stack_eip = stack_eip << BUFFER_SHIFT;
     stack_eip = (stack_eip | buffer[2]);
     stack_eip = stack_eip << BUFFER_SHIFT;
@@ -732,18 +732,18 @@ int32_t vidmap(uint8_t **screen_start)
 
     // loadPageDir(page_directory); // flush TLB //? check with os dev maybe other stuff for flushing 
 
-    // *screen_start = (uint8_t *)terminalArray[currpcb->termid].vidmemloc; //(uint8_t *)VID_START;
-    if (currpcb->termid == 0) {
-        *screen_start = (uint8_t *)VIDEO_T1;
-    }
-    else if (currpcb->termid == 1)
-    {
-        *screen_start = (uint8_t *)VIDEO_T2;
-    }
-    else if (currpcb->termid == 2)
-    {
-        *screen_start = (uint8_t *)VIDEO_T3;
-    }
+    *screen_start = (uint8_t *)terminalArray[currpcb->termid].vidmemloc; //(uint8_t *)VID_START;
+    // if (currpcb->termid == 0) {
+    //     *screen_start = (uint8_t *)VIDEO_T1;
+    // }
+    // else if (currpcb->termid == 1)
+    // {
+    //     *screen_start = (uint8_t *)VIDEO_T2;
+    // }
+    // else if (currpcb->termid == 2)
+    // {
+    //     *screen_start = (uint8_t *)VIDEO_T3;
+    // }
 
     return (int32_t)(*screen_start);
 }
