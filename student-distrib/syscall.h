@@ -25,7 +25,7 @@
 #define PROG_START              0x8400000           // 132 mb             
 #define MIN_FD_VAL_STD          2                  
 #define ERRMSG                  33                  
-#define MAX_NUM_PROCESSES       2                  
+#define MAX_NUM_PROCESSES       6                  
 #define BYTEZERO                0
 #define BYTEONE                 1
 #define BYTETWO                 2
@@ -62,16 +62,21 @@ extern int32_t vidmap(uint8_t** screen_start);                     // 8
 extern int32_t set_handler(int32_t signum, void* handler_address); // 9
 extern int32_t sigreturn(void);  
 
+
 int32_t map_helper(uint32_t pdeentry, uint32_t pdeaddr);
+int32_t map_table(uint32_t ptentry, uint32_t pteaddr);
+int find_available_pid();
 
 int32_t read_fail(const uint8_t *filename);
 int32_t write_fail(int32_t fd);
 int32_t open_fail(int32_t fd, void* buf, int32_t nbytes);
 int32_t close_fail(int32_t fd, const void* buf, int32_t nbytes);
 
+int32_t execute_on_term(const uint8_t *command, int term);
+
 typedef struct func
 {
-    int32_t (*open)(const uint8_t* filename);
+    int32_t (*open)(const uint8_t *filename,int32_t fd);
     int32_t (*read)(int32_t fd, void *buf, int32_t nbytes);
     int32_t (*write)(int32_t fd, const void *buf, int32_t nbytes);
     int32_t (*close)(int32_t fd);
@@ -94,16 +99,29 @@ typedef struct file_desc
 /* PCB Struct */
 typedef struct pcb_struct
 {
-    int8_t pid;
+    uint8_t pid;
     int8_t parent_id;
     uint32_t saved_esp;
     uint32_t saved_ebp;
     fd_t fdarray[MAX_FD_LEN];
     int8_t active;
     uint8_t argbuffer[MAX_ARG_LEN];
+    uint8_t termid;
 
 } __attribute__((packed)) pcb_t;
 
-pcb_t *globalpcb;
+//pcb_t *globalpcb;
+uint8_t processesid[MAX_NUM_PROCESSES];
+
+/* Terminal struct */
+typedef struct terminal_struct
+{
+    
+    int8_t active;
+    uint8_t keyboard_buffer[MAX_ARG_LEN];
+
+} __attribute__((packed)) terminal_t;
+int currpid;
+int baseShellFlag;
 
 #endif /* _SYSCALL_H */

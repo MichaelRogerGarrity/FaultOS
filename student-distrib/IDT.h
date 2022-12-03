@@ -6,6 +6,7 @@
 
 #define KEYBOARD_IDT_ENTRY          0x21
 #define RTC_IDT_ENTRY               0x28
+#define PIT_IDT_ENTRY               0x20
 #define TOTAL_IDT_ENTRIES           256
 #define EXCEPTION_CALLED            256
 #define SYSTEM_CALL_IDT_ENTRY       0x80

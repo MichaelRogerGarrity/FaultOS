@@ -2,10 +2,14 @@
  * rtc.c
 */
 #include "keyboard.h"
+#include "terminal.h"
 #include "lib.h"
 #include "i8259.h"
 #include "filesys.h"
 
+
+int8_t term_2_flag = 0;
+int8_t term_3_flag = 0;
 
 /* A map that can directly print the character relative to the scan code. 
    This one handles expected outputs when shift is not held down and caps lock is off. */
@@ -28,7 +32,7 @@ uint8_t scancode_map_normal[KEYBOARD_INPUT_RANGE] = {
     'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I',
     'O', 'P', '{', '}', '\n', '\0', 'A', 'S',
     'D', 'F', 'G', 'H', 'J', 'K', 'L', ':',
-    '|', '~', '\0', '\\', 'Z', 'X', 'C', 'V',
+    '\"', '~', '\0', '|', 'Z', 'X', 'C', 'V',
     'B', 'N', 'M', '<', '>', '?', '\0', '*',
     '\0', ' ', '\0'
  };
@@ -54,7 +58,7 @@ uint8_t scancode_map_shift_and_caps_lock[KEYBOARD_INPUT_RANGE] = {
     'q', 'w', 'e', 'r', 't', 'y', 'u', 'i',
     'o', 'p', '{', '}', '\n', '\0', 'a', 's',
     'd', 'f', 'g', 'h', 'j', 'k', 'l', ':',
-    '|', '~', '\0', '\\', 'z', 'x', 'c', 'v',
+    '\"', '~', '\0', '|', 'z', 'x', 'c', 'v',
     'b', 'n', 'm', '<', '>', '?', '\0', '*',
     '\0', ' ', '\0'
 };
@@ -71,7 +75,7 @@ void keyboard_init(void) {
     shiftflag = 0;
     ctrlflag = 0;
     altflag = 0;
-    currkey = 0;
+    terminalArray[currTerminal].currkey = 0;
     charcount = 0;
     enterflag = 0;
     enable_irq(KEYBOARD_IRQ);
@@ -87,6 +91,7 @@ Side Effects: Prints what was typed on the keyboard.
 */
 extern void keyboard_handler(void) {
     uint32_t keycode = inb(KEYBOARD_PORT);
+    ctrlflag = 0;
 
     /* This chunk of logic sets the flags for function keys */
     if((keycode == KEYBOARD_SHIFT_DOWN) || (keycode == KEYBOARD_SHIFT_DOWN2)){
@@ -120,21 +125,50 @@ extern void keyboard_handler(void) {
     if((ctrlflag) && (keycode == KEYBOARD_L_KEY_DOWN)){
         int i;
         clear();
-        currkey = 0;
+        terminalArray[currTerminal].currkey = 0;
         ctrlflag = 0;
         for(i=0; i<KEYBOARD_BUFFER_MAX_SIZE; i++){
             keyboardbuffer[i] = '\0';
         }
-        set_screen_x(0);
-        set_screen_y(0);
-        update_cursor(get_screen_x(), get_screen_y());
+        terminalArray[currTerminal].cursor_x = 0;
+        terminalArray[currTerminal].cursor_y = 0;
+        update_cursor(terminalArray[currTerminal].cursor_x, terminalArray[currTerminal].cursor_y);
         send_eoi(KEYBOARD_IRQ);
         return;
     }
 
+    if((altflag) && (keycode == KEYBOARD_F1_DOWN)){
+        if(currTerminal != 0){
+            terminal_switch(TERMINAL_1_NUM);
+            send_eoi(KEYBOARD_IRQ);
+            return;
+        }
+    }
+    else if((altflag) && (keycode == KEYBOARD_F2_DOWN)){
+        if(currTerminal != 1){
+            terminal_switch(TERMINAL_2_NUM);
+            send_eoi(KEYBOARD_IRQ);
+            // if(!term_2_flag){
+            //     term_2_flag = 1; // Removed in the version where we did the flag stuff in the execute
+            //     // execute("shell");
+            // }
+            return;
+        }
+    }
+    else if((altflag) && (keycode == KEYBOARD_F3_DOWN)){
+        if(currTerminal != 2){
+            terminal_switch(TERMINAL_3_NUM);
+            send_eoi(KEYBOARD_IRQ);
+            // if(!term_3_flag){
+            //     term_3_flag = 1; // Removed in the version where we did the flag stuff in the execute
+            //     execute("shell"); 
+            // }
+            return;
+        }
+    }
     
     /* If keycode is out of range or is one of the function keys already processed above, we simply send an EOI and leave. */
-    if ((keycode < 0) || (keycode >= KEYBOARD_INPUT_RANGE) || (keycode == KEYBOARD_CAPS_LOCK) || (keycode == KEYBOARD_CTRL_DOWN) || (keycode == KEYBOARD_ALT_DOWN) || (keycode == KEYBOARD_SHIFT_DOWN) || (keycode == KEYBOARD_SHIFT_DOWN2) || (currkey >=KEYBOARD_BUFFER_MAX_SIZE)) {
+    if ((keycode < 0) || (keycode >= KEYBOARD_INPUT_RANGE) || (keycode == KEYBOARD_CAPS_LOCK) || (keycode == KEYBOARD_CTRL_DOWN) || (keycode == KEYBOARD_ALT_DOWN) || (keycode == KEYBOARD_SHIFT_DOWN) || (keycode == KEYBOARD_SHIFT_DOWN2) || (terminalArray[currTerminal].currkey >=KEYBOARD_BUFFER_MAX_SIZE)) {
         send_eoi(KEYBOARD_IRQ);
         return;
     }
@@ -157,95 +191,95 @@ extern void keyboard_handler(void) {
     /* Below is the logic for backspacing characters */
     if(keycode == KEYBOARD_BACKSPACE){
 
-        if(currkey == 0){
+        if(terminalArray[currTerminal].currkey == 0){
             send_eoi(KEYBOARD_IRQ);
             return;
         }
 
         /* First we have the logic for backspacing tab characters, since they are more complicated than most */
-        if(keyboardbuffer[currkey-1] == '\t'){
-            if(get_screen_x() > TAB_SIZE-1){             // max offset of tab from edge of screen
-                set_screen_x(get_screen_x()-1);
-                putc2(' ');
-                set_screen_x(get_screen_x()-1);
-                set_screen_x(get_screen_x()-1);
-                putc2(' ');
-                set_screen_x(get_screen_x()-1);
-                set_screen_x(get_screen_x()-1);
-                putc2(' ');
-                set_screen_x(get_screen_x()-1);
-                set_screen_x(get_screen_x()-1);
-                putc2(' ');
-                set_screen_x(get_screen_x()-1);
+        if(keyboardbuffer[terminalArray[currTerminal].currkey-1] == '\t'){
+            if(terminalArray[currTerminal].cursor_x > TAB_SIZE-1){             // max offset of tab from edge of screen
+                terminalArray[currTerminal].cursor_x--;
+                putc2Keyboard(' ');
+                terminalArray[currTerminal].cursor_x--;
+                terminalArray[currTerminal].cursor_x--;
+                putc2Keyboard(' ');
+                terminalArray[currTerminal].cursor_x--;
+                terminalArray[currTerminal].cursor_x--;
+                putc2Keyboard(' ');
+                terminalArray[currTerminal].cursor_x--;
+                terminalArray[currTerminal].cursor_x--;
+                putc2Keyboard(' ');
+                terminalArray[currTerminal].cursor_x--;
             }
-            else if(get_screen_x() == TAB_SIZE-1){       // 3 is the offset of tab from edge of screen
-                set_screen_x(get_screen_x()-1);
-                putc2(' ');
-                set_screen_x(get_screen_x()-1);
-                set_screen_x(get_screen_x()-1);
-                putc2(' ');
-                set_screen_x(get_screen_x()-1);
-                set_screen_x(get_screen_x()-1);
-                putc2(' ');
-                set_screen_x(get_screen_x()-1);
-                set_screen_y(get_screen_y()-1);
-                set_screen_x(NUM_COLS-1);
-                putc2(' ');
-                set_screen_y(get_screen_y()-1);
-                set_screen_x(NUM_COLS-1);
+            else if(terminalArray[currTerminal].cursor_x == TAB_SIZE-1){       // 3 is the offset of tab from edge of screen
+                terminalArray[currTerminal].cursor_x--;
+                putc2Keyboard(' ');
+                terminalArray[currTerminal].cursor_x--;
+                terminalArray[currTerminal].cursor_x--;
+                putc2Keyboard(' ');
+                terminalArray[currTerminal].cursor_x--;
+                terminalArray[currTerminal].cursor_x--;
+                putc2Keyboard(' ');
+                terminalArray[currTerminal].cursor_x--;
+                terminalArray[currTerminal].cursor_y--;
+                terminalArray[currTerminal].cursor_x = NUM_COLS-1;
+                putc2Keyboard(' ');
+                terminalArray[currTerminal].cursor_y--;
+                terminalArray[currTerminal].cursor_x = NUM_COLS-1;
             }
-            else if(get_screen_x() == TAB_SIZE-2){       // 2 is the offset of tab from edge of screen
-                set_screen_x(get_screen_x()-1);
-                putc2(' ');
-                set_screen_x(get_screen_x()-1);
-                set_screen_x(get_screen_x()-1);
-                putc2(' ');
-                set_screen_x(get_screen_x()-1);
-                set_screen_y(get_screen_y()-1);
-                set_screen_x(NUM_COLS-1);
-                putc2(' ');
-                set_screen_y(get_screen_y()-1);
-                set_screen_x(NUM_COLS-1);
-                set_screen_x(get_screen_x()-1);
-                putc2(' ');
-                set_screen_x(get_screen_x()-1);
+            else if(terminalArray[currTerminal].cursor_x == TAB_SIZE-2){       // 2 is the offset of tab from edge of screen
+                terminalArray[currTerminal].cursor_x--;
+                putc2Keyboard(' ');
+                terminalArray[currTerminal].cursor_x--;
+                terminalArray[currTerminal].cursor_x--;
+                putc2Keyboard(' ');
+                terminalArray[currTerminal].cursor_x--;
+                terminalArray[currTerminal].cursor_y--;
+                terminalArray[currTerminal].cursor_x = NUM_COLS-1;
+                putc2Keyboard(' ');
+                terminalArray[currTerminal].cursor_y--;
+                terminalArray[currTerminal].cursor_x = NUM_COLS-1;
+                terminalArray[currTerminal].cursor_x--;
+                putc2Keyboard(' ');
+                terminalArray[currTerminal].cursor_x--;
             }
-            else if(get_screen_x() == TAB_SIZE-3){       // 1 is the offset of tab from edge of screen
-                set_screen_x(get_screen_x()-1);
-                putc2(' ');
-                set_screen_x(get_screen_x()-1);
-                set_screen_y(get_screen_y()-1);
-                set_screen_x(NUM_COLS-1);
-                putc2(' ');
-                set_screen_y(get_screen_y()-1);
-                set_screen_x(NUM_COLS-1);
-                set_screen_x(get_screen_x()-1);
-                putc2(' ');
-                set_screen_x(get_screen_x()-1);
-                set_screen_x(get_screen_x()-1);
-                putc2(' ');
-                set_screen_x(get_screen_x()-1);
+            else if(terminalArray[currTerminal].cursor_x == TAB_SIZE-3){       // 1 is the offset of tab from edge of screen
+                terminalArray[currTerminal].cursor_x--;
+                putc2Keyboard(' ');
+                terminalArray[currTerminal].cursor_x--;
+                terminalArray[currTerminal].cursor_y--;
+                terminalArray[currTerminal].cursor_x = NUM_COLS-1;
+                putc2Keyboard(' ');
+                terminalArray[currTerminal].cursor_y--;
+                terminalArray[currTerminal].cursor_x = NUM_COLS-1;
+                terminalArray[currTerminal].cursor_x--;
+                putc2Keyboard(' ');
+                terminalArray[currTerminal].cursor_x--;
+                terminalArray[currTerminal].cursor_x--;
+                putc2Keyboard(' ');
+                terminalArray[currTerminal].cursor_x--;
             }
-            else if(get_screen_x() == TAB_SIZE-4){       // 0 is the offset of tab from edge of screen
-                set_screen_y(get_screen_y()-1);
-                set_screen_x(NUM_COLS-1);
-                putc2(' ');
-                set_screen_y(get_screen_y()-1);
-                set_screen_x(NUM_COLS-1);
-                set_screen_x(get_screen_x()-1);
-                putc2(' ');
-                set_screen_x(get_screen_x()-1);
-                set_screen_x(get_screen_x()-1);
-                putc2(' ');
-                set_screen_x(get_screen_x()-1);
-                set_screen_x(get_screen_x()-1);
-                putc2(' ');
-                set_screen_x(get_screen_x()-1);
+            else if(terminalArray[currTerminal].cursor_x == TAB_SIZE-4){       // 0 is the offset of tab from edge of screen
+                terminalArray[currTerminal].cursor_y--;
+                terminalArray[currTerminal].cursor_x = NUM_COLS-1;
+                putc2Keyboard(' ');
+                terminalArray[currTerminal].cursor_y--;
+                terminalArray[currTerminal].cursor_x = NUM_COLS-1;
+                terminalArray[currTerminal].cursor_x--;
+                putc2Keyboard(' ');
+                terminalArray[currTerminal].cursor_x--;
+                terminalArray[currTerminal].cursor_x--;
+                putc2Keyboard(' ');
+                terminalArray[currTerminal].cursor_x--;
+                terminalArray[currTerminal].cursor_x--;
+                putc2Keyboard(' ');
+                terminalArray[currTerminal].cursor_x--;
             }
-            currkey = currkey - 1;
+            terminalArray[currTerminal].currkey = terminalArray[currTerminal].currkey - 1;
             charcount = charcount - TAB_SIZE;
-            keyboardbuffer[currkey] = output;
-            update_cursor(get_screen_x(), get_screen_y());
+            keyboardbuffer[terminalArray[currTerminal].currkey] = output;
+            update_cursor(terminalArray[currTerminal].cursor_x, terminalArray[currTerminal].cursor_y);
             send_eoi(KEYBOARD_IRQ);
             return;
         }
@@ -253,67 +287,67 @@ extern void keyboard_handler(void) {
         /* After handling tab, we handle the rest of the characters*/
 
         /* First we have the case where a character is not at the left edge of the screen on a lower line */
-        else if(get_screen_x() > 0){
-            set_screen_x(get_screen_x()-1);
-            putc2(' ');
-            currkey = currkey - 1;
+        else if(terminalArray[currTerminal].cursor_x > 0){
+            terminalArray[currTerminal].cursor_x--;
+            putc2Keyboard(' ');
+            terminalArray[currTerminal].currkey = terminalArray[currTerminal].currkey - 1;
             charcount = charcount - 1;
-            keyboardbuffer[currkey] = output;
-            set_screen_x(get_screen_x()-1);
-            update_cursor(get_screen_x(), get_screen_y());
+            keyboardbuffer[terminalArray[currTerminal].currkey] = output;
+            terminalArray[currTerminal].cursor_x--;
+            update_cursor(terminalArray[currTerminal].cursor_x, terminalArray[currTerminal].cursor_y);
             send_eoi(KEYBOARD_IRQ);
             return;
         }
         /* Next we have the case of a character being at the */
         else if(charcount > NUM_COLS-1){  // farthest right index in our 80-column row
-            set_screen_y(get_screen_y()-1);
-            set_screen_x(NUM_COLS-1);   // farthest right index in our 80-column row
-            putc2(' ');
-            currkey = currkey - 1;
+            terminalArray[currTerminal].cursor_y--;
+            terminalArray[currTerminal].cursor_x = NUM_COLS-1;   // farthest right index in our 80-column row
+            putc2Keyboard(' ');
+            terminalArray[currTerminal].currkey = terminalArray[currTerminal].currkey - 1;
             charcount = charcount - 1;
-            keyboardbuffer[currkey] = output;
-            set_screen_x(NUM_COLS-1);   // farthest right index in our 80-column row
-            set_screen_y(get_screen_y()-1);
-            update_cursor(get_screen_x(), get_screen_y());
+            keyboardbuffer[terminalArray[currTerminal].currkey] = output;
+            terminalArray[currTerminal].cursor_x = NUM_COLS-1;   // farthest right index in our 80-column row
+            terminalArray[currTerminal].cursor_y--;
+            update_cursor(terminalArray[currTerminal].cursor_x, get_screen_y());
             send_eoi(KEYBOARD_IRQ);
             return;
         }
     }
 
     if(keycode == KEYBOARD_TAB){
-        if(currkey < KEYBOARD_BUFFER_MAX_SIZE - TAB_SIZE){  // prints tab if one can fit in buffer
-            keyboardbuffer[currkey] = output;
-            currkey++;
+        if(terminalArray[currTerminal].currkey < KEYBOARD_BUFFER_MAX_SIZE - TAB_SIZE){  // prints tab if one can fit in buffer
+            keyboardbuffer[terminalArray[currTerminal].currkey] = output;
+            terminalArray[currTerminal].currkey++;
             charcount = charcount + TAB_SIZE;
-            putc2(' ');
-            putc2(' ');
-            putc2(' ');
-            putc2(' '); 
+            putc2Keyboard(' ');
+            putc2Keyboard(' ');
+            putc2Keyboard(' ');
+            putc2Keyboard(' '); 
         }
         send_eoi(KEYBOARD_IRQ);
         return;
     }
 
     /* We next add that character to our buffer and print it to the screen if there is still room in the buffer */
-    if(currkey < (KEYBOARD_BUFFER_MAX_SIZE - 1)){  // keyboard buffer size -1, since last char can only be newline
-        keyboardbuffer[currkey] = output;
-        currkey = currkey + 1;
+    if(terminalArray[currTerminal].currkey < (KEYBOARD_BUFFER_MAX_SIZE - 1)){  // keyboard buffer size -1, since last char can only be newline
+        keyboardbuffer[terminalArray[currTerminal].currkey] = output;
+        terminalArray[currTerminal].currkey = terminalArray[currTerminal].currkey + 1;
         charcount = charcount + 1;
         if(keycode == KEYBOARD_ENTER){
-            putc2(output);
+            putc2Keyboard(output);
             enterflag = 1;
         }
         else
-        putc2(output);
+        putc2Keyboard(output);
     }
 
     /* The last space in the buffer is reserved for newline */
-    else if((keycode == KEYBOARD_ENTER) && (currkey == (KEYBOARD_BUFFER_MAX_SIZE - 1))){    // handles enter when buffer is full/only spot left is the one for newline
-        keyboardbuffer[currkey] = output;
-        currkey = currkey + 1;
+    else if((keycode == KEYBOARD_ENTER) && (terminalArray[currTerminal].currkey == (KEYBOARD_BUFFER_MAX_SIZE - 1))){    // handles enter when buffer is full/only spot left is the one for newline
+        keyboardbuffer[terminalArray[currTerminal].currkey] = output;
+        terminalArray[currTerminal].currkey = terminalArray[currTerminal].currkey + 1;
         charcount = charcount + 1;
         enterflag = 1;
-        putc2(output);
+        putc2Keyboard(output);
     }
     ctrlflag = 0;
     send_eoi(KEYBOARD_IRQ);

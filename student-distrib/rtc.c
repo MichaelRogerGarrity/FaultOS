@@ -7,9 +7,13 @@
 #include "lib.h"
 #include "i8259.h"
 
+extern int terminalrun;
+// used code from https://wiki.osdev.org/RTC
+
 // Declaration for the RTC Test interrupts.  
 void test_interrupts();
-
+int cnt = 0;
+int cur_freq;
 /*
 void rtc_init(void)
 Description:        Initialize the RTC
@@ -24,15 +28,16 @@ void rtc_init(void) {
     unsigned char prev_b = inb(RTC_PORT_RW);    // read curr B value
     outb(REG_B, RTC_PORT_IDX);                  // set idx again (due to resetting of index to reg D due to a read)
     outb(prev_b | BIT_SIX_ON, RTC_PORT_RW);     // turn on bit 6 and reqrite prev value  
-
+    int rate = 0x06;
     outb(REG_A, RTC_PORT_IDX);              // select B, disable NMI
     unsigned char prev_a = inb(RTC_PORT_RW);    // read curr A value
     outb(REG_A, RTC_PORT_IDX);                  // set idx again (due to resetting of index to reg D due to a read)
-    outb((prev_a & 0xF0) | 6, RTC_PORT_RW);     // mask bottom 4 bits | 6 and get bits 1 and 2 turn on bit 6 and reqrite prev value  
+    outb((prev_a & RATEBITS) | rate, RTC_PORT_RW);     // mask bottom 4 bits | 6 and get bits 1 and 2 turn on bit 6 and reqrite prev value  
     interrupt_flag_rtc = 0;
     // turn on interrupts at IRQ number 8 because that is where RTC goes
+    cur_freq = 1;
     enable_irq(RTC_IRQ);
-    rtc_set_freq(OPEN_AT_2HZ);
+
     return;
 }
 
@@ -51,9 +56,17 @@ extern void rtc_handler(void) {
     temp &= 0xFFFF;                             // Avoid warning of unused temp.
     /* Here we call test interrupts / or putc2 (new terminal function) to make sure our RTC is working. */
     // test_interrupts();
-    // putc2('a');      
+    // putc2('a');
+    cli();
+    int i; 
+    for(i = 0;i<3; i++){
+        if(terminalArray[i].currRTC != -1){
+            terminalArray[i].currRTC++;
+        }
+    }
     interrupt_flag_rtc = 1;
     send_eoi(RTC_IRQ);
+    sti();
     return;
 }
 
@@ -70,7 +83,7 @@ int rtc_set_freq(int newfreq) {
 
     unsigned long flags;
     cli_and_save(flags);
-    int rate = 0x0F;			               // rate must be above 2 and not over 15
+    int rate = 1;			               // rate must be above 2 and not over 15
     /* Check if rate is between 2 and 15 */
     switch (newfreq) {
         /* Note: Numbers here are possible frequencies - they cannot be any other value. Taken from Datasheet. */
@@ -100,13 +113,13 @@ int rtc_set_freq(int newfreq) {
         // rate = RATE_FOR_2; break;
     }
 
-    outb(REG_A, RTC_PORT_IDX);                  // set index to register A, disable NMI
-    unsigned char prev_a = inb(RTC_PORT_RW);    // get initial value of register A
-    outb(REG_A, RTC_PORT_IDX);
-    outb(((prev_a & RATEBITS) | rate), RTC_PORT_RW);
+    // outb(REG_A, RTC_PORT_IDX);                  // set index to register A, disable NMI
+    // unsigned char prev_a = inb(RTC_PORT_RW);    // get initial value of register A
+    // outb(REG_A, RTC_PORT_IDX);
+    // outb(((prev_a & RATEBITS) | rate), RTC_PORT_RW);
 
     restore_flags(flags);
-    return 0;
+    return rate;
 
 }
 
@@ -118,11 +131,14 @@ int rtc_set_freq(int newfreq) {
 * Description:      rtc_open should reset the frequency to 2Hz.
 RTC open()          initializes RTC frequency to 2HZ, return 0
 */
-int32_t open_rtc(const uint8_t* filename) {
+int32_t open_rtc(const uint8_t* filename, int32_t fd) {
     if (filename == NULL)
         return -1;
     /* Start RTC off with the rate of 2. */
-    rtc_set_freq(OPEN_AT_2HZ);
+    cli();
+    pcb_t * currpcb = terminalArray[terminalrun].cur_PCB;
+    currpcb->fdarray[fd].filepos = MAXFREQ / MINFREQ;
+    sti();
     return 0;
     
 }
@@ -150,16 +166,20 @@ int32_t close_rtc(int32_t fd) {
                     NOT for reading the RTC frequency.
  */
 int32_t read_rtc(int32_t fd, void* buf, int32_t nbytes) {
-    if (fd < MIN_FD_VAL || fd > MAX_FD_VAL || nbytes == NULL)
+    if (fd < MIN_FD_VAL || fd > MAX_FD_VAL /*|| nbytes == NULL*/)
         return -1;
-    interrupt_flag_rtc = 0;
+    int target_freq;
+    cli();
+    pcb_t * currpcb = terminalArray[terminalrun].cur_PCB;
+    terminalArray[currpcb->termid].currRTC = 0;
+    target_freq = currpcb->fdarray[fd].filepos;
     sti();
-    while (!interrupt_flag_rtc) {
+    while (terminalArray[currpcb->termid].currRTC  < target_freq) {
         /* This stays here until the RTC generates another interrupt. */
     }
-    interrupt_flag_rtc = 0;
-    // int8_t* name = "Int in RTC occurs once (Read only called once)";
     cli();
+     terminalArray[currpcb->termid].currRTC = -1;
+     sti();
     return 0;
 }
 
@@ -177,20 +197,29 @@ int32_t write_rtc(int32_t fd, const void* buf, int32_t nbytes) {
     if (fd < MIN_FD_VAL || fd > MAX_FD_VAL || nbytes == NULL)
         return -1;
     /* Set the default frequency to 2. */
-    int chkfreq = 0;
-    chkfreq = rtc_set_freq(OPEN_AT_2HZ);
-    if (chkfreq < 0) 
-        return -1;
-    /* Extract the frequency from the buffer. */
+    // int chkfreq = 0;
+    // chkfreq = rtc_set_freq(OPEN_AT_2HZ);
+    // if (chkfreq < 0) 
+    //     return -1;
+    // /* Extract the frequency from the buffer. */
+    // int32_t frequency;
+    // frequency = *((int*)buf);
+    // if ((frequency < MINFREQ) || (frequency > MAXFREQ)) return -1;
+    // /* critical section */
+    // cli();
+    // /* Check if the power of 2 is done in set frequency. */
+    // chkfreq = rtc_set_freq(frequency);
+    // if (chkfreq < 0) 
+    //     return -1;
+    // cur_freq = chkfreq;
+    // sti();
     int32_t frequency;
     frequency = *((int*)buf);
-    if ((frequency < MINFREQ) || (frequency > MAXFREQ)) return -1;
-    /* critical section */
+    if ((frequency < MINFREQ) || (frequency > MAXFREQ)) return 0;
     cli();
-    /* Check if the power of 2 is done in set frequency. */
-    chkfreq = rtc_set_freq(frequency);
-    if (chkfreq < 0) 
-        return -1;
+    pcb_t * currpcb = terminalArray[terminalrun].cur_PCB;
+    currpcb->fdarray[fd].filepos = MAXFREQ / frequency;
     sti();
+    
     return 0;
 }

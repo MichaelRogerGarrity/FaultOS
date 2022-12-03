@@ -8,7 +8,12 @@
 static int screen_x;
 static int screen_y;
 static char* video_mem = (char*)VIDEO;
+static char* video_mem1 = (char*)VIDEO_T1;
+static char* video_mem2 = (char*)VIDEO_T2;
+static char* video_mem3 = (char*)VIDEO_T3;
 
+
+extern int terminalrun;
 /* void clear(void);
  * Inputs: void
  * Return Value: none
@@ -203,6 +208,7 @@ int32_t puts(int8_t* s) {
  *    to be the same as the row below it for all rows except the bottom row, which
  *    gets cleared. */
 void scroll() {
+    pcb_t * currpcb = terminalArray[terminalrun].cur_PCB;
     int x_temp;
     int y_temp;
     int i;
@@ -212,20 +218,123 @@ void scroll() {
 
     screen_x = 0;
     screen_y = 0;
-
-    for (i = 0; i < 1920; i++) {      // 1920 is the number of characters in the first 24 rows. 80*24 = 1920
-        screen_x = (i % NUM_COLS);
-        screen_y = (i / NUM_COLS);
-        // each row is overwritten by the row below it
-        *(uint8_t*)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = *(uint8_t*)(video_mem + ((NUM_COLS * (screen_y + 1) + screen_x) << 1));
-        *(uint8_t*)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = *(uint8_t*)(video_mem + ((NUM_COLS * (screen_y + 1) + screen_x) << 1) + 1);
+    if(currpcb->termid == TERMINAL_1_NUM){
+        for (i = 0; i < ROW24; i++) {      // 1920 is the number of characters in the first 24 rows. 80*24 = 1920
+            screen_x = (i % NUM_COLS);
+            screen_y = (i / NUM_COLS);
+            // each row is overwritten by the row below it
+            *(uint8_t*)(video_mem1 + ((NUM_COLS * screen_y + screen_x) << 1)) = *(uint8_t*)(video_mem1 + ((NUM_COLS * (screen_y + 1) + screen_x) << 1));
+            *(uint8_t*)(video_mem1 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = *(uint8_t*)(video_mem1 + ((NUM_COLS * (screen_y + 1) + screen_x) << 1) + 1);
+        }
+        for (i = ROW24; i < NUMCHARS; i++) {   // 2000 - 1920 would be the last 80 characters in the final row of video memory
+            screen_x = (i % NUM_COLS);
+            screen_y = (i / NUM_COLS);
+            // bottom row is cleared
+            *(uint8_t*)(video_mem1 + ((NUM_COLS * screen_y + screen_x) << 1)) = '\0';
+            *(uint8_t*)(video_mem1 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = T1ATTRIB;
+        }
     }
-    for (i = 1920; i < 2000; i++) {   // 2000 - 1920 would be the last 80 characters in the final row of video memory
-        screen_x = (i % NUM_COLS);
-        screen_y = (i / NUM_COLS);
-        // bottom row is cleared
-        *(uint8_t*)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = '\0';
-        *(uint8_t*)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+    else if(currpcb->termid == TERMINAL_2_NUM){
+        for (i = 0; i < ROW24; i++) {      // 1920 is the number of characters in the first 24 rows. 80*24 = 1920
+            screen_x = (i % NUM_COLS);
+            screen_y = (i / NUM_COLS);
+            // each row is overwritten by the row below it
+            *(uint8_t*)(video_mem2 + ((NUM_COLS * screen_y + screen_x) << 1)) = *(uint8_t*)(video_mem2 + ((NUM_COLS * (screen_y + 1) + screen_x) << 1));
+            *(uint8_t*)(video_mem2 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = *(uint8_t*)(video_mem2 + ((NUM_COLS * (screen_y + 1) + screen_x) << 1) + 1);
+        }
+        for (i = ROW24; i < NUMCHARS; i++) {   // 2000 - 1920 would be the last 80 characters in the final row of video memory
+            screen_x = (i % NUM_COLS);
+            screen_y = (i / NUM_COLS);
+            // bottom row is cleared
+            *(uint8_t*)(video_mem2 + ((NUM_COLS * screen_y + screen_x) << 1)) = '\0';
+            *(uint8_t*)(video_mem2 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = T2ATTRIB;
+        }
+    }
+    else if(currpcb->termid == TERMINAL_3_NUM){
+        for (i = 0; i < ROW24; i++) {      // 1920 is the number of characters in the first 24 rows. 80*24 = 1920
+            screen_x = (i % NUM_COLS);
+            screen_y = (i / NUM_COLS);
+            // each row is overwritten by the row below it
+            *(uint8_t*)(video_mem3 + ((NUM_COLS * screen_y + screen_x) << 1)) = *(uint8_t*)(video_mem3 + ((NUM_COLS * (screen_y + 1) + screen_x) << 1));
+            *(uint8_t*)(video_mem3 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = *(uint8_t*)(video_mem3 + ((NUM_COLS * (screen_y + 1) + screen_x) << 1) + 1);
+        }
+        for (i = ROW24; i < NUMCHARS; i++) {   // 2000 - 1920 would be the last 80 characters in the final row of video memory
+            screen_x = (i % NUM_COLS);
+            screen_y = (i / NUM_COLS);
+            // bottom row is cleared
+            *(uint8_t*)(video_mem3 + ((NUM_COLS * screen_y + screen_x) << 1)) = '\0';
+            *(uint8_t*)(video_mem3 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = T3ATTRIB;
+        }
+    }
+
+    screen_x = x_temp;
+    screen_y = y_temp;
+}
+
+/* void scrollKeyboard();
+ *   Inputs: none
+ *   Return Value: none
+ *    Function: Scrolls the screen upward by copying video memory data for each row
+ *    to be the same as the row below it for all rows except the bottom row, which
+ *    gets cleared. Unlike scroll, this function operates on the visible terminal
+ *    instead of the one the current process is running on. */
+void scrollKeyboard() {
+    int x_temp;
+    int y_temp;
+    int i;
+
+    x_temp = screen_x;
+    y_temp = screen_y;
+
+    screen_x = 0;
+    screen_y = 0;
+    if(currTerminal == TERMINAL_1_NUM){
+        for (i = 0; i < ROW24; i++) {      // 1920 is the number of characters in the first 24 rows. 80*24 = 1920
+            screen_x = (i % NUM_COLS);
+            screen_y = (i / NUM_COLS);
+            // each row is overwritten by the row below it
+            *(uint8_t*)(video_mem1 + ((NUM_COLS * screen_y + screen_x) << 1)) = *(uint8_t*)(video_mem1 + ((NUM_COLS * (screen_y + 1) + screen_x) << 1));
+            *(uint8_t*)(video_mem1 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = *(uint8_t*)(video_mem1 + ((NUM_COLS * (screen_y + 1) + screen_x) << 1) + 1);
+        }
+        for (i = ROW24; i < NUMCHARS; i++) {   // 2000 - 1920 would be the last 80 characters in the final row of video memory
+            screen_x = (i % NUM_COLS);
+            screen_y = (i / NUM_COLS);
+            // bottom row is cleared
+            *(uint8_t*)(video_mem1 + ((NUM_COLS * screen_y + screen_x) << 1)) = '\0';
+            *(uint8_t*)(video_mem1 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = T1ATTRIB;
+        }
+    }
+    else if(currTerminal == TERMINAL_2_NUM){
+        for (i = 0; i < ROW24; i++) {      // 1920 is the number of characters in the first 24 rows. 80*24 = 1920
+            screen_x = (i % NUM_COLS);
+            screen_y = (i / NUM_COLS);
+            // each row is overwritten by the row below it
+            *(uint8_t*)(video_mem2 + ((NUM_COLS * screen_y + screen_x) << 1)) = *(uint8_t*)(video_mem2 + ((NUM_COLS * (screen_y + 1) + screen_x) << 1));
+            *(uint8_t*)(video_mem2 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = *(uint8_t*)(video_mem2 + ((NUM_COLS * (screen_y + 1) + screen_x) << 1) + 1);
+        }
+        for (i = ROW24; i < NUMCHARS; i++) {   // 2000 - 1920 would be the last 80 characters in the final row of video memory
+            screen_x = (i % NUM_COLS);
+            screen_y = (i / NUM_COLS);
+            // bottom row is cleared
+            *(uint8_t*)(video_mem2 + ((NUM_COLS * screen_y + screen_x) << 1)) = '\0';
+            *(uint8_t*)(video_mem2 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = T2ATTRIB;
+        }
+    }
+    else if(currTerminal == TERMINAL_3_NUM){
+        for (i = 0; i < ROW24; i++) {      // 1920 is the number of characters in the first 24 rows. 80*24 = 1920
+            screen_x = (i % NUM_COLS);
+            screen_y = (i / NUM_COLS);
+            // each row is overwritten by the row below it
+            *(uint8_t*)(video_mem3 + ((NUM_COLS * screen_y + screen_x) << 1)) = *(uint8_t*)(video_mem3 + ((NUM_COLS * (screen_y + 1) + screen_x) << 1));
+            *(uint8_t*)(video_mem3 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = *(uint8_t*)(video_mem3 + ((NUM_COLS * (screen_y + 1) + screen_x) << 1) + 1);
+        }
+        for (i = ROW24; i < NUMCHARS; i++) {   // 2000 - 1920 would be the last 80 characters in the final row of video memory
+            screen_x = (i % NUM_COLS);
+            screen_y = (i / NUM_COLS);
+            // bottom row is cleared
+            *(uint8_t*)(video_mem3 + ((NUM_COLS * screen_y + screen_x) << 1)) = '\0';
+            *(uint8_t*)(video_mem3 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = T3ATTRIB;
+        }
     }
 
     screen_x = x_temp;
@@ -253,33 +362,204 @@ int32_t puts2(int8_t* s, int nbytes) {
 void putc2(uint8_t c) {
     if (c == '\0')
         return;
-    if (c == '\n' || c == '\r') {
-        if (screen_y != NUM_ROWS - 1) {
-            screen_y++;
-            screen_x = 0;
-        }
-        else {
-            scroll();
-            screen_x = 0;
-            screen_y = NUM_ROWS - 1;
-        }
-    }
-    else {
-        *(uint8_t*)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
-        *(uint8_t*)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
-        screen_x++;
-        if (screen_x >= NUM_COLS) {
-            if (screen_y == NUM_ROWS - 1) {
-                scroll();
+    pcb_t * currpcb = terminalArray[terminalrun].cur_PCB;
+    int curr_screen_x = terminalArray[currpcb->termid].cursor_x;
+    int curr_screen_y = terminalArray[currpcb->termid].cursor_y;
+    if(currpcb->termid == TERMINAL_1_NUM){
+        if (c == '\n' || c == '\r') {
+            if (curr_screen_y != NUM_ROWS - 1) {
+                curr_screen_y++;
+                curr_screen_x = 0;
             }
             else {
-                screen_y++;
+                scroll();
+                curr_screen_x = 0;
+                curr_screen_y = NUM_ROWS - 1;
             }
         }
-        screen_x %= NUM_COLS;
-        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+        else {
+            *(uint8_t*)(video_mem1 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1)) = c;
+            *(uint8_t*)(video_mem1 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1) + 1) = T1ATTRIB;
+            curr_screen_x++;
+            if (curr_screen_x >= NUM_COLS) {
+                if (curr_screen_y == NUM_ROWS - 1) {
+                    scroll();
+                }
+                else {
+                    curr_screen_y++;
+                } // rewrite vidmap to return current terminal version's video memory
+            }
+            curr_screen_x %= NUM_COLS;
+            curr_screen_y = (curr_screen_y + (curr_screen_x / NUM_COLS)) % NUM_ROWS;
+        }
+        if(currTerminal == terminalrun)
+        update_cursor(curr_screen_x, curr_screen_y);
     }
-    update_cursor(screen_x, screen_y);
+    else if(currpcb->termid == TERMINAL_2_NUM){
+        if (c == '\n' || c == '\r') {
+            if (curr_screen_y != NUM_ROWS - 1) {
+                curr_screen_y++;
+                curr_screen_x = 0;
+            }
+            else {
+                scroll();
+                curr_screen_x = 0;
+                curr_screen_y = NUM_ROWS - 1;
+            }
+        }
+        else {
+            *(uint8_t*)(video_mem2 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1)) = c;
+            *(uint8_t*)(video_mem2 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1) + 1) = T2ATTRIB;
+            curr_screen_x++;
+            if (curr_screen_x >= NUM_COLS) {
+                if (curr_screen_y == NUM_ROWS - 1) {
+                    scroll();
+                }
+                else {
+                    curr_screen_y++;
+                }
+            }
+            curr_screen_x %= NUM_COLS;
+            curr_screen_y = (curr_screen_y + (curr_screen_x / NUM_COLS)) % NUM_ROWS;
+        }
+        if(currTerminal == terminalrun)
+        update_cursor(curr_screen_x, curr_screen_y);
+    }
+    else if(currpcb->termid == TERMINAL_3_NUM){
+        if (c == '\n' || c == '\r') {
+            if (curr_screen_y != NUM_ROWS - 1) {
+                curr_screen_y++;
+                curr_screen_x = 0;
+            }
+            else {
+                scroll();
+                curr_screen_x = 0;
+                curr_screen_y = NUM_ROWS - 1;
+            }
+        }
+        else {
+            *(uint8_t*)(video_mem3 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1)) = c;
+            *(uint8_t*)(video_mem3 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1) + 1) = T3ATTRIB;
+            curr_screen_x++;
+            if (screen_x >= NUM_COLS) {
+                if (curr_screen_y == NUM_ROWS - 1) {
+                    scroll();
+                }
+                else {
+                    curr_screen_y++;
+                }
+            }
+            curr_screen_x %= NUM_COLS;
+            curr_screen_y = (curr_screen_y + (curr_screen_x / NUM_COLS)) % NUM_ROWS;
+        }
+        if(currTerminal == terminalrun)
+        update_cursor(curr_screen_x, curr_screen_y);
+    }
+    terminalArray[currpcb->termid].cursor_x = curr_screen_x;
+    terminalArray[currpcb->termid].cursor_y = curr_screen_y;
+    
+}
+
+/* void putc2Keyboard(uint8_t c);
+ * Inputs: uint_8* c = character to print
+ * Return Value: void
+ *  Function: Output a character to the console, but unlike putc will scroll screen when at bottom row and unlike putc2 will print to
+ *            visible terminal instead of the one the current process is running on */
+void putc2Keyboard(uint8_t c) {
+    if (c == '\0')
+        return;
+    int curr_screen_x = terminalArray[currTerminal].cursor_x;
+    int curr_screen_y = terminalArray[currTerminal].cursor_y;
+    if(currTerminal == TERMINAL_1_NUM){
+        if (c == '\n' || c == '\r') {
+            if (curr_screen_y != NUM_ROWS - 1) {
+                curr_screen_y++;
+                curr_screen_x = 0;
+            }
+            else {
+                scrollKeyboard();
+                curr_screen_x = 0;
+                curr_screen_y = NUM_ROWS - 1;
+            }
+        }
+        else {
+            *(uint8_t*)(video_mem1 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1)) = c;
+            *(uint8_t*)(video_mem1 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1) + 1) = T1ATTRIB;
+            curr_screen_x++;
+            if (curr_screen_x >= NUM_COLS) {
+                if (curr_screen_y == NUM_ROWS - 1) {
+                    scrollKeyboard();
+                }
+                else {
+                    curr_screen_y++;
+                } // rewrite vidmap to return current terminal version's video memory
+            }
+            curr_screen_x %= NUM_COLS;
+            curr_screen_y = (curr_screen_y + (curr_screen_x / NUM_COLS)) % NUM_ROWS;
+        }
+        update_cursor(curr_screen_x, curr_screen_y);
+    }
+    else if(currTerminal == TERMINAL_2_NUM){
+        if (c == '\n' || c == '\r') {
+            if (curr_screen_y != NUM_ROWS - 1) {
+                curr_screen_y++;
+                curr_screen_x = 0;
+            }
+            else {
+                scrollKeyboard();
+                curr_screen_x = 0;
+                curr_screen_y = NUM_ROWS - 1;
+            }
+        }
+        else {
+            *(uint8_t*)(video_mem2 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1)) = c;
+            *(uint8_t*)(video_mem2 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1) + 1) = T2ATTRIB;
+            curr_screen_x++;
+            if (curr_screen_x >= NUM_COLS) {
+                if (curr_screen_y == NUM_ROWS - 1) {
+                    scrollKeyboard();
+                }
+                else {
+                    curr_screen_y++;
+                }
+            }
+            curr_screen_x %= NUM_COLS;
+            curr_screen_y = (curr_screen_y + (curr_screen_x / NUM_COLS)) % NUM_ROWS;
+        }
+        update_cursor(curr_screen_x, curr_screen_y);
+    }
+    else if(currTerminal == TERMINAL_3_NUM){
+        if (c == '\n' || c == '\r') {
+            if (curr_screen_y != NUM_ROWS - 1) {
+                curr_screen_y++;
+                curr_screen_x = 0;
+            }
+            else {
+                scrollKeyboard();
+                curr_screen_x = 0;
+                curr_screen_y = NUM_ROWS - 1;
+            }
+        }
+        else {
+            *(uint8_t*)(video_mem3 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1)) = c;
+            *(uint8_t*)(video_mem3 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1) + 1) = T3ATTRIB;
+            curr_screen_x++;
+            if (curr_screen_x >= NUM_COLS) {
+                if (curr_screen_y == NUM_ROWS - 1) {
+                    scrollKeyboard();
+                }
+                else {
+                    curr_screen_y++;
+                }
+            }
+            curr_screen_x %= NUM_COLS;
+            curr_screen_y = (curr_screen_y + (curr_screen_x / NUM_COLS)) % NUM_ROWS;
+        }
+        update_cursor(curr_screen_x, curr_screen_y);
+    }
+    terminalArray[currTerminal].cursor_x = curr_screen_x;
+    terminalArray[currTerminal].cursor_y = curr_screen_y;
+    
 }
 
 /* Below three cursor functions were sourced from: https://wiki.osdev.org/Text_Mode_Cursor */

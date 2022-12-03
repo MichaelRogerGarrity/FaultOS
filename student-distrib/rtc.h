@@ -23,16 +23,16 @@
 #define REG_D               0x8D
 
 /* Possible rates corresponding to valid frequencies: Looked at the Datasheet for these values. */
-#define RATE_FOR_1024       0x06    // 0110
-#define RATE_FOR_512        0x07    // 0111
-#define RATE_FOR_256        0x08    // 1000
-#define RATE_FOR_128        0x09    // 1001
-#define RATE_FOR_64         0x0A    // 1010
-#define RATE_FOR_32         0x0B    // 1011
-#define RATE_FOR_16         0x0C    // 1100
-#define RATE_FOR_8          0x0D    // 1101
-#define RATE_FOR_4          0x0E    // 1110
-#define RATE_FOR_2          0x0F    // 1111
+#define RATE_FOR_1024       0   
+#define RATE_FOR_512        1   
+#define RATE_FOR_256        2    
+#define RATE_FOR_128        4    
+#define RATE_FOR_64         8    
+#define RATE_FOR_32         16   
+#define RATE_FOR_16         32    
+#define RATE_FOR_8          64    
+#define RATE_FOR_4          128   
+#define RATE_FOR_2          256   
 #define OPEN_AT_2HZ         2
 
 
@@ -51,7 +51,7 @@ int rtc_set_freq(int newfreq);
 /* Functions for RTC driver - open / close / r / w */
 
 /* initializes RTC frequency to 2HZ, return 0 */
-int32_t open_rtc(const uint8_t *filename);
+int32_t open_rtc(const uint8_t *filename,int32_t fd);
 /* probably does nothing, unless you virtualize RTC, return 0 */
 int32_t close_rtc(int32_t fd);
 /* should block until the next interrupt, return 0 */

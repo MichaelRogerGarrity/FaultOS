@@ -85,6 +85,7 @@ void init_page(){
     page_directory[VIDMEM_PDE_ENTRY].pt_baddr = (int)(page_table) >> PAGE_SHIFT;       // Shift << 12 since lower 12 bits 0 for alignment B8000 -> B8
     page_directory[VIDMEM_PDE_ENTRY].rw = 1;
     page_directory[VIDMEM_PDE_ENTRY].p = 1;
+    page_directory[VIDMEM_PDE_ENTRY].us = 1;
     /* Setting Video Memory inside the page table */
     page_table[(VIDEO >> PAGE_SHIFT)].p = 1; 
     
@@ -98,8 +99,15 @@ void init_page(){
 
     // /* Setting Video Memory inside the page table */
     // page_table_user_vidmem[(VIDEO >> PAGE_SHIFT)].us = 1;                   // set us to 1 for user 
-    // page_table_user_vidmem[(VIDEO >> PAGE_SHIFT)].p = 1; 
-
+    // page_table_user_vidmem[(VIDEO >> PAGE_SHIFT)].p = 1;
+    
+    page_table[(VIDEO_T1 >> PAGE_SHIFT)].pt_baddr = VIDEO >> PAGE_SHIFT;
+    page_table[(VIDEO_T1 >> PAGE_SHIFT)].p = 1;
+    page_table[(VIDEO_T1 >> PAGE_SHIFT)].us= 1;
+    page_table[(VIDEO_T2 >> PAGE_SHIFT)].p = 1;
+    page_table[(VIDEO_T2 >> PAGE_SHIFT)].us = 1;
+    page_table[(VIDEO_T3 >> PAGE_SHIFT)].p = 1;
+    page_table[(VIDEO_T3 >> PAGE_SHIFT)].us = 1;
     loadPageDir(page_directory); 
     enPaging();
 

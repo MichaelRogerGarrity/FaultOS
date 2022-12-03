@@ -5,18 +5,31 @@
 #include "linkageheader.h"
 #include "filesys.h"
 #include "paging.h"
-
+//#include "scheduler.h"
 #include "terminal.h"
 
 /* Variables for the different system calls */
 
-static int currpid = -1;
-pcb_t *globalpcb;
+
+
+// extern int8_t term_2_flag;
+// extern int8_t term_3_flag;
+extern int terminalrun;
 extern page_dir_entry page_directory[1024] __attribute__((aligned(SIZE_OF_PG)));
+extern page_table_entry page_table[1024] __attribute__((aligned(SIZE_OF_PG)));
 extern page_table_entry page_table_user_vidmem[1024] __attribute__((aligned(SIZE_OF_PG)));
 
 /* System Call Functions */
-
+int find_available_pid(){
+    int i;
+    for(i = MAX_TERMINALS; i<MAX_NUM_PROCESSES; i++){
+        if(processesid[i] == 0){
+            processesid[i] = 1;
+            return i; //found empty id
+        }
+    }
+    return -1; // at max pid's 
+}
 /*
 int execute(const uint8_t* command)
 Inputs:         command - gives the command + args from the terminal
@@ -37,15 +50,27 @@ Things done in execute:
 6. Set up context switch ( kernel stack base into esp of tss )
 7. IRET
 
-*/
 int32_t execute(const uint8_t *command)
 {
+*/
 
-    /* Checks if we have max number of processes: */
-    if (currpid >= MAX_NUM_PROCESSES) {
-        puts2("Too many processes called! (>3)\n", ERRMSG);
-        return 0;
+int32_t execute(const uint8_t *command)
+{
+    currpid = 3; //after init 0->2 always pid 3 for max processes check 
+    sti();
+    //enable_irq(0);
+    while(1){
+        if(currTerminal == terminalrun)
+        return execute_on_term(command, currTerminal);
     }
+ 
+
+}
+
+int32_t execute_on_term(const uint8_t *command, int term)
+{
+
+    
 
     /*  1. Extract name and args - check whether executable  */
 
@@ -53,7 +78,7 @@ int32_t execute(const uint8_t *command)
     uint8_t filename[MAX_FILENAME_LEN];
     uint8_t finalarg[MAX_ARG_LEN];
     uint8_t buffer[4];
-    int i = 0;
+    unsigned int i = 0;
     int filechar = 0;
     int finalchar = 0;
 
@@ -72,22 +97,25 @@ int32_t execute(const uint8_t *command)
     int start = 0;
     /* Parse the args / command name */
     for (; i < cmd_len; i++) {
+        //printf("%d ",i);
         if (start == 0) {
-            if (command[i] == ' ')
+            if ((command[i] == ' ') || (command[i] == '\t'))
                 continue;
             start = 1;
+            if(i <MAX_FILENAME_LEN)
             filename[filechar++] = command[i];
         } 
         else {
-            if (command[i] == ' ')
+            if ((command[i] == ' ') || (command[i] == '\t'))
                 break;
+            if(i<MAX_FILENAME_LEN)
             filename[filechar++] = command[i];
         }
     } 
     start = 0;
     for (; i < cmd_len; i++) {
         if (start == 0) {
-            if (command[i] == ' ')
+            if ((command[i] == ' ') || (command[i] == '\t'))
                 continue;
             start = 1;
             finalarg[finalchar++] = command[i];
@@ -123,15 +151,30 @@ int32_t execute(const uint8_t *command)
     if (!exec) 
         return -1;                              // it is not executable
 
+
+    /* Checks if we have max number of processes: */
+    if ((currpid >= 3)&&(!baseShellFlag)) {
+        int rval_pid = find_available_pid();
+        if (rval_pid < 0) {
+            puts2("Too many processes called! (>6)\n", ERRMSG);
+            return 0;
+        }
+        currpid = rval_pid;
+        terminalArray[term].currprocessid = rval_pid;
+    }
+    else if(baseShellFlag){
+        currpid = term;
+        terminalArray[term].currprocessid = term;
+    }
+    baseShellFlag = 0;
+
     cli();
 
     /* 4. Paging: Use PID to decide 8 + (PID*4MB)
           Then copy the whole file into that virtual address 128MB location.
     */
     
-    // Future checkpoints: make an array of structs. Right now, just use a single pid thing. 
-    currpid++;                                  // New process is active.
-    
+
     uint32_t physaddr = (PDE_PROCESS_START + currpid) * FOUR_MB;
     map_helper(PDE_VIRTUAL_MEM, physaddr);
     /*
@@ -161,14 +204,36 @@ int32_t execute(const uint8_t *command)
     
     int curraddr = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid + 1));
     pcb_t * currpcb; 
+    pcb_t * parentpcb;
     currpcb =  (pcb_t *)(curraddr);
-    
+
+    parentpcb = terminalArray[term].cur_PCB;
+
+    terminalArray[term].cur_PCB = currpcb;
+
+    //globalpcb = terminalArray[term].cur_PCB;
+
+
     currpcb->pid = currpid;
-    if (currpid == 0)
+    if ((currpid == 0 || currpid == 1 || currpid == 2 ))
         currpcb-> parent_id = -1; // check what parent of shell should be 
     else
-        currpcb-> parent_id = currpid - 1;
+        currpcb-> parent_id = parentpcb->pid;
+    /* if (!term_2_flag && (currTerminal == 1)) {
+        currpcb->parent_id = -1;
+        term_2_flag = 1;
+        currpid = 1;
+        terminalArray[1].currprocessid = 1;
+    }
+    else if (!term_3_flag && (currTerminal == 2)) {
+        currpcb->parent_id = -1;
+        term_3_flag = 1;
+        currpid = 2;
+        terminalArray[2].currprocessid = 2;
+    }
+    */
 
+   currpcb->termid = term;
     uint32_t save_esp = 0;
     uint32_t save_ebp = 0;
 
@@ -182,6 +247,8 @@ int32_t execute(const uint8_t *command)
 
     currpcb->saved_esp = save_esp;
     currpcb->saved_ebp = save_ebp;
+
+    currpcb->termid = term;
     
     /*  Set up the FD (1, 2 for terminal, rest empty) */
     for(i = 0; i<MAX_FD_LEN; i++) {
@@ -216,9 +283,9 @@ int32_t execute(const uint8_t *command)
     (currpcb->fdarray[1]).present = 1;
     
 
-    globalpcb = currpcb;
+    //globalpcb = currpcb;
     
-    strcpy((int8_t *)(globalpcb->argbuffer), (int8_t *)(finalarg));
+    strcpy((int8_t *)(currpcb->argbuffer), (int8_t *)(finalarg));
 
     /* 6. Set up context switch ( kernel stack base into esp of tss ) */
  
@@ -237,7 +304,7 @@ int32_t execute(const uint8_t *command)
         return -1;              // could not read those 4 bytes.
     uint32_t stack_eip = 0; // buffer[3],buffer[2],buffer[1],buffer[0]
     /* Reversing 4 bytes of the buffer (bytes 24-27 of the file) due to little endianness*/
-    stack_eip = (stack_eip | buffer[3]);
+    stack_eip = (stack_eip | buffer[3]); // acessing from top buffer bytes to bottom 3->0
     stack_eip = stack_eip << BUFFER_SHIFT;
     stack_eip = (stack_eip | buffer[2]);
     stack_eip = stack_eip << BUFFER_SHIFT;
@@ -249,7 +316,7 @@ int32_t execute(const uint8_t *command)
     uint32_t stack_esp = PROG_START - FOUR_BYTE_OFFSET;
     int usrDS = USER_DS;
     int usrCS = USER_CS;
-    sti();
+   // sti();
 
     /* Start doing IRET */    
     /* 
@@ -263,7 +330,10 @@ int32_t execute(const uint8_t *command)
     The ESP is basically the 132 MB location - 4 Bytes so we do not exceed the virtual stack location.
     */
    /* Oring to enable interrupts - 0x0200 with the flags, currently stored in eax */
-    
+//    cli();
+   
+   
+
     asm volatile("pushl %0;"
         "pushl %1; \n"
         "pushfl; \n"
@@ -306,7 +376,7 @@ Description:        The halt system call terminates a process, returning the spe
 */
 int32_t halt(uint8_t status)
 {
-   
+   cli();
 /* 1. Set up return value:
     - expand the 8-bit arg from BL into the 32-bit return value to the parent program
     - 8-bit 'status' arguement = the (one of 256) interupt handler that called the 'halt' */
@@ -318,8 +388,11 @@ int32_t halt(uint8_t status)
     }
 
 
-    int parent_pcbaddr;   
-    pcb_t* currpcb = (pcb_t *)globalpcb;
+    int parent_pcbaddr; 
+
+   
+    pcb_t* currpcb = terminalArray[terminalrun].cur_PCB;  //(pcb_t *)globalpcb;
+ 
     pcb_t* parentpcb;
 
     /* 2. Close all processes
@@ -327,21 +400,25 @@ int32_t halt(uint8_t status)
     - after 2.a, all currpcb == globalpcb AND all parentpcb == globalpcb - 1 */
     
     /* (a) check if the current process's parent is the shell program*/
-    if (currpid == 0 || currpcb->parent_id == -1){
-        currpid--;
+    if (currpcb->parent_id == -1){
+        baseShellFlag = 1;
         execute((const uint8_t *)"shell");
     }
     
-    parent_pcbaddr = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid));
+    parent_pcbaddr = EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpcb->parent_id+1));
     parentpcb = (pcb_t *)(parent_pcbaddr); 
 
     /* 3. set the current pcb->active bit to 0 (non active)*/
     currpcb->active = 0;
 
+    //set process id slot to avaliable 
+    processesid[currpcb->pid] = 0;
+    
+
     /* Close all things in fd table of the currpcb (or globalpcb)*/
     int i; int close_result;
     for(i=MIN_FD_VAL_STD; i < MAX_FD_LEN; i++){
-        if(globalpcb->fdarray[i].present == 1) {
+        if(currpcb->fdarray[i].present == 1) {
             close_result = close(i);
             if (close_result < 0)
                 return -1; // change!! error check
@@ -364,8 +441,8 @@ int32_t halt(uint8_t status)
     /* (c) Unmap pages for current process */
     /* currpid = static int global variable */
    
-    page_directory[PDE_VIRTUAL_MEM].p           = 0;
-    currpid--;
+    page_directory[PDE_VIRTUAL_MEM].p = 0;
+    currpid = currpcb->parent_id;
 
     /* (d) Map pages for parent process */
     /* currpid was decremented, now currpid is set to the parent (currpid - 1)*/
@@ -387,16 +464,18 @@ int32_t halt(uint8_t status)
     /* (b) Set TSS for parent. ksp = kernel stack pointer */
     uint32_t args_esp = currpcb->saved_esp;
     uint32_t args_ebp = currpcb->saved_ebp;
-    uint32_t parentksp = (uint32_t)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (currpid) ) - FOUR_BYTE_OFFSET);
+    uint32_t parentksp = (uint32_t)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (parentpid) ) - FOUR_BYTE_OFFSET); //change curpid to parent 
     tss.ss0 = KERNEL_DS;
     tss.esp0 = parentksp;
-    globalpcb = parentpcb;
+    //currpcb = parentpcb;
+    terminalArray[terminalrun].cur_PCB = parentpcb;
 
     /* 6. halt return (assembly)
     take in esp, ebp, retval
     set esp, ebp as esp ebp args
     set eax regs as ret val
     */
+   sti();
     asm volatile
     (
 
@@ -426,25 +505,30 @@ Description:        reads data from keyboard , file, device(RTC), or directory
 int32_t read(int32_t fd, void *buf, int32_t nbytes)
 {
     sti();
+    pcb_t * currpcb = terminalArray[terminalrun].cur_PCB;
 
     /* sanity check: initial file position at eof or beyonf end of curr file */
     if(buf == NULL || fd > MAX_FD_VAL || fd < MIN_FD_VAL || nbytes < 0) {return -1;}
 
     /* use a jmptable referenced by the tasks files array...
     which calls a generic handler for the specific file type's specific read function */
-
+    int rval = 0;
+    int rval2 = 0;
     if(fd == 1) return -1;                                  // This is terminal_write
 
-    if((fd == 0))
-        return terminal_read(fd, buf, nbytes);
+    if((fd == 0)){
+        rval2 = terminal_read(fd, buf, nbytes);
+        return rval2;
+    }
 
-    if(globalpcb->fdarray[fd].present == 0) 
+    if(currpcb->fdarray[fd].present == 0) 
     return -1;                                              // FD is absent 
 
 
-    int rval = ((globalpcb->fdarray[fd]).fileop.read)(fd, buf, nbytes);
+    rval = ((currpcb->fdarray[fd]).fileop.read)(fd, buf, nbytes);
     if (rval < 0)
         return -1;
+
     return rval;
 }
 
@@ -459,7 +543,7 @@ Description:        writes data to either the terminal or to a device (RTC), dep
 */
 int32_t write(int32_t fd, void *buf, int32_t nbytes)
 {
-    
+    pcb_t * currpcb = terminalArray[terminalrun].cur_PCB;
     /* sanity check: if device(RTC), else we write to terminal */
     if(buf == NULL || fd > MAX_FD_VAL || fd < MIN_FD_VAL || nbytes < 0) 
         return -1;
@@ -471,10 +555,10 @@ int32_t write(int32_t fd, void *buf, int32_t nbytes)
     if((fd == 1))
         return terminal_write(fd, buf, nbytes);
 
-    if(globalpcb->fdarray[fd].present == 0) 
+    if(currpcb->fdarray[fd].present == 0) 
         return -1;                                          // FD is absent
 
-    int rval = ((globalpcb->fdarray[fd]).fileop.write)(fd, buf, nbytes); // not sure how to call function
+    int rval = ((currpcb->fdarray[fd]).fileop.write)(fd, buf, nbytes); // not sure how to call function
     if (rval < 0)
         return -1;
     
@@ -494,7 +578,7 @@ int32_t open(const uint8_t *filename)
     int i;
     /* find the dir entry corresponding to the named file */
     if(filename == NULL) return -1;
-
+    pcb_t * currpcb = terminalArray[terminalrun].cur_PCB;
     int dentry_name_return;
     dentry_t currdentry;
 
@@ -506,7 +590,7 @@ int32_t open(const uint8_t *filename)
     /* Traverses through the file descriptor array for the  free fd entry. */
     int fd = -1;
      for(i = START_FD_VAL; i<MAX_FD_LEN; i++){
-        if(!(globalpcb->fdarray[i]).present){
+        if(!(currpcb->fdarray[i]).present){
             fd = i;
             break;
         } 
@@ -518,33 +602,33 @@ int32_t open(const uint8_t *filename)
     /* allocate an unused file descriptor iff filename is not already present */
     /* RTC */
     if(currdentry.ftype == TYPE_RTC){
-        (globalpcb->fdarray[fd]).fileop.open = open_rtc;
-        (globalpcb->fdarray[fd]).fileop.read = read_rtc;
-        (globalpcb->fdarray[fd]).fileop.write = write_rtc;
-        (globalpcb->fdarray[fd]).fileop.close = close_rtc;
-        (globalpcb->fdarray[fd]).filepos = -1;
+        (currpcb->fdarray[fd]).fileop.open = open_rtc;
+        (currpcb->fdarray[fd]).fileop.read = read_rtc;
+        (currpcb->fdarray[fd]).fileop.write = write_rtc;
+        (currpcb->fdarray[fd]).fileop.close = close_rtc;
+        (currpcb->fdarray[fd]).filepos = -1;
     }
     /* DIRECTORY */
     else if(currdentry.ftype == TYPE_DIR){
-        (globalpcb->fdarray[fd]).fileop.open = open_dir;
-        (globalpcb->fdarray[fd]).fileop.read = read_dir;
-        (globalpcb->fdarray[fd]).fileop.write = write_dir;
-        (globalpcb->fdarray[fd]).fileop.close = close_dir;
-        (globalpcb->fdarray[fd]).filepos = 0;
+        (currpcb->fdarray[fd]).fileop.open = open_dir;
+        (currpcb->fdarray[fd]).fileop.read = read_dir;
+        (currpcb->fdarray[fd]).fileop.write = write_dir;
+        (currpcb->fdarray[fd]).fileop.close = close_dir;
+        (currpcb->fdarray[fd]).filepos = 0;
     }
     /* NORMAL FILE */
     else if(currdentry.ftype == TYPE_FILE){
-        (globalpcb->fdarray[fd]).fileop.open = open_file;
-        (globalpcb->fdarray[fd]).fileop.read = read_file;
-        (globalpcb->fdarray[fd]).fileop.write = write_file;
-        (globalpcb->fdarray[fd]).fileop.close = close_file;
-        (globalpcb->fdarray[fd]).filepos = 0;
+        (currpcb->fdarray[fd]).fileop.open = open_file;
+        (currpcb->fdarray[fd]).fileop.read = read_file;
+        (currpcb->fdarray[fd]).fileop.write = write_file;
+        (currpcb->fdarray[fd]).fileop.close = close_file;
+        (currpcb->fdarray[fd]).filepos = 0;
     }
-    (globalpcb->fdarray[fd]).inode = currdentry.inode;
-    (globalpcb->fdarray[fd]).present = 1;
-    (globalpcb->fdarray[fd]).type = currdentry.ftype;
+    (currpcb->fdarray[fd]).inode = currdentry.inode;
+    (currpcb->fdarray[fd]).present = 1;
+    (currpcb->fdarray[fd]).type = currdentry.ftype;
     
-    int rval =  (globalpcb->fdarray[fd]).fileop.open(filename);
+    int rval =  (currpcb->fdarray[fd]).fileop.open(filename,fd);
     
     /* if named file does not exist OR if no descriptor are free, then return -1 */
     if (rval < 0)
@@ -561,30 +645,34 @@ Description:            Closes the respective file (rtc, terminal, file or direc
 */
 int32_t close(int32_t fd)
 {
+    pcb_t * currpcb = terminalArray[terminalrun].cur_PCB;
+
     if((fd < MIN_FD_VAL_STD) || (fd > MAX_FD_VAL)) 
     return -1;                                          // cannot be stdin or stdout
 
-    if ((globalpcb->fdarray[fd]).present == 0)
+    if ((currpcb->fdarray[fd]).present == 0)
         return -1;
 
-    int rval = ((globalpcb->fdarray[fd]).fileop.close)(fd); // try closing the file
+    int rval = ((currpcb->fdarray[fd]).fileop.close)(fd); // try closing the file
     if (rval < 0)
-        return -1;                                          // could not close the file
+        return -1;  
+        
+                                                // could not close the file
         
     // Otherwise you can safely close it.
-    (globalpcb->fdarray[fd]).fileop.open = 0;
-    (globalpcb->fdarray[fd]).fileop.read = 0;
-    (globalpcb->fdarray[fd]).fileop.write = 0;
-    (globalpcb->fdarray[fd]).fileop.close = 0;
+    (currpcb->fdarray[fd]).fileop.open = 0;
+    (currpcb->fdarray[fd]).fileop.read = 0;
+    (currpcb->fdarray[fd]).fileop.write = 0;
+    (currpcb->fdarray[fd]).fileop.close = 0;
 
-    (globalpcb->fdarray[fd]).inode = 0;
-    (globalpcb->fdarray[fd]).filepos = 0;
-    (globalpcb->fdarray[fd]).present = 0;
-    (globalpcb->fdarray[fd]).type = -1;
+    (currpcb->fdarray[fd]).inode = 0;
+    (currpcb->fdarray[fd]).filepos = 0;
+    (currpcb->fdarray[fd]).present = 0;
+    (currpcb->fdarray[fd]).type = -1;
 
     //f2,f3 reserved (not used for now)
-    (globalpcb->fdarray[fd]).f2 = -1;
-    (globalpcb->fdarray[fd]).f3 = -1;
+    (currpcb->fdarray[fd]).f2 = -1;
+    (currpcb->fdarray[fd]).f3 = -1;
 
     return 0;
 }
@@ -597,11 +685,11 @@ Description:            Puts the arguments from the PCB into the buffer
 */
 int32_t getargs(uint8_t *buf, int32_t nbytes)
 { 
-
-    if((buf == NULL) || (strlen((int8_t *)globalpcb->argbuffer) == 0) || (strlen((int8_t *)globalpcb->argbuffer) + 1 > nbytes)) 
+    pcb_t * currpcb = terminalArray[terminalrun].cur_PCB;
+    if((buf == NULL) || (strlen((int8_t *)currpcb->argbuffer) == 0) || (strlen((int8_t *)currpcb->argbuffer) + 1 > nbytes)) 
         return -1;                      // Added based off "if the arguments and a terminal NULL (0-byte) do not fit in the buffer"
 
-    strncpy((int8_t *)buf, (int8_t *)(globalpcb->argbuffer), nbytes);
+    strncpy((int8_t *)buf, (int8_t *)(currpcb->argbuffer), nbytes);
 
     return 0;
 }
@@ -616,6 +704,7 @@ Description:            It moves the user's pointer to the newly created page th
 int32_t vidmap(uint8_t **screen_start)
 {
     /* We are given a double pointer - we need to check validity.*/
+    pcb_t * currpcb = terminalArray[terminalrun].cur_PCB;
     if (screen_start == NULL)
         return -1;
     //  screen_start from test: 0x8050d40
@@ -626,18 +715,35 @@ int32_t vidmap(uint8_t **screen_start)
 
     /* Setting up Video memory for user where physical is B8 and virtual is 132 + B8. (0xB8000 – 0xC0000) descripters.pdf pg 5
     PD entry is 0, PT entry is B8
-    */
-    page_directory[USERVIDMEM_PDE_ENTRY].pt_baddr = (int)(page_table_user_vidmem) >> PAGE_SHIFT;       // Shift << 12 since lower 12 bits 0 for alignment B8000 -> B8
-    page_directory[USERVIDMEM_PDE_ENTRY].rw = 1;
-    page_directory[USERVIDMEM_PDE_ENTRY].us = 1;
-    page_directory[USERVIDMEM_PDE_ENTRY].p = 1;
-    /* Setting Video Memory inside the page table */
-    page_table_user_vidmem[(VIDEO >> PAGE_SHIFT)].pt_baddr = (VIDEO>>PAGE_SHIFT);   
-    page_table_user_vidmem[(VIDEO >> PAGE_SHIFT)].us = 1;                   // set us to 1 for user 
-    page_table_user_vidmem[(VIDEO >> PAGE_SHIFT)].p = 1; 
-    loadPageDir(page_directory); // flush TLB //? check with os dev maybe other stuff for flushing 
+    // */
+    // page_directory[USERVIDMEM_PDE_ENTRY].pt_baddr = (int)(page_table_user_vidmem) >> PAGE_SHIFT;       // Shift << 12 since lower 12 bits 0 for alignment B8000 -> B8
+    // page_directory[USERVIDMEM_PDE_ENTRY].rw = 1;
+    // page_directory[USERVIDMEM_PDE_ENTRY].us = 1;
+    // page_directory[USERVIDMEM_PDE_ENTRY].p = 1;
+    // /* Setting Video Memory inside the page table */
 
-    *screen_start = (uint8_t *)VID_START;
+    // page_table_user_vidmem[(VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT].pt_baddr = ((VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT);   
+    // //page_table_user_vidmem[(VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT].us = 1;                   // set us to 1 for user 
+    // //page_table_user_vidmem[(VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT].p = 1; 
+    
+    // page_table_user_vidmem[(VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT].pt_baddr = (VIDEO>> PAGE_SHIFT);   
+    // page_table_user_vidmem[(VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT].us = 1;                   // set us to 1 for user 
+    // page_table_user_vidmem[(VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT].p = 1; 
+
+    // loadPageDir(page_directory); // flush TLB //? check with os dev maybe other stuff for flushing 
+
+    *screen_start = (uint8_t *)terminalArray[currpcb->termid].vidmemloc; //(uint8_t *)VID_START;
+    // if (currpcb->termid == 0) {
+    //     *screen_start = (uint8_t *)VIDEO_T1;
+    // }
+    // else if (currpcb->termid == 1)
+    // {
+    //     *screen_start = (uint8_t *)VIDEO_T2;
+    // }
+    // else if (currpcb->termid == 2)
+    // {
+    //     *screen_start = (uint8_t *)VIDEO_T3;
+    // }
 
     return (int32_t)(*screen_start);
 }
@@ -725,6 +831,23 @@ int32_t map_helper(uint32_t pdeentry, uint32_t pdeaddr) {
     return 0;
 }
 
+/*
+int32_t map_table(uint32_t pdeentry, uint32_t pdeaddr)
+Inputs:             ptentry: the entry of the PT that needs to be changed.
+                    pdeaddr: the address of the PT to be changed depending on the process number
+Outputs:            0 if successful
+Description:        Maps the user page to the right location
+*/
+int32_t map_table(uint32_t ptentry, uint32_t pteaddr) {
+    page_table[ptentry].pt_baddr = pteaddr >> PAGE_SHIFT; 
+    page_table[ptentry].p = 1;
+    /* Flush the TLB */
+    loadPageDir(page_directory); // flush TLB 
+    return 0;
+}
+
+
+
 
 /*
 int32_t unmap_helper(uint32_t pdeentry, uint32_t pdeaddr)
@@ -743,6 +866,7 @@ int32_t unmap_helper(uint32_t pdeentry, uint32_t pdeaddr) {
     loadPageDir(page_directory); // flush TLB //? check with os dev maybe other stuff for flushing
     return 0;
 }
+
 
 
 

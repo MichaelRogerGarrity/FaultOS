@@ -17,7 +17,9 @@ IRET
 
 INTR_LINK(rtc_handler_linkage, rtc_handler);
 
-INTR_LINK(keyboard_handler_function, keyboard_handler);
+INTR_LINK(keyboard_handler_function, keyboard_handler); 
+
+INTR_LINK(pit_handler_linkage, pit_handler); // interrlink.S
 
 /*
 System Call Functions 

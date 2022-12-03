@@ -8,7 +8,7 @@
 /* Interrupt Handlers */
 extern void rtc_handler_linkage();
 extern void keyboard_handler_function();
-
+extern void pit_handler_linkage(); // linkageheader.h
 
 /* System Calls */
 extern int32_t halt_linkage();
