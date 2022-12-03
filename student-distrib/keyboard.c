@@ -91,7 +91,6 @@ Side Effects: Prints what was typed on the keyboard.
 */
 extern void keyboard_handler(void) {
     uint32_t keycode = inb(KEYBOARD_PORT);
-    ctrlflag = 0;
 
     /* This chunk of logic sets the flags for function keys */
     if((keycode == KEYBOARD_SHIFT_DOWN) || (keycode == KEYBOARD_SHIFT_DOWN2)){

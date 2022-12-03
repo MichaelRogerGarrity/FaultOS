@@ -48,7 +48,7 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
     if(nbytes < 0) 
         return -1;
     int i;
-    int count = KEYBOARD_BUFFER_MAX_SIZE-1;
+    int count = KEYBOARD_BUFFER_MAX_SIZE;
     int j;
     if(nbytes > KEYBOARD_BUFFER_MAX_SIZE){   // handles overflow by just chopping off extra bytes
         nbytes = KEYBOARD_BUFFER_MAX_SIZE;
@@ -134,6 +134,7 @@ int32_t terminal_switch(int32_t newTerminal){
     if(newTerminal == currTerminal){
             return 0;
     }
+    enterflag = 0;
     //enable_irq(0);
     //cli();
     // terminalArray[currTerminal].cursor_x = get_screen_x();
