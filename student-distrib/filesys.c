@@ -12,7 +12,7 @@
 
 // extern terminalStruct_t terminalArray[3];
 
-extern terminalrun;
+extern int terminalrun;
 
 int32_t file_init(uint32_t startAddr) {
     fstart_adddr = startAddr;

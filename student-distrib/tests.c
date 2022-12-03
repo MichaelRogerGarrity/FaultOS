@@ -13,9 +13,9 @@
 // #define FAIL 0
 
 // /* format these macros as you see fit */
-// #define TEST_HEADER 	\
+// #define TEST_HEADER 	\/ /* remove / to compile*/
 // 	printf("[TEST %s] Running %s at %s:%d\n", __FUNCTION__, __FUNCTION__, __FILE__, __LINE__)
-// #define TEST_OUTPUT(name, result)	\
+// #define TEST_OUTPUT(name, result)	\/ /* remove / to compile*/
 // 	printf("[TEST %s] Result = %s\n", name, (result) ? "PASS" : "FAIL");
 
 // static inline void assertion_failure(){

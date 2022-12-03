@@ -62,6 +62,7 @@ extern int32_t vidmap(uint8_t** screen_start);                     // 8
 extern int32_t set_handler(int32_t signum, void* handler_address); // 9
 extern int32_t sigreturn(void);  
 
+
 int32_t map_helper(uint32_t pdeentry, uint32_t pdeaddr);
 int32_t map_table(uint32_t ptentry, uint32_t pteaddr);
 int find_available_pid();
@@ -98,7 +99,7 @@ typedef struct file_desc
 /* PCB Struct */
 typedef struct pcb_struct
 {
-    int8_t pid;
+    uint8_t pid;
     int8_t parent_id;
     uint32_t saved_esp;
     uint32_t saved_ebp;
@@ -121,5 +122,6 @@ typedef struct terminal_struct
 
 } __attribute__((packed)) terminal_t;
 int currpid;
+int baseShellFlag;
 
 #endif /* _SYSCALL_H */

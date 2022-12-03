@@ -7,7 +7,7 @@
 #include "lib.h"
 #include "i8259.h"
 
-extern terminalrun;
+extern int terminalrun;
 
 // Declaration for the RTC Test interrupts.  
 void test_interrupts();

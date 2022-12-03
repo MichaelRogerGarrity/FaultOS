@@ -140,7 +140,7 @@ extern void keyboard_handler(void) {
         if(currTerminal != 0){
             terminal_switch(TERMINAL_1_NUM);
             send_eoi(KEYBOARD_IRQ);
-            return 0;
+            return;
         }
     }
     else if((altflag) && (keycode == KEYBOARD_F2_DOWN)){
@@ -151,7 +151,7 @@ extern void keyboard_handler(void) {
             //     term_2_flag = 1; // Removed in the version where we did the flag stuff in the execute
             //     // execute("shell");
             // }
-            return 0;
+            return;
         }
     }
     else if((altflag) && (keycode == KEYBOARD_F3_DOWN)){
@@ -162,7 +162,7 @@ extern void keyboard_handler(void) {
             //     term_3_flag = 1; // Removed in the version where we did the flag stuff in the execute
             //     execute("shell"); 
             // }
-            return 0;
+            return;
         }
     }
     

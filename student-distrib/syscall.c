@@ -14,7 +14,7 @@
 
 // extern int8_t term_2_flag;
 // extern int8_t term_3_flag;
-extern terminalrun;
+extern int terminalrun;
 extern page_dir_entry page_directory[1024] __attribute__((aligned(SIZE_OF_PG)));
 extern page_table_entry page_table[1024] __attribute__((aligned(SIZE_OF_PG)));
 extern page_table_entry page_table_user_vidmem[1024] __attribute__((aligned(SIZE_OF_PG)));
@@ -70,16 +70,7 @@ int32_t execute(const uint8_t *command)
 int32_t execute_on_term(const uint8_t *command, int term)
 {
 
-    /* Checks if we have max number of processes: */
-    if (currpid >= 3) {
-        int rval_pid = find_available_pid();
-        if (rval_pid < 0) {
-            puts2("Too many processes called! (>6)\n", ERRMSG);
-            return 0;
-        }
-        currpid = rval_pid;
-        terminalArray[term].currprocessid = rval_pid;
-    }
+    
 
     /*  1. Extract name and args - check whether executable  */
 
@@ -87,7 +78,7 @@ int32_t execute_on_term(const uint8_t *command, int term)
     uint8_t filename[MAX_FILENAME_LEN];
     uint8_t finalarg[MAX_ARG_LEN];
     uint8_t buffer[4];
-    int i = 0;
+    unsigned int i = 0;
     int filechar = 0;
     int finalchar = 0;
 
@@ -106,15 +97,18 @@ int32_t execute_on_term(const uint8_t *command, int term)
     int start = 0;
     /* Parse the args / command name */
     for (; i < cmd_len; i++) {
+        //printf("%d ",i);
         if (start == 0) {
             if (command[i] == ' ')
                 continue;
             start = 1;
+            if(i <MAX_FILENAME_LEN)
             filename[filechar++] = command[i];
         } 
         else {
             if (command[i] == ' ')
                 break;
+            if(i<MAX_FILENAME_LEN)
             filename[filechar++] = command[i];
         }
     } 
@@ -156,6 +150,23 @@ int32_t execute_on_term(const uint8_t *command, int term)
         exec = 1;
     if (!exec) 
         return -1;                              // it is not executable
+
+
+    /* Checks if we have max number of processes: */
+    if ((currpid >= 3)&&(!baseShellFlag)) {
+        int rval_pid = find_available_pid();
+        if (rval_pid < 0) {
+            puts2("Too many processes called! (>6)\n", ERRMSG);
+            return 0;
+        }
+        currpid = rval_pid;
+        terminalArray[term].currprocessid = rval_pid;
+    }
+    else if(baseShellFlag){
+        currpid = term;
+        terminalArray[term].currprocessid = term;
+    }
+    baseShellFlag = 0;
 
     cli();
 
@@ -390,6 +401,7 @@ int32_t halt(uint8_t status)
     
     /* (a) check if the current process's parent is the shell program*/
     if (currpcb->parent_id == -1){
+        baseShellFlag = 1;
         execute((const uint8_t *)"shell");
     }
     
@@ -400,7 +412,8 @@ int32_t halt(uint8_t status)
     currpcb->active = 0;
 
     //set process id slot to avaliable 
-    processesid[currpid] = 0;
+    processesid[currpcb->pid] = 0;
+    
 
     /* Close all things in fd table of the currpcb (or globalpcb)*/
     int i; int close_result;
@@ -499,19 +512,23 @@ int32_t read(int32_t fd, void *buf, int32_t nbytes)
 
     /* use a jmptable referenced by the tasks files array...
     which calls a generic handler for the specific file type's specific read function */
-
+    int rval = 0;
+    int rval2 = 0;
     if(fd == 1) return -1;                                  // This is terminal_write
 
-    if((fd == 0))
-        return terminal_read(fd, buf, nbytes);
+    if((fd == 0)){
+        rval2 = terminal_read(fd, buf, nbytes);
+        return rval2;
+    }
 
     if(currpcb->fdarray[fd].present == 0) 
     return -1;                                              // FD is absent 
 
 
-    int rval = ((currpcb->fdarray[fd]).fileop.read)(fd, buf, nbytes);
+    rval = ((currpcb->fdarray[fd]).fileop.read)(fd, buf, nbytes);
     if (rval < 0)
         return -1;
+
     return rval;
 }
 
@@ -717,15 +734,15 @@ int32_t vidmap(uint8_t **screen_start)
 
     // *screen_start = (uint8_t *)terminalArray[currpcb->termid].vidmemloc; //(uint8_t *)VID_START;
     if (currpcb->termid == 0) {
-        *screen_start = VIDEO_T1;
+        *screen_start = (uint8_t *)VIDEO_T1;
     }
     else if (currpcb->termid == 1)
     {
-        *screen_start = VIDEO_T2;
+        *screen_start = (uint8_t *)VIDEO_T2;
     }
     else if (currpcb->termid == 2)
     {
-        *screen_start = VIDEO_T3;
+        *screen_start = (uint8_t *)VIDEO_T3;
     }
 
     return (int32_t)(*screen_start);

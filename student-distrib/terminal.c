@@ -13,7 +13,7 @@ Inputs: const uint8_t* filename = name of file to be opened
 Outputs: returns int32_t = 0 on success
 */
 //extern global_pcb;
-extern terminalrun;
+extern int terminalrun;
 
 
 
@@ -48,7 +48,7 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
     if(nbytes < 0) 
         return -1;
     int i;
-    int count;
+    int count = 127;
     int j;
     if(nbytes > KEYBOARD_BUFFER_MAX_SIZE){   // handles overflow by just chopping off extra bytes
         nbytes = KEYBOARD_BUFFER_MAX_SIZE;
@@ -145,13 +145,13 @@ int32_t terminal_switch(int32_t newTerminal){
 
     /* Copy from the current terminal's keyboard buffer into the stored buffer */
 
-    // memcpy(terminalArray[currTerminal].terminalbuffer, keyboardbuffer, KEYBOARD_BUFFER_MAX_SIZE);
+    memcpy((uint8_t *)(terminalArray[currTerminal].terminalbuffer), (uint8_t *)(keyboardbuffer), KEYBOARD_BUFFER_MAX_SIZE);
     /* Copy from the stored buffer of the new terminal into the current terminal's keyboard buffer */
-    // memcpy(keyboardbuffer, terminalArray[newTerminal].terminalbuffer, KEYBOARD_BUFFER_MAX_SIZE);
+    memcpy((uint8_t *)(keyboardbuffer), (uint8_t *)(terminalArray[newTerminal].terminalbuffer), KEYBOARD_BUFFER_MAX_SIZE);
 
     /*newTerminal should map to vid mem*/
     /* Then copy from the new terminal location into vid mem */
-    memcpy(VIDEO, (VIDEO_T1 + FOUR_KILO_BYTE * (newTerminal))  , FOUR_KILO_BYTE);
+    memcpy((uint8_t *)(VIDEO), (uint8_t *)(VIDEO_T1 + FOUR_KILO_BYTE * (newTerminal))  , FOUR_KILO_BYTE);
     map_table( (VIDEO_T1 + FOUR_KILO_BYTE * (newTerminal)) >> PAGE_SHIFT  , VIDEO  ); //???
     /* Update the current terminal's cursor */
     update_cursor(terminalArray[newTerminal].cursor_x, terminalArray[newTerminal].cursor_y);
@@ -220,9 +220,9 @@ void terminal_init(){
         // else
         //     map_table((VIDEO_T1 + FOUR_KILO_BYTE *i) >> PAGE_SHIFT, (VIDEO_T1 + FOUR_KILO_BYTE *i));
     }
-    terminalArray[0].vidmemloc = (VIDEO_T1);
-    terminalArray[1].vidmemloc = (VIDEO_T2);
-    terminalArray[2].vidmemloc = VIDEO_T3;
+    terminalArray[0].vidmemloc = (uint32_t)(VIDEO_T1);
+    terminalArray[1].vidmemloc = (uint32_t)(VIDEO_T2);
+    terminalArray[2].vidmemloc = (uint32_t)(VIDEO_T3);
     currpid = -1;
     currTerminal = 0;
     // runningterminal = 0;

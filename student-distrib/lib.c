@@ -13,7 +13,7 @@ static char* video_mem2 = (char*)VIDEO_T2;
 static char* video_mem3 = (char*)VIDEO_T3;
 
 
-extern terminalrun;
+extern int terminalrun;
 /* void clear(void);
  * Inputs: void
  * Return Value: none
@@ -231,7 +231,7 @@ void scroll() {
             screen_y = (i / NUM_COLS);
             // bottom row is cleared
             *(uint8_t*)(video_mem1 + ((NUM_COLS * screen_y + screen_x) << 1)) = '\0';
-            *(uint8_t*)(video_mem1 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+            *(uint8_t*)(video_mem1 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = T1ATTRIB;
         }
     }
     else if(currpcb->termid == 1){
@@ -247,7 +247,7 @@ void scroll() {
             screen_y = (i / NUM_COLS);
             // bottom row is cleared
             *(uint8_t*)(video_mem2 + ((NUM_COLS * screen_y + screen_x) << 1)) = '\0';
-            *(uint8_t*)(video_mem2 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+            *(uint8_t*)(video_mem2 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = T2ATTRIB;
         }
     }
     else if(currpcb->termid == 2){
@@ -263,7 +263,7 @@ void scroll() {
             screen_y = (i / NUM_COLS);
             // bottom row is cleared
             *(uint8_t*)(video_mem3 + ((NUM_COLS * screen_y + screen_x) << 1)) = '\0';
-            *(uint8_t*)(video_mem3 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+            *(uint8_t*)(video_mem3 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = T3ATTRIB;
         }
     }
 
@@ -301,7 +301,7 @@ void scrollKeyboard() {
             screen_y = (i / NUM_COLS);
             // bottom row is cleared
             *(uint8_t*)(video_mem1 + ((NUM_COLS * screen_y + screen_x) << 1)) = '\0';
-            *(uint8_t*)(video_mem1 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+            *(uint8_t*)(video_mem1 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = T1ATTRIB;
         }
     }
     else if(currTerminal == 1){
@@ -317,7 +317,7 @@ void scrollKeyboard() {
             screen_y = (i / NUM_COLS);
             // bottom row is cleared
             *(uint8_t*)(video_mem2 + ((NUM_COLS * screen_y + screen_x) << 1)) = '\0';
-            *(uint8_t*)(video_mem2 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+            *(uint8_t*)(video_mem2 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = T2ATTRIB;
         }
     }
     else if(currTerminal == 2){
@@ -333,7 +333,7 @@ void scrollKeyboard() {
             screen_y = (i / NUM_COLS);
             // bottom row is cleared
             *(uint8_t*)(video_mem3 + ((NUM_COLS * screen_y + screen_x) << 1)) = '\0';
-            *(uint8_t*)(video_mem3 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+            *(uint8_t*)(video_mem3 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = T3ATTRIB;
         }
     }
 
@@ -379,7 +379,7 @@ void putc2(uint8_t c) {
         }
         else {
             *(uint8_t*)(video_mem1 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1)) = c;
-            *(uint8_t*)(video_mem1 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1) + 1) = ATTRIB;
+            *(uint8_t*)(video_mem1 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1) + 1) = T1ATTRIB;
             curr_screen_x++;
             if (curr_screen_x >= NUM_COLS) {
                 if (curr_screen_y == NUM_ROWS - 1) {
@@ -408,7 +408,7 @@ void putc2(uint8_t c) {
         }
         else {
             *(uint8_t*)(video_mem2 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1)) = c;
-            *(uint8_t*)(video_mem2 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1) + 1) = ATTRIB;
+            *(uint8_t*)(video_mem2 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1) + 1) = T2ATTRIB;
             curr_screen_x++;
             if (curr_screen_x >= NUM_COLS) {
                 if (curr_screen_y == NUM_ROWS - 1) {
@@ -437,7 +437,7 @@ void putc2(uint8_t c) {
         }
         else {
             *(uint8_t*)(video_mem3 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1)) = c;
-            *(uint8_t*)(video_mem3 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1) + 1) = ATTRIB;
+            *(uint8_t*)(video_mem3 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1) + 1) = T3ATTRIB;
             curr_screen_x++;
             if (screen_x >= NUM_COLS) {
                 if (curr_screen_y == NUM_ROWS - 1) {
@@ -481,7 +481,7 @@ void putc2Keyboard(uint8_t c) {
         }
         else {
             *(uint8_t*)(video_mem1 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1)) = c;
-            *(uint8_t*)(video_mem1 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1) + 1) = ATTRIB;
+            *(uint8_t*)(video_mem1 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1) + 1) = T1ATTRIB;
             curr_screen_x++;
             if (curr_screen_x >= NUM_COLS) {
                 if (curr_screen_y == NUM_ROWS - 1) {
@@ -510,7 +510,7 @@ void putc2Keyboard(uint8_t c) {
         }
         else {
             *(uint8_t*)(video_mem2 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1)) = c;
-            *(uint8_t*)(video_mem2 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1) + 1) = ATTRIB;
+            *(uint8_t*)(video_mem2 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1) + 1) = T2ATTRIB;
             curr_screen_x++;
             if (curr_screen_x >= NUM_COLS) {
                 if (curr_screen_y == NUM_ROWS - 1) {
@@ -539,7 +539,7 @@ void putc2Keyboard(uint8_t c) {
         }
         else {
             *(uint8_t*)(video_mem3 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1)) = c;
-            *(uint8_t*)(video_mem3 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1) + 1) = ATTRIB;
+            *(uint8_t*)(video_mem3 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1) + 1) = T3ATTRIB;
             curr_screen_x++;
             if (screen_x >= NUM_COLS) {
                 if (curr_screen_y == NUM_ROWS - 1) {

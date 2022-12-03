@@ -23,6 +23,7 @@
 
 /* Externally visible functions: Defining he functions here. */
 void init_page();
+void pit_init();
 int32_t execute(const uint8_t *command);
 
 /* Check if MAGIC is valid and print the Multiboot information structure
