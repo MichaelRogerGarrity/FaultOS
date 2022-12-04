@@ -12,7 +12,6 @@ Description: Terminal's open function
 Inputs: const uint8_t* filename = name of file to be opened
 Outputs: returns int32_t = 0 on success
 */
-//extern global_pcb;
 extern int terminalrun;
 
 
@@ -82,7 +81,6 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
             return count;
         }
 
-    //return 0;
     }
 }
 
@@ -101,13 +99,8 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
     int i;
     int linecount;
 
-    //set_screen_x(0);
-    
     linecount = charcount/NUM_COLS;
     charcount = 0;
-    //set_screen_y(get_screen_y()-linecount); // handles unknown number of lines fed as input
-    // if(keyboardbuffersize != 0)
-    // putc2('\n');
     for(i=0; i<nbytes; i++){
         if(buft[i] != '\0'){
             if(buft[i] == '\t'){ // tab is equivalent to four spaces
@@ -126,21 +119,26 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
     return 0;
 }
 
+/*
+int32_t terminal_switch(int32_t newTerminal)
+Description: Terminal switch function. Swaps the visible terminal given input from the keyboard
+Inputs: int32_t newTerminal = terminal to be switched to
+Outputs: returns int32_t = 0 on success, -1 if newTerminal is out of bounds
+*/
 int32_t terminal_switch(int32_t newTerminal){
     // pcb_t * prev_pcb;
     if(newTerminal > TERMINAL_3_NUM || newTerminal < TERMINAL_1_NUM)
         return -1;      // CHECK
 
-    if(newTerminal == currTerminal){
+    if(newTerminal == currTerminal){ //dont switch if on the same
             return 0;
     }
     enterflag = 0;
-    //enable_irq(0);
-    //cli();
-        /* unmap current to itself */
+    
+    /* unmap current to itself */
     map_table((VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT  , (VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal))   );
     /* First copy vid mem to the actual terminal location */
-    memcpy((uint8_t *)((VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) ), (uint8_t *)(VIDEO  ), FOUR_KILO_BYTE);
+    memcpy((uint8_t *)((VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) ), (uint8_t *)(VIDEO), FOUR_KILO_BYTE);
 
     /* Copy from the current terminal's keyboard buffer into the stored buffer */
 
@@ -148,7 +146,7 @@ int32_t terminal_switch(int32_t newTerminal){
     /* Copy from the stored buffer of the new terminal into the current terminal's keyboard buffer */
     memcpy((uint8_t *)(keyboardbuffer), (uint8_t *)(terminalArray[newTerminal].terminalbuffer), KEYBOARD_BUFFER_MAX_SIZE);
 
-    /*newTerminal should map to vid mem*/
+    /* newTerminal should map to vid mem*/
     /* Then copy from the new terminal location into vid mem */
     memcpy((uint8_t *)(VIDEO), (uint8_t *)(VIDEO_T1 + FOUR_KILO_BYTE * (newTerminal))  , FOUR_KILO_BYTE);
     map_table( (VIDEO_T1 + FOUR_KILO_BYTE * (newTerminal)) >> PAGE_SHIFT  , VIDEO  ); //???
@@ -162,22 +160,22 @@ int32_t terminal_switch(int32_t newTerminal){
     return 0;
 }
 
-
+/*
+int32_t terminal_init()
+Description: Terminal's initialization function
+Inputs: none
+Outputs: none
+*/
 void terminal_init(){
     int i; 
     currpid = 0;
-    
+    /* Inintialize the values in the terminal struct for all 3 terminals. */
     for(i = 0; i<MAX_TERMINALS; i++){
         processesid[i] = 1;    // SAYS PROCESS IS ACTIVE
         terminalArray[i].currRTC = -1;
         terminalArray[i].cur_PCB = NULL;
-        // terminalArray[i].savedt_esp = ;
-        // terminalArray[i].savedt_ebp = ;
-        //terminalArray[i].terminalbuffer;
-
         terminalArray[i].cursor_x = 0;
         terminalArray[i].cursor_y = 0;
-
         terminalArray[i].currprocessid = i;
 
     }
@@ -186,7 +184,6 @@ void terminal_init(){
     terminalArray[TERMINAL_3_NUM].vidmemloc = (uint32_t)(VIDEO_T3);
     currpid = -1;
     currTerminal = 0;
-
 
 }
 

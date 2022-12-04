@@ -15,9 +15,9 @@
 // extern int8_t term_2_flag;
 // extern int8_t term_3_flag;
 extern int terminalrun;
-extern page_dir_entry page_directory[1024] __attribute__((aligned(SIZE_OF_PG)));
-extern page_table_entry page_table[1024] __attribute__((aligned(SIZE_OF_PG)));
-extern page_table_entry page_table_user_vidmem[1024] __attribute__((aligned(SIZE_OF_PG)));
+extern page_dir_entry page_directory[NUM_ELEMS_PAGE] __attribute__((aligned(SIZE_OF_PG)));
+extern page_table_entry page_table[NUM_ELEMS_PAGE] __attribute__((aligned(SIZE_OF_PG)));
+extern page_table_entry page_table_user_vidmem[NUM_ELEMS_PAGE] __attribute__((aligned(SIZE_OF_PG)));
 
 /* System Call Functions */
 int find_available_pid(){
@@ -34,7 +34,26 @@ int find_available_pid(){
 int execute(const uint8_t* command)
 Inputs:         command - gives the command + args from the terminal
 Outputs:        integer - whether it happened successfully (0) or not (-1).
-Description:    It helps us execute the functions on request by the user. 
+Description:    It helps us execute the functions on request by the user by calling execute_on_term. 
+
+*/
+
+int32_t execute(const uint8_t *command)
+{
+    currpid = 3; //after init 0->2 always pid 3 for max processes check 
+    sti();
+    while(1){
+        if(currTerminal == terminalrun)
+        return execute_on_term(command, currTerminal);
+    }
+    return 0;
+}
+
+/*
+int execute_on_term(const uint8_t* command)
+Inputs:         command - gives the command + args from the terminal
+Outputs:        integer - whether it happened successfully (0) or not (-1).
+Description:    It helps us execute the functions on request by the user.
 
 Things done in execute:
 
@@ -50,28 +69,9 @@ Things done in execute:
 6. Set up context switch ( kernel stack base into esp of tss )
 7. IRET
 
-int32_t execute(const uint8_t *command)
-{
 */
-
-int32_t execute(const uint8_t *command)
-{
-    currpid = 3; //after init 0->2 always pid 3 for max processes check 
-    sti();
-    //enable_irq(0);
-    while(1){
-        if(currTerminal == terminalrun)
-        return execute_on_term(command, currTerminal);
-    }
- 
-
-}
-
 int32_t execute_on_term(const uint8_t *command, int term)
 {
-
-    
-
     /*  1. Extract name and args - check whether executable  */
 
     int cmd_len = strlen((const int8_t *)(command));
@@ -130,7 +130,7 @@ int32_t execute_on_term(const uint8_t *command, int term)
         }
     }
     int strlencmd = strlen((int8_t *)finalarg);
-
+    /* This trims the command that was extracted. */
     int trimval = 0;
     for (i=0; i < strlencmd; i++) {
         if (!((finalarg[i] == ' ') || (finalarg[i] == '\t'))) 
@@ -138,10 +138,6 @@ int32_t execute_on_term(const uint8_t *command, int term)
         else
             break;
     }
-
-
-
-
 
     /* 2. Search file system for the name of the file given: store it in the currdentry. */
     dentry_t currdentry;
@@ -193,15 +189,7 @@ int32_t execute_on_term(const uint8_t *command, int term)
 
     uint32_t physaddr = (PDE_PROCESS_START + currpid) * FOUR_MB;
     map_helper(PDE_VIRTUAL_MEM, physaddr);
-    /*
-    page_directory[PDE_VIRTUAL_MEM].ps = 1;             // make it a 4 mb page
-    page_directory[PDE_VIRTUAL_MEM].pt_baddr = physaddr >> PAGE_SHIFT;
-    page_directory[PDE_VIRTUAL_MEM].pcd = 1;            // in desc.pdf
-    page_directory[PDE_VIRTUAL_MEM].us = 1;             // must be 1 for all user-level pages and mem ranges
-    page_directory[PDE_VIRTUAL_MEM].p = 1;              // the page is present.
-    // Flush the TLB
-    loadPageDir(page_directory);
-    */
+
     /* Now we start copying into 4MB User pages */
     uint8_t *addrptr = (uint8_t *)(VIRT_ADDR); // PASSED INTO READ DATA AS BUFFER
     uint32_t currdentryinodenum = currdentry.inode;
@@ -212,9 +200,6 @@ int32_t execute_on_term(const uint8_t *command, int term)
     
     if (  rval< 0 )
         return -1;
-
-
-
 
     /* 5. Create new PCB for the current newly created process. */
     
@@ -227,27 +212,11 @@ int32_t execute_on_term(const uint8_t *command, int term)
 
     terminalArray[term].cur_PCB = currpcb;
 
-    //globalpcb = terminalArray[term].cur_PCB;
-
-
     currpcb->pid = currpid;
     if ((currpid == 0 || currpid == 1 || currpid == 2 )) // checking 0, 1, 2 since those pids are for base shell
         currpcb-> parent_id = -1; // check what parent of shell should be 
     else
         currpcb-> parent_id = parentpcb->pid;
-    /* if (!term_2_flag && (currTerminal == 1)) {
-        currpcb->parent_id = -1;
-        term_2_flag = 1;
-        currpid = 1;
-        terminalArray[1].currprocessid = 1;
-    }
-    else if (!term_3_flag && (currTerminal == 2)) {
-        currpcb->parent_id = -1;
-        term_3_flag = 1;
-        currpid = 2;
-        terminalArray[2].currprocessid = 2;
-    }
-    */
 
    currpcb->termid = term;
     uint32_t save_esp = 0;
@@ -298,9 +267,6 @@ int32_t execute_on_term(const uint8_t *command, int term)
     (currpcb->fdarray[1]).fileop.close = terminal_close;
     (currpcb->fdarray[1]).present = 1;
     
-
-    //globalpcb = currpcb;
-    
     strcpy((int8_t *)(currpcb->argbuffer), (int8_t *)(finalarg_trimmed));
 
     /* 6. Set up context switch ( kernel stack base into esp of tss ) */
@@ -332,7 +298,6 @@ int32_t execute_on_term(const uint8_t *command, int term)
     uint32_t stack_esp = PROG_START - FOUR_BYTE_OFFSET;
     int usrDS = USER_DS;
     int usrCS = USER_CS;
-   // sti();
 
     /* Start doing IRET */    
     /* 
@@ -346,9 +311,6 @@ int32_t execute_on_term(const uint8_t *command, int term)
     The ESP is basically the 132 MB location - 4 Bytes so we do not exceed the virtual stack location.
     */
    /* Oring to enable interrupts - 0x0200 with the flags, currently stored in eax */
-//    cli();
-   
-   
 
     asm volatile("pushl %0;"
         "pushl %1; \n"
@@ -403,9 +365,7 @@ int32_t halt(uint8_t status)
         status_ret_val = EXCEPTION_CALLED;
     }
 
-
     int parent_pcbaddr; 
-
    
     pcb_t* currpcb = terminalArray[terminalrun].cur_PCB;  //(pcb_t *)globalpcb;
  
@@ -465,15 +425,7 @@ int32_t halt(uint8_t status)
     int parentpid = currpid;
     uint32_t parent_physaddr = (PDE_PROCESS_START + parentpid) * FOUR_MB;
     map_helper(PDE_VIRTUAL_MEM, parent_physaddr);
-    /*
-    page_directory[PDE_VIRTUAL_MEM].ps = 1; // make it a 4 mb page
-    page_directory[PDE_VIRTUAL_MEM].pt_baddr = parent_physaddr >> PAGE_SHIFT;
-    page_directory[PDE_VIRTUAL_MEM].pcd = 1;            // in desc.pdf
-    page_directory[PDE_VIRTUAL_MEM].us = 1;             // must be 1 for all user-level pages and mem ranges
-    page_directory[PDE_VIRTUAL_MEM].p = 1;         
-    // Flush the TLB
-    loadPageDir(page_directory);
-    */
+
     /* (e) Set Parents Process as active */
     parentpcb->active = 1;
 
@@ -483,7 +435,6 @@ int32_t halt(uint8_t status)
     uint32_t parentksp = (uint32_t)(EIGHT_MEGA_BYTE - (EIGHT_KILO_BYTE * (parentpid) ) - FOUR_BYTE_OFFSET); //change curpid to parent 
     tss.ss0 = KERNEL_DS;
     tss.esp0 = parentksp;
-    //currpcb = parentpcb;
     terminalArray[terminalrun].cur_PCB = parentpcb;
 
     /* 6. halt return (assembly)
@@ -729,37 +680,7 @@ int32_t vidmap(uint8_t **screen_start)
 
     /* Perform map of 132 + b8 */
 
-    /* Setting up Video memory for user where physical is B8 and virtual is 132 + B8. (0xB8000 – 0xC0000) descripters.pdf pg 5
-    PD entry is 0, PT entry is B8
-    // */
-    // page_directory[USERVIDMEM_PDE_ENTRY].pt_baddr = (int)(page_table_user_vidmem) >> PAGE_SHIFT;       // Shift << 12 since lower 12 bits 0 for alignment B8000 -> B8
-    // page_directory[USERVIDMEM_PDE_ENTRY].rw = 1;
-    // page_directory[USERVIDMEM_PDE_ENTRY].us = 1;
-    // page_directory[USERVIDMEM_PDE_ENTRY].p = 1;
-    // /* Setting Video Memory inside the page table */
-
-    // page_table_user_vidmem[(VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT].pt_baddr = ((VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT);   
-    // //page_table_user_vidmem[(VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT].us = 1;                   // set us to 1 for user 
-    // //page_table_user_vidmem[(VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT].p = 1; 
-    
-    // page_table_user_vidmem[(VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT].pt_baddr = (VIDEO>> PAGE_SHIFT);   
-    // page_table_user_vidmem[(VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT].us = 1;                   // set us to 1 for user 
-    // page_table_user_vidmem[(VIDEO_T1 + FOUR_KILO_BYTE * (currTerminal)) >> PAGE_SHIFT].p = 1; 
-
-    // loadPageDir(page_directory); // flush TLB //? check with os dev maybe other stuff for flushing 
-
     *screen_start = (uint8_t *)terminalArray[currpcb->termid].vidmemloc; //(uint8_t *)VID_START;
-    // if (currpcb->termid == 0) {
-    //     *screen_start = (uint8_t *)VIDEO_T1;
-    // }
-    // else if (currpcb->termid == 1)
-    // {
-    //     *screen_start = (uint8_t *)VIDEO_T2;
-    // }
-    // else if (currpcb->termid == 2)
-    // {
-    //     *screen_start = (uint8_t *)VIDEO_T3;
-    // }
 
     return (int32_t)(*screen_start);
 }

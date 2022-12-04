@@ -149,10 +149,6 @@ extern void keyboard_handler(void) {
         if(currTerminal != 1){
             terminal_switch(TERMINAL_2_NUM);
             send_eoi(KEYBOARD_IRQ);
-            // if(!term_2_flag){
-            //     term_2_flag = 1; // Removed in the version where we did the flag stuff in the execute
-            //     // execute("shell");
-            // }
             return;
         }
     }
@@ -160,10 +156,6 @@ extern void keyboard_handler(void) {
         if(currTerminal != 2){
             terminal_switch(TERMINAL_3_NUM);
             send_eoi(KEYBOARD_IRQ);
-            // if(!term_3_flag){
-            //     term_3_flag = 1; // Removed in the version where we did the flag stuff in the execute
-            //     execute("shell"); 
-            // }
             return;
         }
     }
@@ -309,7 +301,7 @@ extern void keyboard_handler(void) {
             keyboardbuffer[terminalArray[currTerminal].currkey] = output;
             terminalArray[currTerminal].cursor_x = NUM_COLS-1;   // farthest right index in our 80-column row
             terminalArray[currTerminal].cursor_y--;
-            update_cursor(terminalArray[currTerminal].cursor_x, get_screen_y());
+            update_cursor(terminalArray[currTerminal].cursor_x, terminalArray[currTerminal].cursor_y);
             send_eoi(KEYBOARD_IRQ);
             return;
         }

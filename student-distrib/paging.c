@@ -6,10 +6,7 @@ page_table_entry page_table[NUM_ELEMS_PAGE] __attribute__((aligned(SIZE_OF_PG)))
 page_table_entry page_table_user_vidmem[NUM_ELEMS_PAGE] __attribute__((aligned(SIZE_OF_PG))); 
 void init_page();
 
-//uint32_t page __attribute__((aligned(SIZE_OF_PG))); //4kb page 
-
-//init the page directory 
-// refrenced this: https://wiki.osdev.org/Paging
+// Referenced this: https://wiki.osdev.org/Paging
 /*
 page table base Addr 31->12: Upper 20 bits of the physical address of a 4K-aligned page table. In MP4, kernel
 physical and virtual addresses are the same, so the page table base address should be just a label or variable

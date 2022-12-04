@@ -298,27 +298,6 @@ int SIMD()
     return 0;
 }
 
-// Commented out this function because having an in-between C function being called creates a new stack and screws up our registers.
-// I went ahead and replaced it with the actual assembly function in the IDT
-//
-// /*
-// int system_call_placeholder()
-// Description:  Interrupt generated for when a System Call is generated.
-// Inputs: none
-// Outputs: int (0 if valid) - never reached
-// */
-// int system_call_placeholder()
-// {
-//     /* Assembly call */
-//     call_handler();
-//     printf("System Call Was Called");
-//     while (1)
-//     {
-//     }
-//     return 0;
-// }
-
-
 /*
 void init_IDT()
 Description: Initialize the IDT.
@@ -382,8 +361,6 @@ void init_IDT()
     {
         idt_desc_t curr;
         int *curr_func_addr = (void *)funcs[i];
-        // curr.offset_15_00 = 0x0000FFFF & curr_func_addr;
-        // curr.offset_31_16 = 0xFFFF0000 & curr_func_addr;
 
         if(i == SYSTEM_CALL_IDT_ENTRY)
         {   
@@ -426,34 +403,6 @@ void init_IDT()
     SET_IDT_ENTRY(idt[KEYBOARD_IDT_ENTRY], keyboard_handler_function);  // Keyboard is in IDT entry table 0x21
     SET_IDT_ENTRY(idt[RTC_IDT_ENTRY], rtc_handler_linkage);             // RTC is in IDT entry table 0x28
     SET_IDT_ENTRY(idt[PIT_IDT_ENTRY], pit_handler_linkage);             // RTC is in IDT entry table 0x28
-    // lidt(idt_desc_ptr);
     return;
 }
 
-// alternative way is to, instead of looping, declare each separately. All comes
-// down to whether we can store function addresses in an array like this.
-
-// uint64_t DE;
-// uint64_t DB;
-// uint64_t BP;
-// uint64_t OF;
-// uint64_t BR;
-// uint64_t UD;
-// uint64_t NM;
-// uint64_t DF;
-// uint64_t CSO;
-// uint64_t TS;
-// uint64_t TS;
-// uint64_t TS;
-// uint64_t TS;
-// uint64_t TS;
-// uint64_t TS;
-// uint64_t TS;
-// uint64_t TS;
-// uint64_t TS;
-// uint64_t TS;
-// uint64_t TS;
-// uint64_t TS;
-// uint64_t TS;
-// uint64_t TS;
-// uint64_t TS;

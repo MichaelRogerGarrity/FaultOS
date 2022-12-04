@@ -172,12 +172,6 @@ void entry(unsigned long magic, unsigned long addr) {
     set_screen_y(0);
     enable_irq(0);
 
-    
-    //map_table(VIDEO_T1 >> PAGE_SHIFT, VIDEO );
-    
-    
-    //execute((const uint8_t *)("shell"));    //pid 0
-
 #ifdef RUN_TESTS
     /* Run tests */
     //launch_tests();

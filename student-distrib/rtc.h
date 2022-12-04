@@ -36,6 +36,7 @@
 #define RATE_FOR_4          128   
 #define RATE_FOR_2          256   
 #define OPEN_AT_2HZ         2
+#define WARNING_SUPPRESS    0xFFFF
 
 
 volatile int interrupt_flag_rtc; /* 1 == interrupt active. 0 == interrupt not active */
