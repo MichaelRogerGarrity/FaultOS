@@ -441,7 +441,7 @@ void putc2(uint8_t c) {
             *(uint8_t*)(video_mem3 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1)) = c;
             *(uint8_t*)(video_mem3 + ((NUM_COLS * curr_screen_y + curr_screen_x) << 1) + 1) = T3ATTRIB;
             curr_screen_x++;
-            if (screen_x >= NUM_COLS) {
+            if (curr_screen_x >= NUM_COLS) {
                 if (curr_screen_y == NUM_ROWS - 1) {
                     scroll();
                 }

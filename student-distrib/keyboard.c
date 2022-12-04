@@ -299,8 +299,8 @@ extern void keyboard_handler(void) {
             send_eoi(KEYBOARD_IRQ);
             return;
         }
-        /* Next we have the case of a character being at the */
-        else if(charcount > NUM_COLS-1){  // farthest right index in our 80-column row
+        /* Next we have the case of a character being at the left edge of bottom */
+        else if((terminalArray[currTerminal].cursor_x < BACKSPACE_CHAR_BUFF1) && ( (charcount + BACKSPACE_CHAR_BUFF2) > NUM_COLS-1)){  // farthest right index in our 80-column row
             terminalArray[currTerminal].cursor_y--;
             terminalArray[currTerminal].cursor_x = NUM_COLS-1;   // farthest right index in our 80-column row
             putc2Keyboard(' ');

@@ -32,6 +32,8 @@
 #define KEYBOARD_F1_DOWN            59
 #define KEYBOARD_F2_DOWN            60
 #define KEYBOARD_F3_DOWN            61
+#define BACKSPACE_CHAR_BUFF1        10
+#define BACKSPACE_CHAR_BUFF2        24
 
 /* Ports that each Keyboard sits on */
 #define KEYBOARD_PORT               0x60

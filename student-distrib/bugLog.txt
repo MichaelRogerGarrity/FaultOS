@@ -209,7 +209,31 @@ b. read_data return value
 c. vidmap range
 - Symptom: checking if in a 1kb page instead of 4mb page  
 - Difficulty: 20 min
-- Fix: chaneg the labels for the range to be within 1 mb page  
+- Fix: change the labels for the range to be within 1 mb page  
 
+
+Checkpoint 5
+
+1. 
+
+a. using ptr instead of accessing pcb through term array 
+- Symptom: after running programs halt would cause page faults  
+- Difficulty: 6hrs
+- Fix: instead of using currpcb ptr using the terminal arry direclty to set parent terminalArray[terminalrun].cur_PCB = parentpcb 
+
+b. terminal switch did not save mem 
+- Symptom: could not see saved mem after switching 
+- Difficulty: 5 hrs 
+- Fix: needed to switch the order of maping the pages then memcpy the vidmem of vidmem to cur, newterm mem to vidmem
+
+c. failure to restore ebp and esp
+- Symptom: The program would enter a boot loop where the shell would execute and then restart the whole system
+- Difficulty: 5 hours
+- Fix: Switch the ebp and esp to be saved to the terminal struct instead of the pcb struct
+
+d. Keyboard and terminal_write conflicts
+- Symptom: Terminal_write and keyboard both used putc2, which caused conflicts with evaluating what terminal to write to
+- Difficulty: 1 hour
+- Fix: Created two separate putc2 functions for terminal_write and keyboard. Terminal_write would use the pcb's terminal ID, while the keyboard would use the visible terminal. Also did this for the scroll function.
 
 

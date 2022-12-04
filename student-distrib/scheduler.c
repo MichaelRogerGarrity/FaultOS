@@ -153,7 +153,7 @@ void scheduler(){
 
         /* (b) Set TSS for parent. ksp = kernel stack pointer */
         uint32_t args_esp = terminalArray[newterm].savedt_esp;
-        uint32_t args_ebp = terminalArray[newterm].savedt_ebp ;
+        uint32_t args_ebp = terminalArray[newterm].savedt_ebp;
         
         asm volatile(
             /* set esp, ebp as esp ebp args */

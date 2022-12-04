@@ -77,6 +77,7 @@ int32_t execute_on_term(const uint8_t *command, int term)
     int cmd_len = strlen((const int8_t *)(command));
     uint8_t filename[MAX_FILENAME_LEN];
     uint8_t finalarg[MAX_ARG_LEN];
+    uint8_t finalarg_trimmed[MAX_ARG_LEN];
     uint8_t buffer[4];
     unsigned int i = 0;
     int filechar = 0;
@@ -90,6 +91,10 @@ int32_t execute_on_term(const uint8_t *command, int term)
     
     for (i = 0; i < MAX_ARG_LEN; i++) {
         finalarg[i] = '\0';
+    }
+
+    for (i = 0; i < MAX_ARG_LEN; i++) {
+        finalarg_trimmed[i] = '\0';
     }
     
     i = 0;
@@ -124,6 +129,17 @@ int32_t execute_on_term(const uint8_t *command, int term)
             finalarg[finalchar++] = command[i];
         }
     }
+    int strlencmd = strlen((int8_t *)finalarg);
+
+    int trimval = 0;
+    for (i=0; i < strlencmd; i++) {
+        if (!((finalarg[i] == ' ') || (finalarg[i] == '\t'))) 
+            finalarg_trimmed[trimval++] = finalarg[i];
+        else
+            break;
+    }
+
+
 
 
 
@@ -285,7 +301,7 @@ int32_t execute_on_term(const uint8_t *command, int term)
 
     //globalpcb = currpcb;
     
-    strcpy((int8_t *)(currpcb->argbuffer), (int8_t *)(finalarg));
+    strcpy((int8_t *)(currpcb->argbuffer), (int8_t *)(finalarg_trimmed));
 
     /* 6. Set up context switch ( kernel stack base into esp of tss ) */
  
